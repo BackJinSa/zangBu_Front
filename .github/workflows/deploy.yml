@@ -1,0 +1,99 @@
+name: Build and Deploy to NCP Object Storage
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Vue App
+        run: npm run build
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vue-dist
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vue-dist
+          path: dist
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+
+      - name: Install AWS CLI 1.15.85 with Python 3.8
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip curl
+          curl "https://s3.amazonaws.com/aws-cli/awscli-bundle-1.15.85.zip" -o "awscli-bundle.zip"
+          unzip awscli-bundle.zip
+          python3 ./awscli-bundle/install -i $HOME/.local/aws -b $HOME/.local/bin/aws
+<<<<<<< HEAD
+<<<<<<< HEAD
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          aws --version
+=======
+
+      - name: Add AWS CLI to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Check AWS CLI Version
+        run: aws --version
+
+>>>>>>> 125e659 (Update deploy.yml)
+=======
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          aws --version
+>>>>>>> 483d8eb (Update deploy.yml)
+      - name: Upload to NCP Object Storage
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.NCP_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.NCP_SECRET_ACCESS_KEY }}
+        run: |
+          aws --endpoint-url=https://kr.object.ncloudstorage.com \
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+              s3 cp --recursive dist/ s3://${{ secrets.NCP_BUCKET }}
+<<<<<<< HEAD
+=======
+            s3 sync dist/ s3://${{ secrets.NCP_BUCKET }} --delete
+=======
+              s3 sync dist/ s3://${{ secrets.NCP_BUCKET }} --delete
+>>>>>>> fcaf414 (Update deploy.yml)
+              # s3 cp --recursive dist/ s3://${{ secrets.NCP_BUCKET }}
+=======
+              s3 cp --recursive dist/ s3://${{ secrets.NCP_BUCKET }}
+>>>>>>> 31b6abe (Update deploy.yml)
+
+>>>>>>> 81c7d01 (Update deploy.yml)
+=======
+>>>>>>> 483d8eb (Update deploy.yml)
+          aws s3 ls s3://${{ secrets.NCP_BUCKET }} --recursive \
+            --endpoint-url=https://kr.object.ncloudstorage.com | \
+            awk '{print $4}' | while read file; do
+              aws s3api put-object-acl \
+                --bucket ${{ secrets.NCP_BUCKET }} \
+                --key "$file" \
+                --acl public-read \
+                --endpoint-url=https://kr.object.ncloudstorage.com
+            done
