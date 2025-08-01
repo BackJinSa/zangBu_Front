@@ -66,15 +66,18 @@ const displayMarkers = (mapData) => {
     // 인포윈도우 생성
     const infoWindow = new window.kakao.maps.InfoWindow({
       content: `
-        <div style="padding: 10px; min-width: 150px;">
+        <div style="padding: 10px; min-width: 200px;">
           <h4 style="margin: 0 0 5px 0; font-size: 14px; font-weight: bold;">
             ${property.building_name}
           </h4>
           <p style="margin: 0; font-size: 12px; color: #666;">
             ${property.address}
           </p>
+          <p style="margin: 3px 0; font-size: 11px; color: #888;">
+            ${property.propertyType} | ${property.saleType}
+          </p>
           <p style="margin: 5px 0 0 0; font-size: 13px; color: #007bff; font-weight: bold;">
-            ${generateRandomPrice()}
+            ${generatePropertyInfo(property)}
           </p>
         </div>
       `,
@@ -89,38 +92,150 @@ const displayMarkers = (mapData) => {
   })
 }
 
-// 임시 가격 생성 (사진과 유사한 가격)
-const generateRandomPrice = () => {
-  const prices = ['9.9억', '6억', '8.5억', '10억', '9억', '5억', '12.9억', '10.8억']
-  return prices[Math.floor(Math.random() * prices.length)]
+// 매물 정보 표시용 가격 생성
+const generatePropertyInfo = (property) => {
+  if (property.saleType === '매매') {
+    return `${(property.price / 100000000).toFixed(1)}억`
+  } else if (property.saleType === '전세') {
+    return `전세 ${(property.deposit / 100000000).toFixed(1)}억`
+  } else if (property.saleType === '월세') {
+    return `월세 ${(property.price / 10000).toFixed(0)}만/${(property.deposit / 100000000).toFixed(
+      1
+    )}억`
+  }
+  return '가격 정보 없음'
 }
 
-// 샘플 매물 데이터 (사진과 유사한 데이터)
+// 샘플 매물 데이터 (필터링 테스트용)
 const sampleProperties = [
-  { address: '서울특별시 강남구 테헤란로 123', building_name: '래미안파크 스위트' },
-  { address: '서울특별시 마포구 양화로 45', building_name: '홍익타워' },
-  { address: '서울특별시 종로구 종로 1', building_name: '종로타워' },
-  { address: '서울특별시 영등포구 여의대로 108', building_name: '파크원타워' },
-  { address: '서울특별시 광진구 구의동', building_name: '구의건내2 아파트' },
-  { address: '서울특별시 강남구 역삼동', building_name: '역삼동 아파트' },
-  { address: '서울특별시 서초구 서초동', building_name: '서초동 빌라' },
-  { address: '서울특별시 마포구 합정동', building_name: '합정동 오피스텔' },
+  // 매매 매물들
+  {
+    address: '서울특별시 강남구 테헤란로 123',
+    building_name: '래미안파크 스위트',
+    saleType: '매매',
+    propertyType: '아파트',
+    price: 1500000000,
+    deposit: 0,
+  },
+  {
+    address: '서울특별시 마포구 양화로 45',
+    building_name: '홍익타워',
+    saleType: '매매',
+    propertyType: '오피스텔',
+    price: 800000000,
+    deposit: 0,
+  },
+  {
+    address: '서울특별시 종로구 종로 1',
+    building_name: '종로타워',
+    saleType: '매매',
+    propertyType: '아파트',
+    price: 1200000000,
+    deposit: 0,
+  },
+
+  // 전세 매물들
+  {
+    address: '서울특별시 영등포구 여의대로 108',
+    building_name: '파크원타워',
+    saleType: '전세',
+    propertyType: '아파트',
+    price: 0,
+    deposit: 500000000,
+  },
+  {
+    address: '서울특별시 광진구 구의동',
+    building_name: '구의건내2 아파트',
+    saleType: '전세',
+    propertyType: '아파트',
+    price: 0,
+    deposit: 300000000,
+  },
+  {
+    address: '서울특별시 강남구 역삼동',
+    building_name: '역삼동 아파트',
+    saleType: '전세',
+    propertyType: '아파트',
+    price: 0,
+    deposit: 400000000,
+  },
+
+  // 월세 매물들
+  {
+    address: '서울특별시 서초구 서초동',
+    building_name: '서초동 빌라',
+    saleType: '월세',
+    propertyType: '빌라',
+    price: 50000000,
+    deposit: 10000000,
+  },
+  {
+    address: '서울특별시 마포구 합정동',
+    building_name: '합정동 오피스텔',
+    saleType: '월세',
+    propertyType: '오피스텔',
+    price: 80000000,
+    deposit: 5000000,
+  },
+  {
+    address: '서울특별시 강남구 청담동',
+    building_name: '청담동 주택',
+    saleType: '월세',
+    propertyType: '주택',
+    price: 120000000,
+    deposit: 20000000,
+  },
+
+  // 추가 매물들 (다양한 조합)
+  {
+    address: '서울특별시 송파구 잠실동',
+    building_name: '잠실 아파트',
+    saleType: '매매',
+    propertyType: '아파트',
+    price: 2000000000,
+    deposit: 0,
+  },
+  {
+    address: '서울특별시 성동구 성수동',
+    building_name: '성수동 오피스텔',
+    saleType: '전세',
+    propertyType: '오피스텔',
+    price: 0,
+    deposit: 200000000,
+  },
+  {
+    address: '서울특별시 용산구 이태원동',
+    building_name: '이태원 빌라',
+    saleType: '월세',
+    propertyType: '빌라',
+    price: 30000000,
+    deposit: 15000000,
+  },
 ]
 
 // 매물 데이터 로드
 const loadProperties = async () => {
   try {
+    // 초기 로드 시에는 필터링 없이 전체 매물 표시
     const mapData = await mapStore.fetchProperties(sampleProperties)
     displayMarkers(mapData)
+
+    // 필터링된 매물도 초기화
+    mapStore.filteredProperties = mapData
   } catch (error) {
     alert('매물을 불러오는데 실패했습니다.')
   }
 }
 
-// 필터 적용
-const applyFilters = () => {
-  mapStore.applyFilters()
-  displayMarkers(filteredProperties.value)
+// 필터 적용 (새로운 API 사용)
+const applyFilters = async () => {
+  try {
+    await mapStore.fetchFilteredProperties()
+    displayMarkers(filteredProperties.value)
+  } catch (error) {
+    console.error('필터 적용 실패:', error)
+    alert('필터를 적용하는데 실패했습니다.')
+  }
 }
 
 // 초기화 함수
@@ -156,13 +271,11 @@ const handleSearch = () => {
 // 매물 유형 토글
 const togglePropertyType = (type) => {
   mapStore.filters.propertyTypes[type] = !mapStore.filters.propertyTypes[type]
-  applyFilters()
 }
 
 // 거래 유형 토글
 const toggleTransactionType = (type) => {
   mapStore.filters.transactionTypes[type] = !mapStore.filters.transactionTypes[type]
-  applyFilters()
 }
 
 // 가격 범위 검증 및 조정
@@ -180,8 +293,6 @@ const validatePriceRange = () => {
   if (min > 50) mapStore.filters.priceRange.min = 50
   if (max < 0) mapStore.filters.priceRange.max = 0
   if (max > 50) mapStore.filters.priceRange.max = 50
-
-  applyFilters()
 }
 
 // 최소 가격 감소
@@ -217,9 +328,14 @@ const increaseMaxPrice = () => {
 }
 
 // 필터 초기화
-const resetFilters = () => {
-  mapStore.resetFilters()
-  displayMarkers(filteredProperties.value)
+const resetFilters = async () => {
+  try {
+    await mapStore.resetFilters()
+    displayMarkers(filteredProperties.value)
+  } catch (error) {
+    console.error('필터 초기화 실패:', error)
+    alert('필터를 초기화하는데 실패했습니다.')
+  }
 }
 
 // 필터 변경 감지
