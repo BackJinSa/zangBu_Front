@@ -49,6 +49,7 @@ import ColorGuideView from '@/pages/guide/ColorGuideView.vue'
 import PropertyCardGuideView from '@/pages/guide/PropertyCardGuideView.vue'
 import PropertyCardMainView from '@/pages/guide/PropertyCardMainView.vue'
 import ButtonGuideView from '@/pages/guide/ButtonGuideView.vue'
+import InputGuideView from '@/pages/guide/InputGuideView.vue'
 import DropboxGuideView from '@/pages/guide/DropboxGuideView.vue'
 import FooterGuideView from '@/pages/guide/FooterGuideView.vue'
 
@@ -231,6 +232,11 @@ const router = createRouter({
       path: '/guide/button-guide',
       name: 'button-guide',
       component: ButtonGuideView,
+    },
+    {
+      path: '/guide/input-guide',
+      name: 'input-guide',
+      component: InputGuideView,
     },
     {
       path: '/guide/dropbox-guide',
