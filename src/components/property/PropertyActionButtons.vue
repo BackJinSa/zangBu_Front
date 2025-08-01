@@ -1,7 +1,7 @@
 <script setup>
-import { usePropertyStore } from '@/stores/property/property';
+import { usePropertyStore } from '@/stores/property/property'
 
-const propertyStore = usePropertyStore();
+const propertyStore = usePropertyStore()
 </script>
 
 <template>
