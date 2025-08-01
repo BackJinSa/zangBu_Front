@@ -89,6 +89,33 @@
           </div>
         </div>
 
+        <!-- Input 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('input-guide')">
+          <div class="guide-icon">
+            <div class="input-preview">
+              <div class="preview-input-container">
+                <div class="preview-input-field"></div>
+                <div class="preview-input-placeholder">텍스트를 입력해주세요</div>
+                <div class="preview-input-focus-line"></div>
+              </div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">Input 가이드</h3>
+            <p class="guide-description">
+              깔끔하고 모던한 디자인의 Input 컴포넌트 사용법을 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">v-model 지원</span>
+              <span class="feature-tag">다양한 타입</span>
+              <span class="feature-tag">반응형</span>
+            </div>
+          </div>
+          <div class="guide-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+
         <!-- Button 가이드 -->
         <div class="guide-card" @click="navigateToGuide('button-guide')">
           <div class="guide-icon">
@@ -682,6 +709,69 @@ const navigateToGuide = (routeName) => {
   .resources-grid {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+}
+
+/* Input preview icon */
+.input-preview {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-input-container {
+  width: 50px;
+  height: 40px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.preview-input-field {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.preview-input-placeholder {
+  position: absolute;
+  top: 8px;
+  left: 6px;
+  font-size: 6px;
+  color: #9ca3af;
+  font-weight: 400;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 38px;
+}
+
+.preview-input-focus-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--brand-3), var(--brand-1));
+  transition: width 0.3s ease;
+  animation: focusAnimation 2s ease-in-out infinite;
+}
+
+@keyframes focusAnimation {
+  0%,
+  100% {
+    width: 0;
+  }
+  50% {
+    width: 100%;
   }
 }
 </style>
