@@ -89,6 +89,7 @@
           </div>
         </div>
 
+<<<<<<< HEAD
         <!-- Header 가이드 -->
         <div class="guide-card" @click="navigateToGuide('header-guide')">
           <div class="guide-icon">
@@ -112,6 +113,84 @@
               <span class="feature-tag">반응형</span>
               <span class="feature-tag">네비게이션</span>
               <span class="feature-tag">검색</span>
+=======
+        <!-- Button 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('button-guide')">
+          <div class="guide-icon">
+            <div class="button-preview">
+              <div class="preview-button primary"></div>
+              <div class="preview-button secondary"></div>
+              <div class="preview-button outline"></div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">Button 가이드</h3>
+            <p class="guide-description">
+              공용 Button 컴포넌트의 10가지 variant와 다양한 옵션을 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">10가지 variant</span>
+              <span class="feature-tag">아이콘 지원</span>
+              <span class="feature-tag">반응형</span>
+            </div>
+          </div>
+          <div class="guide-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+
+        <!-- DropBox 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('dropbox-guide')">
+          <div class="guide-icon">
+            <div class="dropbox-preview">
+              <div class="preview-dropdown">
+                <div class="preview-selector"></div>
+                <div class="preview-options">
+                  <div class="preview-option"></div>
+                  <div class="preview-option"></div>
+                  <div class="preview-option"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">DropBox 가이드</h3>
+            <p class="guide-description">
+              드롭다운 선택 기능을 제공하는 DropBox 컴포넌트의 사용법을 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">v-model 지원</span>
+              <span class="feature-tag">커스텀 옵션</span>
+              <span class="feature-tag">외부 클릭 감지</span>
+            </div>
+          </div>
+          <div class="guide-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+
+        <!-- Footer 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('footer-guide')">
+          <div class="guide-icon">
+            <div class="footer-preview">
+              <div class="preview-footer-content">
+                <div class="preview-info-line"></div>
+                <div class="preview-info-line"></div>
+                <div class="preview-info-line"></div>
+                <div class="preview-copyright"></div>
+              </div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">Footer 가이드</h3>
+            <p class="guide-description">
+              회사 정보와 연락처를 포함한 반응형 Footer 컴포넌트를 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">반응형</span>
+              <span class="feature-tag">회사 정보</span>
+              <span class="feature-tag">브랜드 컬러</span>
+>>>>>>> 8e6bd71f1639c35cf49543ed4ab81e756630d942
             </div>
           </div>
           <div class="guide-arrow">
@@ -348,6 +427,7 @@ const navigateToGuide = (routeName) => {
   width: 40%;
 }
 
+<<<<<<< HEAD
 /* Header preview icon */
 .header-preview {
   width: 60px;
@@ -397,6 +477,136 @@ const navigateToGuide = (routeName) => {
   border-radius: 2px;
   width: 40%;
   align-self: flex-end;
+=======
+/* Button preview icon */
+.button-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 60px;
+  height: 60px;
+  justify-content: center;
+}
+
+.preview-button {
+  height: 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.preview-button.primary {
+  background: var(--brand-3);
+  width: 100%;
+}
+
+.preview-button.secondary {
+  background: var(--status-1);
+  width: 80%;
+}
+
+.preview-button.outline {
+  background: transparent;
+  border-color: var(--brand-3);
+  width: 60%;
+}
+
+/* DropBox preview icon */
+.dropbox-preview {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-dropdown {
+  width: 50px;
+  height: 50px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.preview-selector {
+  height: 12px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  position: relative;
+}
+
+.preview-selector::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-top: 3px solid #6c757d;
+}
+
+.preview-options {
+  padding: 2px;
+}
+
+.preview-option {
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 2px;
+  margin-bottom: 2px;
+}
+
+.preview-option:last-child {
+  margin-bottom: 0;
+}
+
+/* Footer preview icon */
+.footer-preview {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-footer-content {
+  width: 50px;
+  height: 50px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.preview-info-line {
+  height: 3px;
+  background: #e9ecef;
+  border-radius: 1px;
+  width: 100%;
+}
+
+.preview-info-line:nth-child(2) {
+  width: 80%;
+}
+
+.preview-info-line:nth-child(3) {
+  width: 60%;
+}
+
+.preview-copyright {
+  height: 2px;
+  background: #6c757d;
+  border-radius: 1px;
+  width: 70%;
+  margin-top: auto;
+>>>>>>> 8e6bd71f1639c35cf49543ed4ab81e756630d942
 }
 
 .guide-content {
