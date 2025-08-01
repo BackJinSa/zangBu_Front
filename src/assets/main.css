@@ -32,22 +32,22 @@ body {
 /* 공용 컬러 시스템 - CSS 변수 */
 :root {
   /* Brand Colors */
-  --brand-1: #1C4025;
+  --brand-1: #1c4025;
   --brand-2: #285934;
-  --brand-3: #68A63C;
-  --brand-4: #68A63C;
-  --brand-5: #F2F2F2;
-  
+  --brand-3: #68a63c;
+  --brand-4: rgba(104, 166, 60, 0.7);
+  --brand-5: #f2f2f2;
+
   /* Status Colors */
-  --status-1: #0D8CE7;
-  --status-2: #DC3545;
-  
+  --status-1: #0d8ce7;
+  --status-2: #dc3545;
+
   /* Text Colors */
-  --text-1: #6B7280;
+  --text-1: #6b7280;
   --text-2: #555555;
-  --text-3: #FFFFFF;
-  
+  --text-3: #ffffff;
+
   /* Background Colors */
-  --bg-1: #F2F2F2;
-  --bg-2: #FFFFFF;
+  --bg-1: #f2f2f2;
+  --bg-2: #ffffff;
 }
