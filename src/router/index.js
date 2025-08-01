@@ -45,6 +45,7 @@ import PaymentView from '@/pages/system/PaymentView.vue'
 
 // 컬러 가이드 페이지
 import ColorGuideView from '@/pages/guide/ColorGuideView.vue'
+import PropertyCardGuideView from '@/pages/guide/PropertyCardGuideView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -200,11 +201,16 @@ const router = createRouter({
       component: PaymentView,
     },
 
-    // 컬러 가이드 라우트
+    // 가이드 라우트
     {
-      path: '/color-guide',
+      path: '/guide/color-guide',
       name: 'color-guide',
       component: ColorGuideView,
+    },
+    {
+      path: '/guide/property-card-guide',
+      name: 'property-card-guide',
+      component: PropertyCardGuideView,
     },
   ],
 })
