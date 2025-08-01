@@ -172,7 +172,6 @@ export const getSingleMapLocationMock = async (address, buildingName) => {
 }
 
 export const getFilteredMapListMock = async (filterRequest) => {
-  await mockMapAPI.delay(1000) // 1초 지연
 
   const response = mockMapAPI.getFilteredMockResponse(filterRequest)
 

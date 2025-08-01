@@ -40,7 +40,6 @@ export const useMapStore = defineStore('map', () => {
   // 액션
   const fetchProperties = async (propertyList) => {
     try {
-      loading.value = true
       error.value = null
 
       const response = await getMapList(propertyList)
@@ -52,14 +51,11 @@ export const useMapStore = defineStore('map', () => {
       error.value = err.message || '매물을 불러오는데 실패했습니다.'
       console.error('매물 데이터 로드 실패:', err)
       throw err
-    } finally {
-      loading.value = false
     }
   }
 
   const fetchSingleProperty = async (address, buildingName) => {
     try {
-      loading.value = true
       error.value = null
 
       const response = await getSingleMapLocation(address, buildingName)
@@ -68,15 +64,12 @@ export const useMapStore = defineStore('map', () => {
       error.value = err.message || '매물 좌표를 불러오는데 실패했습니다.'
       console.error('매물 좌표 로드 실패:', err)
       throw err
-    } finally {
-      loading.value = false
     }
   }
 
   // 필터링된 매물 조회 (새로운 API 사용)
   const fetchFilteredProperties = async () => {
     try {
-      loading.value = true
       error.value = null
 
       // 필터 조건 구성
@@ -116,8 +109,6 @@ export const useMapStore = defineStore('map', () => {
       error.value = err.message || '필터링된 매물을 불러오는데 실패했습니다.'
       console.error('필터링된 매물 로드 실패:', err)
       throw err
-    } finally {
-      loading.value = false
     }
   }
 
@@ -221,7 +212,6 @@ export const useMapStore = defineStore('map', () => {
     // 상태
     properties,
     filteredProperties,
-    loading,
     error,
     filters,
     mapCenter,
