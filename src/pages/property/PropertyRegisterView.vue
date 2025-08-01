@@ -8,6 +8,7 @@ import MoveInDatePicker from '@/components/property/MoveInDatePicker.vue'
 import Button from '@/components/common/Button.vue'
 import Dropbox from '@/components/common/Dropbox.vue'
 import Footer from '@/components/common/footer.vue'
+import Input from '@/components/common/Input.vue'
 // 매물 등록 관련 로직
 </script>
 
@@ -55,7 +56,7 @@ import Footer from '@/components/common/footer.vue'
             <Button variant="button9" size="lg">돌아가기</Button>
             <Button variant="button10" size="lg">돌아가기</Button>
             <Dropbox />
-            <Footer />
+            <Input />
           </div>
           <PropertyActionButtons />
         </form>
