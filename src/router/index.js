@@ -42,6 +42,9 @@ import ReviewWriteView from '@/pages/review/ReviewWriteView.vue'
 import NotificationView from '@/pages/system/NotificationView.vue'
 import PaymentView from '@/pages/system/PaymentView.vue'
 
+// 컬러 가이드 페이지
+import ColorGuideView from '@/pages/guide/ColorGuideView.vue'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -189,6 +192,13 @@ const router = createRouter({
       path: '/payment',
       name: 'payment',
       component: PaymentView,
+    },
+
+    // 컬러 가이드 라우트
+    {
+      path: '/color-guide',
+      name: 'color-guide',
+      component: ColorGuideView,
     },
   ],
 })
