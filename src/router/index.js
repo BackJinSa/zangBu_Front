@@ -48,6 +48,7 @@ import GuideMainView from '@/pages/guide/GuideMainView.vue'
 import ColorGuideView from '@/pages/guide/ColorGuideView.vue'
 import PropertyCardGuideView from '@/pages/guide/PropertyCardGuideView.vue'
 import PropertyCardMainView from '@/pages/guide/PropertyCardMainView.vue'
+import HeaderGuideView from '@/pages/guide/HeaderGuideView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -223,6 +224,11 @@ const router = createRouter({
       path: '/guide/property-card-main-guide',
       name: 'property-card-main-guide',
       component: PropertyCardMainView,
+    },
+    {
+      path: '/guide/header-guide',
+      name: 'header-guide',
+      component: HeaderGuideView,
     },
   ],
 })

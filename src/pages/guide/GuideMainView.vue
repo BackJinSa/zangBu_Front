@@ -88,6 +88,36 @@
             <i class="fas fa-chevron-right"></i>
           </div>
         </div>
+
+        <!-- Header 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('header-guide')">
+          <div class="guide-icon">
+            <div class="header-preview">
+              <div class="preview-logo"></div>
+              <div class="preview-search"></div>
+              <div class="preview-nav">
+                <div class="nav-item"></div>
+                <div class="nav-item"></div>
+                <div class="nav-item"></div>
+              </div>
+              <div class="preview-user"></div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">Header 가이드</h3>
+            <p class="guide-description">
+              반응형 Header 컴포넌트의 사용법과 데스크톱/모바일 레이아웃을 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">반응형</span>
+              <span class="feature-tag">네비게이션</span>
+              <span class="feature-tag">검색</span>
+            </div>
+          </div>
+          <div class="guide-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
       </div>
 
       <!-- 추가 가이드 섹션 -->
@@ -316,6 +346,57 @@ const navigateToGuide = (routeName) => {
   background: #f39c12;
   border-radius: 2px;
   width: 40%;
+}
+
+/* Header preview icon */
+.header-preview {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+}
+
+.preview-logo {
+  height: 8px;
+  background: var(--brand-1);
+  border-radius: 2px;
+  margin-bottom: 4px;
+  width: 60%;
+}
+
+.preview-search {
+  height: 6px;
+  background: #ecf0f1;
+  border-radius: 2px;
+  margin-bottom: 4px;
+  width: 80%;
+}
+
+.preview-nav {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.nav-item {
+  height: 4px;
+  background: var(--brand-3);
+  border-radius: 1px;
+  flex: 1;
+}
+
+.preview-user {
+  height: 6px;
+  background: var(--brand-2);
+  border-radius: 2px;
+  width: 40%;
+  align-self: flex-end;
 }
 
 .guide-content {
