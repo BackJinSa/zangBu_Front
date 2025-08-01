@@ -5,7 +5,9 @@ import ContactPersonForm from '@/components/property/ContactPersonForm.vue'
 import PropertyActionButtons from '@/components/property/PropertyActionButtons.vue'
 import AddressSearchMap from '@/components/property/AddressSearchMap.vue'
 import MoveInDatePicker from '@/components/property/MoveInDatePicker.vue'
-
+import Button from '@/components/common/Button.vue'
+import Dropbox from '@/components/common/Dropbox.vue'
+import Footer from '@/components/common/footer.vue'
 // 매물 등록 관련 로직
 </script>
 
@@ -40,6 +42,21 @@ import MoveInDatePicker from '@/components/property/MoveInDatePicker.vue'
           <ContactPersonForm />
 
           <!-- 액션 버튼 -->
+          <div class="space-y-4 p-4 bg-white rounded-lg border">
+            <h3 class="text-lg font-semibold">Button 컴포넌트 테스트</h3>
+            <Button variant="button1" size="sm">돌아가기</Button>
+            <Button variant="button2" size="sm">돌아가기</Button>
+            <Button variant="button3" size="sm">돌아가기</Button>
+            <Button variant="button4" size="lg">돌아가기</Button>
+            <Button variant="button5" size="lg">돌아가기</Button>
+            <Button variant="button6" size="lg">돌아가기</Button>
+            <Button variant="button7" size="lg">돌아가기</Button>
+            <Button variant="button8" size="lg">돌아가기</Button>
+            <Button variant="button9" size="lg">돌아가기</Button>
+            <Button variant="button10" size="lg">돌아가기</Button>
+            <Dropbox />
+            <Footer />
+          </div>
           <PropertyActionButtons />
         </form>
       </div>
