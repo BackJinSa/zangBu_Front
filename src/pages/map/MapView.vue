@@ -32,7 +32,6 @@ const searchQuery = computed({
   set: (value) => mapStore.setSearchQuery(value),
 })
 
-const loading = computed(() => mapStore.loading)
 const filteredProperties = computed(() => mapStore.filteredProperties)
 
 // 카카오 맵 초기화
@@ -576,11 +575,7 @@ onMounted(() => {
 
       <!-- 지도 영역 -->
       <div class="map-area">
-        <div ref="mapContainer" class="map-canvas" :class="{ loading: loading }">
-          <div v-if="loading" class="loading-overlay">
-            <div class="loading-spinner">로딩 중...</div>
-          </div>
-        </div>
+        <div ref="mapContainer" class="map-canvas"></div>
 
         <!-- 우측 컨트롤 버튼들 -->
         <div class="map-controls">
