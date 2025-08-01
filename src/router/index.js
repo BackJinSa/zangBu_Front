@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 // 메인 페이지
 import MainView from '@/pages/MainView.vue'
 import MapView from '@/pages/map/MapView.vue'
+import MapTestView from '@/pages/map/MapTestView.vue'
 
 // 인증 관련 페이지
 import LoginView from '@/pages/auth/LoginView.vue'
@@ -56,6 +57,11 @@ const router = createRouter({
       path: '/map',
       name: 'map',
       component: MapView,
+    },
+    {
+      path: '/map/test',
+      name: 'map-test',
+      component: MapTestView,
     },
 
     // 인증 관련 라우트
