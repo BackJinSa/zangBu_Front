@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:map": "node test-map.js",
+    "test:map-mock": "VITE_USE_MOCK_API=true npm run dev"
   },
   "dependencies": {
     "@capacitor/cli": "^7.4.2",
