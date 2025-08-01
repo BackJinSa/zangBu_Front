@@ -1,40 +1,63 @@
-<!-- /components/system/NotificationCard.vue -->
 <template>
-  <div
-    class="flex items-start justify-between p-4 rounded-lg shadow-sm border border-gray-200"
-    :class="{ 'bg-gray-50': notification.isRead }"
-  >
-    <!-- 좌측 아이콘 + 본문 -->
-    <div class="flex items-start space-x-3">
-      <!-- 아이콘 -->
-      <NotificationIcon :type="notification.type" />
+  <div class="notification-card" :class="{ read: notification.isRead }">
+    <NotificationIcon :type="notification.type" />
 
-      <!-- 본문 -->
-      <div>
-        <NotificationCardHeader :title="notification.title" :message="notification.message" />
-        <NotificationCardMeta :type="notification.type" :createdAt="notification.createdAt" />
-      </div>
+    <div class="card-content">
+      <NotificationCardHeader :title="notification.title" :message="notification.message" />
+      <NotificationCardMeta
+        :time="notification.time"
+        :tag="notification.tag"
+        :type="notification.type"
+      />
     </div>
 
-    <!-- 오른쪽 ✔ ❌ -->
     <NotificationCardActions
-      :isRead="notification.isRead"
-      @read="$emit('read')"
-      @delete="$emit('delete')"
+      :is-read="notification.isRead"
+      @mark-read="handleMarkRead"
+      @delete="handleDelete"
     />
   </div>
 </template>
 
 <script setup>
+import { reactive, toRefs } from 'vue'
 import NotificationIcon from './NotificationIcon.vue'
 import NotificationCardHeader from './NotificationCardHeader.vue'
 import NotificationCardMeta from './NotificationCardMeta.vue'
 import NotificationCardActions from './NotificationCardActions.vue'
 
-defineProps({
-  notification: {
-    type: Object,
-    required: true,
-  },
+const props = defineProps({
+  notification: Object,
 })
+
+const emit = defineEmits(['action'])
+
+// 반응성을 보장하기 위해 직접 참조 사용하지 않고, props 자체를 사용
+const { notification } = toRefs(props)
+
+const handleMarkRead = () => {
+  emit('action', { type: 'markRead', id: notification.value.id })
+}
+
+const handleDelete = () => {
+  emit('action', { type: 'delete', id: notification.value.id })
+}
 </script>
+
+<style scoped>
+.notification-card {
+  display: flex;
+  align-items: flex-start;
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid #dee2e6;
+  transition: opacity 0.2s ease;
+}
+
+.notification-card.read {
+  opacity: 0.5;
+}
+</style>

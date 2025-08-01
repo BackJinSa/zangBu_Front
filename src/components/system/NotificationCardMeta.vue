@@ -1,8 +1,8 @@
-<!-- /components/system/NotificationCardMeta.vue -->
+<!-- /src/components/system/NotificationCardMeta.vue -->
 <template>
-  <div class="flex items-center space-x-2 mt-2 text-xs text-gray-500">
-    <NotificationBadge :type="type" />
-    <span>{{ formatTime(createdAt) }}</span>
+  <div class="card-meta">
+    <span class="time">{{ time }}</span>
+    <NotificationBadge v-if="tag" :text="tag" :type="type" />
   </div>
 </template>
 
@@ -10,18 +10,19 @@
 import NotificationBadge from './NotificationBadge.vue'
 
 defineProps({
-  type: String, // 'price', 'deal', 'review'
-  createdAt: String, // ISO 시간 문자열
+  time: String,
+  tag: String,
+  type: String,
 })
-
-const formatTime = (isoString) => {
-  const date = new Date(isoString)
-  const now = new Date()
-  const diff = Math.floor((now - date) / 1000)
-
-  if (diff < 60) return '방금 전'
-  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`
-  return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`
-}
 </script>
+
+<style scoped>
+.card-meta {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #868e96;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+</style>

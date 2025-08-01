@@ -1,41 +1,51 @@
-<!-- /components/system/NotificationFilter.vue -->
+<!-- /src/components/system/NotificationFilter.vue -->
 <template>
-  <div class="flex space-x-6 border-b border-gray-200 mb-4">
+  <div class="filter-tabs">
     <button
-      v-for="item in tabs"
-      :key="item.value"
-      @click="$emit('change', item.value)"
-      class="relative pb-2 text-sm font-medium"
-      :class="[
-        activeType === item.value
-          ? 'text-black border-b-2 border-black'
-          : 'text-gray-400 hover:text-black',
-      ]"
+      v-for="filter in filters"
+      :key="filter.key"
+      :class="['tab-button', { active: filter.key === activeFilter }]"
+      @click="$emit('filter-change', filter.key)"
     >
-      {{ item.label }}
-      <span
-        v-if="item.count !== undefined"
-        class="ml-1 text-xs text-white bg-neutral-400 rounded-full px-1.5 py-0.5"
-      >
-        ●
-      </span>
+      {{ filter.label }}
+      <span class="count">{{ filter.count }}</span>
     </button>
   </div>
 </template>
 
 <script setup>
 defineProps({
-  activeType: {
-    type: String,
-    default: 'all',
-  },
+  filters: Array,
+  activeFilter: String,
 })
-
-// 필요 시 count도 넘길 수 있음
-const tabs = [
-  { label: '전체', value: 'all' },
-  { label: '매물 알림', value: 'price' },
-  { label: '실거래 알림', value: 'deal' },
-  { label: '리뷰 알림', value: 'review' },
-]
 </script>
+
+<style scoped>
+.filter-tabs {
+  display: flex;
+  background-color: white;
+  padding: 12px 20px;
+  border-bottom: 1px solid #e9ecef;
+  gap: 8px;
+}
+
+.tab-button {
+  border: none;
+  background: #f1f3f5;
+  color: #495057;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.tab-button.active {
+  background: #343a40;
+  color: white;
+}
+
+.count {
+  font-weight: bold;
+  margin-left: 6px;
+}
+</style>

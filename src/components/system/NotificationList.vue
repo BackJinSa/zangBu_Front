@@ -1,16 +1,16 @@
-<!-- /components/system/NotificationList.vue -->
+<!-- /src/components/system/NotificationList.vue -->
 <template>
-  <div>
-    <NotificationEmpty v-if="notifications.length === 0" />
-    <div v-else class="space-y-3">
+  <div class="notification-list">
+    <template v-if="!loading && notifications.length">
       <NotificationCard
         v-for="notification in notifications"
         :key="notification.id"
         :notification="notification"
-        @read="$emit('read', notification.id)"
-        @delete="$emit('delete', notification.id)"
+        @action="$emit('notification-action', $event)"
       />
-    </div>
+    </template>
+    <NotificationEmpty v-else-if="!loading && !notifications.length" />
+    <div v-else class="loading">불러오는 중...</div>
   </div>
 </template>
 
@@ -19,9 +19,23 @@ import NotificationCard from './NotificationCard.vue'
 import NotificationEmpty from './NotificationEmpty.vue'
 
 defineProps({
-  notifications: {
-    type: Array,
-    required: true,
-  },
+  notifications: Array,
+  loading: Boolean,
 })
 </script>
+
+<style scoped>
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.loading {
+  text-align: center;
+  color: #6c757d;
+  font-size: 14px;
+  margin-top: 40px;
+}
+</style>
