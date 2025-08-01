@@ -17,9 +17,11 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useMapStore } from '@/stores/map/map.js'
+import { useRouter } from 'vue-router'
 
 // Store 사용
 const mapStore = useMapStore()
+const router = useRouter()
 
 // 지도 관련
 const mapContainer = ref(null)
@@ -395,6 +397,11 @@ const resetFilters = async () => {
   }
 }
 
+// 집 내놓기 페이지로 이동
+const goToUpload = () => {
+  router.push('/building/upload')
+}
+
 // 필터 변경 감지
 watch(
   () => mapStore.filteredProperties,
@@ -587,7 +594,10 @@ onMounted(() => {
 
         <!-- 우측 하단 집 내놓기 버튼 -->
         <div class="floating-action">
-          <button class="floating-btn" title="집 내놓기">🏠</button>
+          <button class="floating-btn" title="집 내놓기" @click="goToUpload">
+            <span class="house-icon">🏠</span>
+            <span class="btn-text">집 내놓기</span>
+          </button>
         </div>
       </div>
     </div>
@@ -905,25 +915,38 @@ onMounted(() => {
 }
 
 .floating-btn {
-  width: 56px;
-  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
   background: #4caf50;
   color: white;
   border: none;
-  border-radius: 50%;
   cursor: pointer;
-  font-size: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s;
+  padding: 8px;
 }
 
 .floating-btn:hover {
   background: #45a049;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.house-icon {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.btn-text {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
