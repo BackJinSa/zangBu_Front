@@ -1,49 +1,31 @@
 import api from '../axios'
 
-// 매물 목록 조회
-export const getProperties = (params) => {
-  return api.get('/properties', { params })
-}
-
-// 매물 상세 조회
-export const getPropertyDetail = (id) => {
-  return api.get(`/properties/${id}`)
-}
-
-// 매물 등록
-export const registerProperty = (propertyData) => {
-  return api.post('/properties', propertyData)
-}
-
-// 매물 수정
-export const updateProperty = (id, propertyData) => {
-  return api.put(`/properties/${id}`, propertyData)
-}
-
-// 매물 삭제
-export const deleteProperty = (id) => {
-  return api.delete(`/properties/${id}`)
-}
-
-// 매물 이미지 업로드
-export const uploadPropertyImages = (propertyId, images) => {
-  const formData = new FormData()
-  images.forEach((image, index) => {
-    formData.append(`images[${index}]`, image)
-  })
-  return api.post(`/properties/${propertyId}/images`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  })
+// 매물 상세보기
+export const getPropertyDetail = (params) => {
+  return api.post('/building', params)
 }
 
 // 매물 찜하기
-export const toggleFavorite = (propertyId) => {
-  return api.post(`/properties/${propertyId}/favorite`)
+export const bookmarkProperty = (data) => {
+  return api.post('/building/bookmark', data)
 }
 
-// 찜한 매물 목록
-export const getFavoriteProperties = () => {
-  return api.get('/properties/favorites')
+// 매물 찜하기 취소
+export const cancelBookmarkProperty = (buildingId) => {
+  return api.delete(`/building/bookmark/${buildingId}`)
+}
+
+// 매물 등록
+export const registerProperty = (data) => {
+  return api.post('/building/upload', data)
+}
+
+// 필터링된 매물 리스트
+export const getFilteredPropertyList = (params) => {
+  return api.get('/building/list', { params })
+}
+
+// 매물 삭제
+export const deleteProperty = (buildingId) => {
+  return api.delete(`/building/remove/${buildingId}`)
 }

@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // axios 인스턴스 생성
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+  baseURL: 'https://api.zanbu.site',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
