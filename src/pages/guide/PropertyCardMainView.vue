@@ -1,19 +1,17 @@
 <template>
   <div class="property-card-guide">
     <div class="container">
-      <h1 class="page-title">PropertyCard 컴포넌트 가이드</h1>
+      <h1 class="page-title">PropertyCardMain 컴포넌트 가이드</h1>
 
       <!-- 컴포넌트 예시 -->
       <section class="section">
         <h2 class="section-title">컴포넌트 예시</h2>
         <div class="cards-grid">
-          <PropertyCard
+          <PropertyCardMain
             v-for="property in sampleProperties"
             :key="property.id"
             :property="property"
             @bookmark="handleBookmark"
-            @detail="handleDetail"
-            @delete="handleDelete"
           />
         </div>
       </section>
@@ -24,39 +22,26 @@
         <div class="code-example">
           <h3>기본 사용법</h3>
           <pre><code>&lt;template&gt;
-  &lt;PropertyCard
+  &lt;PropertyCardMain
     :property="propertyData"
     @bookmark="handleBookmark"
-    @detail="handleDetail"
-    @delete="handleDelete"
   /&gt;
 &lt;/template&gt;
 
 &lt;script setup&gt;
-import PropertyCard from '@/components/common/PropertyCard.vue'
+import PropertyCardMain from '@/components/common/PropertyCardMain.vue'
 
 const propertyData = {
   id: 1,
-  title: '홍대 아늑한 스튜디오',
-  location: '서울시 마포구',
-  imageUrl: '/path/to/image.jpg',
-  status: '전세',
-  price: '₩300,000,000',
-  description: '젊은 전문가에게 완벽한 스튜디오 아파트입니다.',
-  savedDate: '1주 전 저장',
+  title: '힐하우스',
+  price: '₩700,000,000',
+  rating: '4.7',
+  imageUrl: 'https://example.com/image.jpg',
   isBookmarked: false
 }
 
 const handleBookmark = (data) => {
   console.log('Bookmark:', data)
-}
-
-const handleDetail = (property) => {
-  console.log('Detail:', property)
-}
-
-const handleDelete = (property) => {
-  console.log('Delete:', property)
 }
 &lt;/script&gt;</code></pre>
         </div>
@@ -82,7 +67,7 @@ const handleDelete = (property) => {
                 <td>Object</td>
                 <td>✅</td>
                 <td>-</td>
-                <td>매물 정보 객체</td>
+                <td>부동산 정보 객체</td>
               </tr>
             </tbody>
           </table>
@@ -95,14 +80,11 @@ const handleDelete = (property) => {
         <div class="code-example">
           <h3>Property 객체 구조</h3>
           <pre><code>{
-  id: Number,           // 매물 고유 ID
-  title: String,        // 매물 제목
-  location: String,     // 위치
+  id: Number,           // 부동산 고유 ID
+  title: String,        // 부동산 이름
+  price: String,        // 가격 (예: '₩700,000,000')
+  rating: String,       // 별점 (예: '4.7')
   imageUrl: String,     // 이미지 URL
-  status: String,       // 매물 상태 (매매/전세/월세)
-  price: String,        // 가격
-  description: String,  // 설명
-  savedDate: String,    // 저장 날짜
   isBookmarked: Boolean // 즐겨찾기 여부
 }</code></pre>
         </div>
@@ -112,7 +94,7 @@ const handleDelete = (property) => {
       <section class="section">
         <h2 class="section-title">이벤트 핸들러</h2>
         <div class="code-example">
-          <h3>이벤트 처리 예시</h3>
+          <h3>Bookmark 이벤트 처리</h3>
           <pre><code>const handleBookmark = (data) => {
   const { propertyId, isBookmarked } = data
   
@@ -122,21 +104,8 @@ const handleDelete = (property) => {
     property.isBookmarked = isBookmarked
   }
   
-  console.log('Bookmark:', data.propertyId, data.isBookmarked)
-}
-
-const handleDetail = (property) => {
-  console.log('Detail:', property)
-  // 상세 페이지로 이동
-  router.push(`/property/detail/${property.id}`)
-}
-
-const handleDelete = (property) => {
-  console.log('Delete:', property)
-  // 삭제 확인 후 처리
-  if (confirm('정말 삭제하시겠습니까?')) {
-    deleteProperty(property.id)
-  }
+  // API 호출 예시
+  updateBookmarkStatus(propertyId, isBookmarked)
 }</code></pre>
         </div>
       </section>
@@ -157,21 +126,9 @@ const handleDelete = (property) => {
             <tbody>
               <tr>
                 <td>bookmark</td>
-                <td>북마크 버튼 클릭</td>
+                <td>하트 버튼 클릭</td>
                 <td>{ propertyId, isBookmarked }</td>
                 <td>즐겨찾기 상태 변경 시 발생</td>
-              </tr>
-              <tr>
-                <td>detail</td>
-                <td>상세보기 버튼 클릭</td>
-                <td>property object</td>
-                <td>매물 상세 페이지로 이동 시 발생</td>
-              </tr>
-              <tr>
-                <td>delete</td>
-                <td>삭제 버튼 클릭</td>
-                <td>property object</td>
-                <td>매물 삭제 시 발생</td>
               </tr>
             </tbody>
           </table>
@@ -184,22 +141,8 @@ const handleDelete = (property) => {
         <div class="code-example">
           <h3>Bookmark 이벤트 데이터 구조</h3>
           <pre><code>{
-  propertyId: Number,   // 매물 ID
+  propertyId: Number,   // 부동산 ID
   isBookmarked: Boolean // 즐겨찾기 상태 (true/false)
-}</code></pre>
-        </div>
-        <div class="code-example">
-          <h3>Detail/Delete 이벤트 데이터 구조</h3>
-          <pre><code>{
-  id: Number,
-  title: String,
-  location: String,
-  imageUrl: String,
-  status: String,
-  price: String,
-  description: String,
-  savedDate: String,
-  isBookmarked: Boolean
 }</code></pre>
         </div>
       </section>
@@ -208,12 +151,7 @@ const handleDelete = (property) => {
       <section class="section">
         <h2 class="section-title">인터랙티브 데모</h2>
         <div class="demo-card">
-          <PropertyCard
-            :property="interactiveProperty"
-            @bookmark="handleInteractiveBookmark"
-            @detail="handleInteractiveDetail"
-            @delete="handleInteractiveDelete"
-          />
+          <PropertyCardMain :property="interactiveProperty" @bookmark="handleInteractiveBookmark" />
         </div>
         <div v-if="lastEvent" class="event-log">
           <p>
@@ -227,52 +165,39 @@ const handleDelete = (property) => {
 
 <script setup>
 import { ref } from 'vue'
-import PropertyCard from '@/components/common/PropertyCard.vue'
+import PropertyCardMain from '@/components/common/PropertyCardMain.vue'
 
-// 샘플 매물 데이터
 const sampleProperties = ref([
   {
     id: 1,
-    title: '홍대 아늑한 스튜디오',
-    location: '서울시 마포구',
-    imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop',
-    status: '전세',
-    price: '₩300,000,000',
-    description: '젊은 전문가에게 완벽한 스튜디오 아파트입니다. 밤 문화와 대학가에 가깝습니다.',
-    savedDate: '1주 전 저장',
+    title: '힐하우스',
+    price: '₩700,000,000',
+    rating: '4.7',
+    imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop',
     isBookmarked: false,
   },
   {
     id: 2,
-    title: '강남 역세권 신축 아파트',
-    location: '서울시 강남구',
-    imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=300&fit=crop',
-    status: '매매',
-    price: '₩800,000,000',
-    description: '강남역 도보 5분 거리의 신축 아파트입니다. 역세권의 편리함을 누려보세요.',
-    savedDate: '3일 전 저장',
+    title: '리버뷰 아파트',
+    price: '₩850,000,000',
+    rating: '4.9',
+    imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop',
     isBookmarked: true,
   },
   {
     id: 3,
-    title: '합정동 빌라',
-    location: '서울시 마포구',
+    title: '그린힐스 빌라',
+    price: '₩1,200,000,000',
+    rating: '4.5',
     imageUrl: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=300&fit=crop',
-    status: '월세',
-    price: '₩50/500',
-    description: '합정역 근처의 조용한 빌라입니다. 주변 편의시설이 잘 갖춰져 있습니다.',
-    savedDate: '1주 전 저장',
     isBookmarked: false,
   },
   {
     id: 4,
-    title: '성수동 원룸',
-    location: '서울시 성동구',
-    imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=300&fit=crop',
-    status: '월세',
-    price: '₩40/400',
-    description: '성수동의 깔끔한 원룸입니다. 창고형 카페와 맛집이 가까이 있습니다.',
-    savedDate: '2일 전 저장',
+    title: '센트럴 파크 타워',
+    price: '₩950,000,000',
+    rating: '4.8',
+    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop',
     isBookmarked: false,
   },
 ])
@@ -281,48 +206,26 @@ const sampleProperties = ref([
 const interactiveProperty = ref({
   id: 999,
   title: '인터랙티브 데모 매물',
-  location: '서울시 강남구',
+  price: '₩600,000,000',
+  rating: '4.8',
   imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop',
-  status: '매매',
-  price: '₩500,000,000',
-  description: '인터랙티브 데모용 매물입니다. 실제로 조작해보세요.',
-  savedDate: '오늘 저장',
   isBookmarked: false,
 })
 
 const lastEvent = ref('')
 
-// 이벤트 핸들러
 const handleBookmark = (data) => {
   const property = sampleProperties.value.find((p) => p.id === data.propertyId)
   if (property) {
     property.isBookmarked = data.isBookmarked
+    console.log(`Property ${property.title} bookmark: ${data.isBookmarked}`)
   }
-  console.log('Bookmark:', data)
-}
-
-const handleDetail = (property) => {
-  console.log('Detail:', property)
-}
-
-const handleDelete = (property) => {
-  console.log('Delete:', property)
 }
 
 const handleInteractiveBookmark = (data) => {
   interactiveProperty.value.isBookmarked = data.isBookmarked
   lastEvent.value = `북마크: ${data.isBookmarked ? '추가' : '제거'}`
   console.log('Interactive Bookmark:', data)
-}
-
-const handleInteractiveDetail = (property) => {
-  lastEvent.value = `상세보기: ${property.title}`
-  console.log('Interactive Detail:', property)
-}
-
-const handleInteractiveDelete = (property) => {
-  lastEvent.value = `삭제: ${property.title}`
-  console.log('Interactive Delete:', property)
 }
 </script>
 
@@ -347,6 +250,13 @@ const handleInteractiveDelete = (property) => {
   font-family: 'Roboto', sans-serif;
 }
 
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  justify-items: center;
+}
+
 /* Section styles */
 .section {
   margin-bottom: 60px;
@@ -360,14 +270,6 @@ const handleInteractiveDelete = (property) => {
   font-family: 'Roboto', sans-serif;
   border-bottom: 2px solid #3498db;
   padding-bottom: 8px;
-}
-
-/* Cards grid */
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-  justify-items: center;
 }
 
 /* Code example styles */
