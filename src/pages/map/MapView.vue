@@ -66,8 +66,28 @@ const displayMarkers = (mapData) => {
     // 인포윈도우 생성
     const infoWindow = new window.kakao.maps.InfoWindow({
       content: `
-        <div style="padding: 10px; min-width: 200px;">
-          <h4 style="margin: 0 0 5px 0; font-size: 14px; font-weight: bold;">
+        <div style="padding: 10px; min-width: 200px; position: relative;">
+          <button
+            id="closeBtn_${property.building_name.replace(/\s+/g, '_')}"
+            style="
+              position: absolute;
+              top: 5px;
+              right: 5px;
+              background: none;
+              border: none;
+              font-size: 16px;
+              cursor: pointer;
+              color: #999;
+              padding: 2px 6px;
+              border-radius: 3px;
+              line-height: 1;
+              z-index: 1000;
+            "
+            title="닫기"
+          >
+            ×
+          </button>
+          <h4 style="margin: 0 0 5px 0; font-size: 14px; font-weight: bold; padding-right: 20px;">
             ${property.building_name}
           </h4>
           <p style="margin: 0; font-size: 12px; color: #666;">
@@ -85,9 +105,47 @@ const displayMarkers = (mapData) => {
 
     // 마커 클릭 이벤트
     window.kakao.maps.event.addListener(marker, 'click', () => {
+      // 다른 인포윈도우들 닫기
+      markers.value.forEach((otherMarker) => {
+        if (otherMarker.infoWindow && otherMarker.infoWindow !== infoWindow) {
+          otherMarker.infoWindow.close()
+        }
+      })
+
       infoWindow.open(map.value, marker)
+
+      // 닫기 버튼 이벤트 리스너 추가
+      setTimeout(() => {
+        const closeBtn = document.getElementById(
+          `closeBtn_${property.building_name.replace(/\s+/g, '_')}`
+        )
+        if (closeBtn) {
+          // 이벤트 리스너 제거 후 다시 추가
+          const newCloseBtn = closeBtn.cloneNode(true)
+          closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn)
+
+          newCloseBtn.addEventListener('click', (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            infoWindow.close()
+          })
+
+          // 호버 효과 추가
+          newCloseBtn.addEventListener('mouseover', () => {
+            newCloseBtn.style.color = '#666'
+            newCloseBtn.style.backgroundColor = '#f0f0f0'
+          })
+
+          newCloseBtn.addEventListener('mouseout', () => {
+            newCloseBtn.style.color = '#999'
+            newCloseBtn.style.backgroundColor = 'transparent'
+          })
+        }
+      }, 100)
     })
 
+    // 인포윈도우를 마커에 저장
+    marker.infoWindow = infoWindow
     markers.value.push(marker)
   })
 }
