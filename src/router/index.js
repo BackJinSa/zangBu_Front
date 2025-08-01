@@ -43,8 +43,11 @@ import ReviewWriteView from '@/pages/review/ReviewWriteView.vue'
 import NotificationView from '@/pages/system/NotificationView.vue'
 import PaymentView from '@/pages/system/PaymentView.vue'
 
-// 컬러 가이드 페이지
+// 가이드 페이지
+import GuideMainView from '@/pages/guide/GuideMainView.vue'
 import ColorGuideView from '@/pages/guide/ColorGuideView.vue'
+import PropertyCardGuideView from '@/pages/guide/PropertyCardGuideView.vue'
+import PropertyCardMainView from '@/pages/guide/PropertyCardMainView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -200,11 +203,26 @@ const router = createRouter({
       component: PaymentView,
     },
 
-    // 컬러 가이드 라우트
+    // 가이드 라우트
     {
-      path: '/color-guide',
+      path: '/guide',
+      name: 'guide',
+      component: GuideMainView,
+    },
+    {
+      path: '/guide/color-guide',
       name: 'color-guide',
       component: ColorGuideView,
+    },
+    {
+      path: '/guide/property-card-guide',
+      name: 'property-card-guide',
+      component: PropertyCardGuideView,
+    },
+    {
+      path: '/guide/property-card-main-guide',
+      name: 'property-card-main-guide',
+      component: PropertyCardMainView,
     },
   ],
 })
