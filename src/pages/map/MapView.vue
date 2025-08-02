@@ -782,6 +782,111 @@ onMounted(() => {
             </div>
           </div>
         </div>
+
+        <!-- 담당자 정보 섹션 -->
+        <div class="detail-section">
+          <h3 class="section-title agent-title">담당자 정보</h3>
+          <div class="agent-info">
+            <div class="agent-item">
+              <span class="agent-label">담당자 이름</span>
+              <span class="agent-value">김철수</span>
+            </div>
+            <div class="agent-item">
+              <span class="agent-label">연락처</span>
+              <span class="agent-value">010-1234-5678</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 거주자 리뷰 섹션 -->
+        <div class="detail-section">
+          <div class="review-header">
+            <h3 class="section-title">
+              <span class="star-icon">☆</span>
+              거주자 리뷰
+            </h3>
+            <button class="more-btn">→</button>
+          </div>
+          <div class="review-list">
+            <div class="review-item">
+              <div class="review-header-info">
+                <span class="reviewer-name">김**</span>
+                <div class="star-rating">
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star">★</span>
+                </div>
+              </div>
+              <p class="review-text">교통이 편리하고 주변 상권이 잘 발달되어 있어요.</p>
+              <div class="review-footer">
+                <span class="helpful-count">도움됨 12</span>
+                <span class="review-date">2024-11-15</span>
+              </div>
+            </div>
+
+            <div class="review-item">
+              <div class="review-header-info">
+                <span class="reviewer-name">이**</span>
+                <div class="star-rating">
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                </div>
+              </div>
+              <p class="review-text">신축이라 시설이 깔끔하고 좋아요.</p>
+              <div class="review-footer">
+                <span class="helpful-count">도움됨 8</span>
+                <span class="review-date">2024-10-28</span>
+              </div>
+            </div>
+
+            <div class="review-item">
+              <div class="review-header-info">
+                <span class="reviewer-name">박**</span>
+                <div class="star-rating">
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                </div>
+              </div>
+              <p class="review-text">위치는 좋지만 관리비가 조금 비싼 편이에요.</p>
+              <div class="review-footer">
+                <span class="helpful-count">도움됨 5</span>
+                <span class="review-date">2024-10-10</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 액션 버튼 섹션 -->
+        <div class="action-buttons-section">
+          <div class="action-buttons">
+            <div class="download-buttons-row">
+              <button class="action-btn-download">
+                <span class="btn-icon">▼</span>
+                <span class="btn-text">등기부등본</span>
+              </button>
+              <button class="action-btn-download">
+                <span class="btn-icon">▼</span>
+                <span class="btn-text">건축물대장</span>
+              </button>
+              <button class="action-btn-download">
+                <span class="btn-icon">▼</span>
+                <span class="btn-text">분석 리포트</span>
+              </button>
+            </div>
+            <button class="action-btn-chat">
+              <span class="btn-icon">💬</span>
+              <span class="btn-text">임대인과 채팅하기</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- 지도 영역 -->
@@ -1388,6 +1493,197 @@ onMounted(() => {
   color: #666;
   line-height: 1.5;
   margin: 0;
+}
+
+/* 담당자 정보 스타일 */
+.agent-title {
+  color: #4caf50 !important;
+}
+
+.agent-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.agent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.agent-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.agent-value {
+  font-size: 14px;
+  color: #333;
+  font-weight: 400;
+}
+
+/* 거주자 리뷰 스타일 */
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.star-icon {
+  color: #ffc107;
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.more-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.more-btn:hover {
+  color: #4caf50;
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-item {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.review-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.reviewer-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.star-rating {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  font-size: 14px;
+  color: #ddd;
+}
+
+.star.filled {
+  color: #ffc107;
+}
+
+.review-text {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+}
+
+.review-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #666;
+}
+
+.helpful-count {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+/* 액션 버튼 스타일 */
+.action-buttons-section {
+  padding: 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.download-buttons-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.action-btn-download,
+.action-btn-chat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn-download {
+  flex: 1;
+  min-width: 0;
+}
+
+.action-btn-chat {
+  width: 100%;
+}
+
+.action-btn-download {
+  background: #007bff;
+  color: white;
+}
+
+.action-btn-download:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.action-btn-chat {
+  background: #4caf50;
+  color: white;
+}
+
+.action-btn-chat:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+.btn-text {
+  font-size: 14px;
 }
 
 @media (max-width: 768px) {
