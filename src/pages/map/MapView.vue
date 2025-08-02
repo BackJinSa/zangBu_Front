@@ -14,6 +14,11 @@
   - 마커 클릭 시 상세 정보 표시
 -->
 
+<!-- 리뷰 이동 기능 참고하기
+router.push()를 사용하여 Vue Router로 페이지 이동
+selectedProperty.value가 존재할 때만 리뷰 페이지로 이동
+-->
+
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useMapStore } from '@/stores/map/map.js'
@@ -460,6 +465,19 @@ const closePropertyDetail = () => {
   selectedProperty.value = null
 }
 
+// 채팅 페이지로 이동
+const goToChat = () => {
+  router.push('/chat/list')
+}
+
+// 리뷰 목록 페이지로 이동
+const goToReviewList = () => {
+  if (selectedProperty.value) {
+    const buildingId = selectedProperty.value.building_name.replace(/\s+/g, '_')
+    router.push(`/review/list/${buildingId}?page=1&size=10`)
+  }
+}
+
 // 필터 변경 감지
 watch(
   () => mapStore.filteredProperties,
@@ -805,7 +823,7 @@ onMounted(() => {
               <span class="star-icon">☆</span>
               거주자 리뷰
             </h3>
-            <button class="more-btn">→</button>
+            <button class="more-btn" @click="goToReviewList">→</button>
           </div>
           <div class="review-list">
             <div class="review-item">
@@ -881,7 +899,7 @@ onMounted(() => {
                 <span class="btn-text">분석 리포트</span>
               </button>
             </div>
-            <button class="action-btn-chat">
+            <button class="action-btn-chat" @click="goToChat">
               <span class="btn-icon">💬</span>
               <span class="btn-text">임대인과 채팅하기</span>
             </button>
