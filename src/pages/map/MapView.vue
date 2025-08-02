@@ -477,7 +477,7 @@ onMounted(() => {
 <template>
   <div class="map-container">
     <div class="main-content">
-      <!-- 좌측 사이드바 -->
+      <!-- 좌측 사이드바 (기본 필터 사이드바) -->
       <div class="sidebar" v-if="!showDetail">
         <!-- 검색바 (사이드바 상단으로 이동) -->
         <div class="search-section">
@@ -638,29 +638,8 @@ onMounted(() => {
         <button @click="resetFilters" class="reset-filter-btn">초기화</button>
       </div>
 
-      <!-- 지도 영역 -->
-      <div class="map-area">
-        <div ref="mapContainer" class="map-canvas"></div>
-
-        <!-- 우측 컨트롤 버튼들 -->
-        <div class="map-controls">
-          <button class="control-btn" title="버스/지하철">🚌</button>
-          <button class="control-btn" title="병원">🏥</button>
-          <button class="control-btn" title="편의점/마트">🛒</button>
-          <button class="control-btn" title="숨김">❌</button>
-        </div>
-
-        <!-- 우측 하단 집 내놓기 버튼 -->
-        <div class="floating-action">
-          <button class="floating-btn" title="집 내놓기" @click="goToUpload">
-            <span class="house-icon">🏠</span>
-            <span class="btn-text">집 내놓기</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 매물 상세 보기 사이드바 -->
-      <div class="detail-sidebar" v-if="showDetail && selectedProperty">
+      <!-- 매물 상세 보기 사이드바 (왼쪽에 표시) -->
+      <div class="detail-sidebar-left" v-if="showDetail && selectedProperty">
         <!-- 헤더 -->
         <div class="detail-header">
           <button class="back-btn" @click="closePropertyDetail">
@@ -802,6 +781,27 @@ onMounted(() => {
               <p class="desc-text">사진이 없습니다.</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- 지도 영역 -->
+      <div class="map-area">
+        <div ref="mapContainer" class="map-canvas"></div>
+
+        <!-- 우측 컨트롤 버튼들 -->
+        <div class="map-controls">
+          <button class="control-btn" title="버스/지하철">🚌</button>
+          <button class="control-btn" title="병원">🏥</button>
+          <button class="control-btn" title="편의점/마트">🛒</button>
+          <button class="control-btn" title="숨김">❌</button>
+        </div>
+
+        <!-- 우측 하단 집 내놓기 버튼 -->
+        <div class="floating-action">
+          <button class="floating-btn" title="집 내놓기" @click="goToUpload">
+            <span class="house-icon">🏠</span>
+            <span class="btn-text">집 내놓기</span>
+          </button>
         </div>
       </div>
     </div>
@@ -1153,13 +1153,18 @@ onMounted(() => {
   text-align: center;
 }
 
-/* 매물 상세 보기 사이드바 */
-.detail-sidebar {
+/* 매물 상세 보기 사이드바 (왼쪽) */
+.detail-sidebar-left {
   width: 420px;
   background: white;
   padding: 0;
   overflow-y: auto;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
 }
 
 .detail-header {
@@ -1396,6 +1401,12 @@ onMounted(() => {
     max-height: 300px;
   }
 
+  .detail-sidebar-left {
+    width: 100%;
+    position: relative;
+    z-index: 1000;
+  }
+
   .filter-options {
     flex-wrap: wrap;
     justify-content: flex-start;
@@ -1413,6 +1424,10 @@ onMounted(() => {
 
 @media (max-width: 1200px) {
   .sidebar {
+    width: 380px;
+  }
+
+  .detail-sidebar-left {
     width: 380px;
   }
 }
