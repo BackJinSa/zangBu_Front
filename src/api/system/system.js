@@ -1,23 +1,23 @@
 import api from '../axios'
 
-// 알림 목록 조회
-export const getNotifications = (params) => {
-  return api.get('/notifications', { params })
+// ✅ 전체 알림 목록 조회 (페이징 지원)
+export const getNotificationsApi = (params) => {
+  return api.get('/notification/all', { params })
 }
 
-// 알림 읽음 처리
-export const markNotificationAsRead = (id) => {
-  return api.put(`/notifications/${id}/read`)
+// ✅ 알림 읽음 처리 (PATCH /notification/read/{id})
+export const markNotificationAsReadApi = (id) => {
+  return api.patch(`/notification/read/${id}`)
 }
 
-// 알림 삭제
-export const deleteNotification = (id) => {
-  return api.delete(`/notifications/${id}`)
+// ✅ 모든 알림 읽음 처리 (PATCH /notification/read/all)
+export const markAllNotificationsAsReadApi = () => {
+  return api.patch('/notification/read/all')
 }
 
-// 모든 알림 읽음 처리
-export const markAllNotificationsAsRead = () => {
-  return api.put('/notifications/read-all')
+// ✅ 알림 삭제 (PATCH /notification/remove/{id})
+export const deleteNotificationApi = (id) => {
+  return api.delete(`/notification/remove/${id}`)
 }
 
 // 결제 내역 조회
