@@ -14,12 +14,23 @@
   - 마커 클릭 시 상세 정보 표시
 -->
 
+<!-- 리뷰 이동 기능 참고하기
+router.push()를 사용하여 Vue Router로 페이지 이동
+selectedProperty.value가 존재할 때만 리뷰 페이지로 이동
+-->
+
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useMapStore } from '@/stores/map/map.js'
+import { useRouter } from 'vue-router'
 
 // Store 사용
 const mapStore = useMapStore()
+const router = useRouter()
+
+// 상세 보기 상태
+const showDetail = ref(false)
+const selectedProperty = ref(null)
 
 // 지도 관련
 const mapContainer = ref(null)
@@ -98,6 +109,24 @@ const displayMarkers = (mapData) => {
           <p style="margin: 5px 0 0 0; font-size: 13px; color: #007bff; font-weight: bold;">
             ${generatePropertyInfo(property)}
           </p>
+          <button
+            id="detailBtn_${property.building_name.replace(/\s+/g, '_')}"
+            style="
+              width: 100%;
+              margin-top: 8px;
+              padding: 6px 12px;
+              background: #4caf50;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              font-size: 12px;
+              cursor: pointer;
+              transition: background-color 0.2s;
+            "
+            title="상세 보기"
+          >
+            상세 보기
+          </button>
         </div>
       `,
     })
@@ -139,6 +168,30 @@ const displayMarkers = (mapData) => {
             newCloseBtn.style.color = '#999'
             newCloseBtn.style.backgroundColor = 'transparent'
           })
+
+          // 상세 보기 버튼 이벤트 리스너 추가
+          const detailBtn = document.getElementById(
+            `detailBtn_${property.building_name.replace(/\s+/g, '_')}`
+          )
+          if (detailBtn) {
+            const newDetailBtn = detailBtn.cloneNode(true)
+            detailBtn.parentNode.replaceChild(newDetailBtn, detailBtn)
+
+            newDetailBtn.addEventListener('click', (e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              showPropertyDetail(property)
+            })
+
+            // 호버 효과 추가
+            newDetailBtn.addEventListener('mouseover', () => {
+              newDetailBtn.style.backgroundColor = '#45a049'
+            })
+
+            newDetailBtn.addEventListener('mouseout', () => {
+              newDetailBtn.style.backgroundColor = '#4caf50'
+            })
+          }
         }
       }, 100)
     })
@@ -395,6 +448,36 @@ const resetFilters = async () => {
   }
 }
 
+// 집 내놓기 페이지로 이동
+const goToUpload = () => {
+  router.push('/building/upload')
+}
+
+// 매물 상세 보기 표시
+const showPropertyDetail = (property) => {
+  selectedProperty.value = property
+  showDetail.value = true
+}
+
+// 상세 보기 닫기
+const closePropertyDetail = () => {
+  showDetail.value = false
+  selectedProperty.value = null
+}
+
+// 채팅 페이지로 이동
+const goToChat = () => {
+  router.push('/chat/list')
+}
+
+// 리뷰 목록 페이지로 이동
+const goToReviewList = () => {
+  if (selectedProperty.value) {
+    const buildingId = selectedProperty.value.building_name.replace(/\s+/g, '_')
+    router.push(`/review/list/${buildingId}?page=1&size=10`)
+  }
+}
+
 // 필터 변경 감지
 watch(
   () => mapStore.filteredProperties,
@@ -412,8 +495,8 @@ onMounted(() => {
 <template>
   <div class="map-container">
     <div class="main-content">
-      <!-- 좌측 필터 사이드바 -->
-      <div class="sidebar">
+      <!-- 좌측 사이드바 (기본 필터 사이드바) -->
+      <div class="sidebar" v-if="!showDetail">
         <!-- 검색바 (사이드바 상단으로 이동) -->
         <div class="search-section">
           <div class="search-box">
@@ -573,6 +656,257 @@ onMounted(() => {
         <button @click="resetFilters" class="reset-filter-btn">초기화</button>
       </div>
 
+      <!-- 매물 상세 보기 사이드바 (왼쪽에 표시) -->
+      <div class="detail-sidebar-left" v-if="showDetail && selectedProperty">
+        <!-- 헤더 -->
+        <div class="detail-header">
+          <button class="back-btn" @click="closePropertyDetail">
+            <span class="back-icon">←</span>
+          </button>
+          <h2 class="detail-title">{{ selectedProperty.building_name }}</h2>
+          <div class="header-actions">
+            <button class="action-btn" title="찜하기">❤️</button>
+            <button class="action-btn" title="알림">🔔</button>
+          </div>
+        </div>
+
+        <!-- 매물 정보 섹션 -->
+        <div class="detail-section">
+          <h3 class="section-title">
+            <span class="section-icon">🏠</span>
+            매물 정보
+          </h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">등록자 유형</span>
+              <span class="info-value">집주인</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">매매 종류</span>
+              <span class="info-value">{{ selectedProperty.saleType }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">부동산 종류</span>
+              <span class="info-value">{{ selectedProperty.propertyType }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">면적</span>
+              <span class="info-value">84.5㎡</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">도로명 주소</span>
+              <span class="info-value">{{ selectedProperty.address }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">층수</span>
+              <span class="info-value">지하 3층 ~ 지상 25층</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">상세 주소</span>
+              <span class="info-value">101동 1001호</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">난방</span>
+              <span class="info-value">지역난방</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">준공일자</span>
+              <span class="info-value">2019년 12월</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">세대수</span>
+              <span class="info-value">1200세대</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">관리비</span>
+              <span class="info-value">월 15만원 (관리비)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">주차</span>
+              <span class="info-value">세대당 1.2대</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">입주 가능 날짜</span>
+              <span class="info-value">즉시 입주 가능</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 시세 그래프 섹션 -->
+        <div class="detail-section">
+          <h3 class="section-title">
+            <span class="section-icon">📈</span>
+            시세 그래프
+          </h3>
+          <div class="graph-controls">
+            <select class="graph-select">
+              <option>매매</option>
+            </select>
+            <select class="graph-select">
+              <option>전월세</option>
+            </select>
+            <select class="graph-select">
+              <option>32평</option>
+            </select>
+            <select class="graph-select">
+              <option>최근 3년</option>
+            </select>
+          </div>
+          <div class="graph-placeholder">
+            <div class="graph-area">
+              <div class="graph-line"></div>
+              <div class="graph-labels">
+                <span>01</span>
+                <span>03</span>
+                <span>06</span>
+                <span>09</span>
+                <span>12</span>
+                <span>15</span>
+                <span>18</span>
+              </div>
+            </div>
+            <div class="price-info">
+              <div class="current-price">
+                <span class="price-label">현재 매매 시세</span>
+                <span class="price-value">{{ generatePropertyInfo(selectedProperty) }}</span>
+              </div>
+              <div class="price-change">
+                <span class="change-label">전월 대비</span>
+                <span class="change-value positive">+0.4억</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 매물 설명 섹션 -->
+        <div class="detail-section">
+          <h3 class="section-title">매물 설명</h3>
+          <div class="description-content">
+            <div class="desc-item">
+              <h4 class="desc-title">한 줄 소개</h4>
+              <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
+            </div>
+            <div class="desc-item">
+              <h4 class="desc-title">매물 제목</h4>
+              <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
+            </div>
+            <div class="desc-item">
+              <h4 class="desc-title">매물 설명</h4>
+              <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
+            </div>
+            <div class="desc-item">
+              <h4 class="desc-title">매물 사진</h4>
+              <p class="desc-text">사진이 없습니다.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 담당자 정보 섹션 -->
+        <div class="detail-section">
+          <h3 class="section-title agent-title">담당자 정보</h3>
+          <div class="agent-info">
+            <div class="agent-item">
+              <span class="agent-label">담당자 이름</span>
+              <span class="agent-value">김철수</span>
+            </div>
+            <div class="agent-item">
+              <span class="agent-label">연락처</span>
+              <span class="agent-value">010-1234-5678</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 거주자 리뷰 섹션 -->
+        <div class="detail-section">
+          <div class="review-header">
+            <h3 class="section-title">
+              <span class="star-icon">☆</span>
+              거주자 리뷰
+            </h3>
+            <button class="more-btn" @click="goToReviewList">→</button>
+          </div>
+          <div class="review-list">
+            <div class="review-item">
+              <div class="review-header-info">
+                <span class="reviewer-name">김**</span>
+                <div class="star-rating">
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star">★</span>
+                </div>
+              </div>
+              <p class="review-text">교통이 편리하고 주변 상권이 잘 발달되어 있어요.</p>
+              <div class="review-footer">
+                <span class="helpful-count">도움됨 12</span>
+                <span class="review-date">2024-11-15</span>
+              </div>
+            </div>
+
+            <div class="review-item">
+              <div class="review-header-info">
+                <span class="reviewer-name">이**</span>
+                <div class="star-rating">
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                </div>
+              </div>
+              <p class="review-text">신축이라 시설이 깔끔하고 좋아요.</p>
+              <div class="review-footer">
+                <span class="helpful-count">도움됨 8</span>
+                <span class="review-date">2024-10-28</span>
+              </div>
+            </div>
+
+            <div class="review-item">
+              <div class="review-header-info">
+                <span class="reviewer-name">박**</span>
+                <div class="star-rating">
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star filled">★</span>
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                </div>
+              </div>
+              <p class="review-text">위치는 좋지만 관리비가 조금 비싼 편이에요.</p>
+              <div class="review-footer">
+                <span class="helpful-count">도움됨 5</span>
+                <span class="review-date">2024-10-10</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 액션 버튼 섹션 -->
+        <div class="action-buttons-section">
+          <div class="action-buttons">
+            <div class="download-buttons-row">
+              <button class="action-btn-download">
+                <span class="btn-icon">▼</span>
+                <span class="btn-text">등기부등본</span>
+              </button>
+              <button class="action-btn-download">
+                <span class="btn-icon">▼</span>
+                <span class="btn-text">건축물대장</span>
+              </button>
+              <button class="action-btn-download">
+                <span class="btn-icon">▼</span>
+                <span class="btn-text">분석 리포트</span>
+              </button>
+            </div>
+            <button class="action-btn-chat" @click="goToChat">
+              <span class="btn-icon">💬</span>
+              <span class="btn-text">임대인과 채팅하기</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- 지도 영역 -->
       <div class="map-area">
         <div ref="mapContainer" class="map-canvas"></div>
@@ -587,7 +921,10 @@ onMounted(() => {
 
         <!-- 우측 하단 집 내놓기 버튼 -->
         <div class="floating-action">
-          <button class="floating-btn" title="집 내놓기">🏠</button>
+          <button class="floating-btn" title="집 내놓기" @click="goToUpload">
+            <span class="house-icon">🏠</span>
+            <span class="btn-text">집 내놓기</span>
+          </button>
         </div>
       </div>
     </div>
@@ -905,25 +1242,466 @@ onMounted(() => {
 }
 
 .floating-btn {
-  width: 56px;
-  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
   background: #4caf50;
   color: white;
   border: none;
-  border-radius: 50%;
   cursor: pointer;
-  font-size: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s;
+  padding: 8px;
 }
 
 .floating-btn:hover {
   background: #45a049;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.house-icon {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.btn-text {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* 매물 상세 보기 사이드바 (왼쪽) */
+.detail-sidebar-left {
+  width: 420px;
+  background: white;
+  padding: 0;
+  overflow-y: auto;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  margin-right: 12px;
+  transition: background-color 0.2s;
+}
+
+.back-btn:hover {
+  background: #e9ecef;
+}
+
+.detail-title {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.action-btn:hover {
+  background: #e9ecef;
+}
+
+.detail-section {
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.section-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.info-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #333;
+  font-weight: 400;
+}
+
+.graph-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.graph-select {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  background: white;
+}
+
+.graph-placeholder {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.graph-area {
+  height: 120px;
+  background: white;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.graph-line {
+  width: 80%;
+  height: 2px;
+  background: #4caf50;
+  position: relative;
+}
+
+.graph-line::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: linear-gradient(90deg, #4caf50 0%, #45a049 100%);
+  border-radius: 5px;
+}
+
+.graph-labels {
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #666;
+}
+
+.price-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.current-price {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.price-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.price-change {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.change-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.change-value {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.change-value.positive {
+  color: #4caf50;
+}
+
+.description-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.desc-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 16px;
+}
+
+.desc-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.desc-text {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* 담당자 정보 스타일 */
+.agent-title {
+  color: #4caf50 !important;
+}
+
+.agent-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.agent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.agent-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.agent-value {
+  font-size: 14px;
+  color: #333;
+  font-weight: 400;
+}
+
+/* 거주자 리뷰 스타일 */
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.star-icon {
+  color: #ffc107;
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.more-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.more-btn:hover {
+  color: #4caf50;
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-item {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.review-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.reviewer-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.star-rating {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  font-size: 14px;
+  color: #ddd;
+}
+
+.star.filled {
+  color: #ffc107;
+}
+
+.review-text {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+}
+
+.review-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #666;
+}
+
+.helpful-count {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+/* 액션 버튼 스타일 */
+.action-buttons-section {
+  padding: 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.download-buttons-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.action-btn-download,
+.action-btn-chat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn-download {
+  flex: 1;
+  min-width: 0;
+}
+
+.action-btn-chat {
+  width: 100%;
+}
+
+.action-btn-download {
+  background: #007bff;
+  color: white;
+}
+
+.action-btn-download:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.action-btn-chat {
+  background: #4caf50;
+  color: white;
+}
+
+.action-btn-chat:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+.btn-text {
+  font-size: 14px;
 }
 
 @media (max-width: 768px) {
@@ -935,6 +1713,12 @@ onMounted(() => {
     width: 100%;
     height: auto;
     max-height: 300px;
+  }
+
+  .detail-sidebar-left {
+    width: 100%;
+    position: relative;
+    z-index: 1000;
   }
 
   .filter-options {
@@ -954,6 +1738,10 @@ onMounted(() => {
 
 @media (max-width: 1200px) {
   .sidebar {
+    width: 380px;
+  }
+
+  .detail-sidebar-left {
     width: 380px;
   }
 }
