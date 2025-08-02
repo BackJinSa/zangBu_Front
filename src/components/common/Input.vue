@@ -1,5 +1,5 @@
 <template>
-  <div class="input-container">
+  <div class="w-80 h-11 flex items-center justify-center bg-white p-3 box-border">
     <input
       :type="type"
       :placeholder="placeholder"
@@ -10,7 +10,7 @@
       :minlength="minlength"
       :name="name"
       :id="id"
-      class="input-field"
+      class="w-70 h-5 px-3 py-2 text-base leading-6 text-gray-700 bg-white border border-white outline-none font-roboto box-border placeholder:text-gray-400 placeholder:text-base disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed disabled:opacity-60 focus:border-gray-300 focus:ring-1 focus:ring-gray-300"
       @input="handleInput"
       @focus="handleFocus"
       @blur="handleBlur"
@@ -98,42 +98,3 @@ const handleChange = (event) => {
   emit('change', event)
 }
 </script>
-
-<style scoped>
-.input-container {
-  width: 300px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #ffffff;
-  padding: 12px;
-  box-sizing: border-box;
-}
-
-.input-field {
-  width: 280px;
-  height: 19px;
-  padding: 8px 12px;
-  font-size: 16px;
-  line-height: 1.5;
-  color: #374151;
-  background-color: #ffffff;
-  border: 1px solid #ffffff;
-  outline: none;
-  font-family: 'Roboto', sans-serif;
-  box-sizing: border-box;
-}
-
-.input-field::placeholder {
-  color: #9ca3af;
-  font-size: 16px;
-}
-
-.input-field:disabled {
-  background-color: #f9fafb;
-  color: #9ca3af;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-</style>

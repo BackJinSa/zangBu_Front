@@ -1,52 +1,70 @@
 <template>
-  <footer class="footer">
-    <div class="footer-content">
+  <footer class="bg-bg-2 border-t border-bg-1 py-8 w-full lg:py-6 sm:py-4">
+    <div class="max-w-6xl mx-auto px-4 lg:px-3 sm:px-2">
       <!-- 회사 정보 섹션 -->
-      <div class="company-info">
-        <div class="info-item">
-          <span class="label">상호:</span>
-          <span class="value">(주)장부</span>
+      <div class="mb-6 lg:mb-4 sm:mb-4">
+        <div class="flex mb-2 lg:flex-col lg:mb-3 sm:mb-2">
+          <span class="text-text-2 font-medium min-w-30 mr-2 lg:min-w-0 lg:mr-0 lg:mb-1"
+            >상호:</span
+          >
+          <span class="text-text-1 flex-1">(주)장부</span>
         </div>
-        <div class="info-item">
-          <span class="label">대표:</span>
-          <span class="value">백현빈</span>
+        <div class="flex mb-2 lg:flex-col lg:mb-3 sm:mb-2">
+          <span class="text-text-2 font-medium min-w-30 mr-2 lg:min-w-0 lg:mr-0 lg:mb-1"
+            >대표:</span
+          >
+          <span class="text-text-1 flex-1">백현빈</span>
         </div>
-        <div class="info-item">
-          <span class="label">사업자등록번호:</span>
-          <span class="value">178-98-665222</span>
+        <div class="flex mb-2 lg:flex-col lg:mb-3 sm:mb-2">
+          <span class="text-text-2 font-medium min-w-30 mr-2 lg:min-w-0 lg:mr-0 lg:mb-1"
+            >사업자등록번호:</span
+          >
+          <span class="text-text-1 flex-1">178-98-665222</span>
         </div>
-        <div class="info-item">
-          <span class="label">주소:</span>
-          <span class="value">서울 광진구 능동로 195-16 5층, 6층 (우: 05006)</span>
+        <div class="flex mb-2 lg:flex-col lg:mb-3 sm:mb-2">
+          <span class="text-text-2 font-medium min-w-30 mr-2 lg:min-w-0 lg:mr-0 lg:mb-1"
+            >주소:</span
+          >
+          <span class="text-text-1 flex-1">서울 광진구 능동로 195-16 5층, 6층 (우: 05006)</span>
         </div>
-        <div class="info-item">
-          <span class="label">통신판매업 신고번호:</span>
-          <span class="value">제2029-서울광진-78875호</span>
+        <div class="flex mb-2 lg:flex-col lg:mb-3 sm:mb-2">
+          <span class="text-text-2 font-medium min-w-30 mr-2 lg:min-w-0 lg:mr-0 lg:mb-1"
+            >통신판매업 신고번호:</span
+          >
+          <span class="text-text-1 flex-1">제2029-서울광진-78875호</span>
         </div>
       </div>
 
       <!-- 연락처 정보 섹션 -->
-      <div class="contact-info">
-        <div class="info-item">
-          <span class="label">이메일:</span>
-          <span class="value email">cs@zangbu.com</span>
+      <div class="mb-6 lg:mb-4 sm:mb-4">
+        <div class="flex mb-2 lg:flex-col lg:mb-3 sm:mb-2">
+          <span class="text-text-2 font-medium min-w-30 mr-2 lg:min-w-0 lg:mr-0 lg:mb-1"
+            >이메일:</span
+          >
+          <span class="text-brand-3 flex-1">cs@zangbu.com</span>
         </div>
-        <div class="info-item">
-          <span class="label">서비스제휴문의:</span>
-          <span class="value email">partnership@zangbu.com</span>
+        <div class="flex mb-2 lg:flex-col lg:mb-3 sm:mb-2">
+          <span class="text-text-2 font-medium min-w-30 mr-2 lg:min-w-0 lg:mr-0 lg:mb-1"
+            >서비스제휴문의:</span
+          >
+          <span class="text-brand-3 flex-1">partnership@zangbu.com</span>
         </div>
-        <div class="info-item">
-          <span class="label">분양광고 문의:</span>
-          <span class="value email">ad@zangbu.com</span>
+        <div class="flex mb-2 lg:flex-col lg:mb-3 sm:mb-2">
+          <span class="text-text-2 font-medium min-w-30 mr-2 lg:min-w-0 lg:mr-0 lg:mb-1"
+            >분양광고 문의:</span
+          >
+          <span class="text-brand-3 flex-1">ad@zangbu.com</span>
         </div>
-        <div class="info-item">
-          <span class="label">팩스:</span>
-          <span class="value">02-999-1234</span>
+        <div class="flex mb-2 lg:flex-col lg:mb-3 sm:mb-2">
+          <span class="text-text-2 font-medium min-w-30 mr-2 lg:min-w-0 lg:mr-0 lg:mb-1"
+            >팩스:</span
+          >
+          <span class="text-text-1 flex-1">02-999-1234</span>
         </div>
       </div>
 
       <!-- 저작권 정보 -->
-      <div class="copyright">
+      <div class="mt-6 pt-4 border-t border-bg-1 text-center text-text-1 text-sm lg:mt-4 sm:mt-4">
         <span>Copyright © ZANGBU. All Rights Reserved.</span>
       </div>
     </div>
@@ -58,97 +76,3 @@ export default {
   name: 'Footer',
 }
 </script>
-
-<style scoped>
-.footer {
-  background-color: var(--bg-2);
-  border-top: 1px solid var(--bg-1);
-  padding: 2rem 0;
-  width: 100%;
-}
-
-.footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-/* 회사 정보와 연락처 정보 공통 스타일 */
-.company-info,
-.contact-info {
-  margin-bottom: 1.5rem;
-}
-
-.info-item {
-  display: flex;
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
-}
-
-.label {
-  color: var(--text-2);
-  font-weight: 500;
-  min-width: 120px;
-  margin-right: 0.5rem;
-}
-
-.value {
-  color: var(--text-1);
-  flex: 1;
-}
-
-.email {
-  color: var(--brand-3);
-}
-
-/* 저작권 정보 */
-.copyright {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--bg-1);
-  text-align: center;
-  color: var(--text-1);
-  font-size: 0.875rem;
-}
-
-/* 반응형 스타일 */
-@media (max-width: 1023px) {
-  .footer {
-    padding: 1.5rem 0;
-  }
-
-  .footer-content {
-    padding: 0 0.75rem;
-  }
-
-  .info-item {
-    flex-direction: column;
-    margin-bottom: 0.75rem;
-  }
-
-  .label {
-    min-width: auto;
-    margin-right: 0;
-    margin-bottom: 0.25rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .footer {
-    padding: 1rem 0;
-  }
-
-  .footer-content {
-    padding: 0 0.5rem;
-  }
-
-  .company-info,
-  .contact-info {
-    margin-bottom: 1rem;
-  }
-
-  .info-item {
-    margin-bottom: 0.5rem;
-  }
-}
-</style>
