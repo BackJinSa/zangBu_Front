@@ -52,15 +52,6 @@ import Footer from '@/components/common/footer.vue'
         <h2 class="section-title">Props 문서</h2>
         <div class="table-container">
           <table class="docs-table">
-            <thead>
-              <tr>
-                <th>Prop 이름</th>
-                <th>타입</th>
-                <th>필수</th>
-                <th>기본값</th>
-                <th>설명</th>
-              </tr>
-            </thead>
             <tbody>
               <tr>
                 <td colspan="5" style="text-align: center; color: #7f8c8d">
@@ -77,14 +68,6 @@ import Footer from '@/components/common/footer.vue'
         <h2 class="section-title">이벤트 문서</h2>
         <div class="table-container">
           <table class="docs-table">
-            <thead>
-              <tr>
-                <th>이벤트 이름</th>
-                <th>발생 시점</th>
-                <th>전달 데이터</th>
-                <th>설명</th>
-              </tr>
-            </thead>
             <tbody>
               <tr>
                 <td colspan="4" style="text-align: center; color: #7f8c8d">
