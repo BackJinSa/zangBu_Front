@@ -9,9 +9,10 @@
         <div class="cards-grid">
           <PropertyCardMain
             v-for="property in sampleProperties"
-            :key="property.id"
+            :key="property.buildingId"
             :property="property"
             @bookmark="handleBookmark"
+            @click="handleCardClick"
           />
         </div>
       </section>
@@ -25,23 +26,31 @@
   &lt;PropertyCardMain
     :property="propertyData"
     @bookmark="handleBookmark"
+    @click="handleCardClick"
   /&gt;
 &lt;/template&gt;
 
 &lt;script setup&gt;
 import PropertyCardMain from '@/components/common/PropertyCardMain.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const propertyData = {
-  id: 1,
-  title: '힐하우스',
-  price: '₩700,000,000',
-  rating: '4.7',
-  imageUrl: 'https://example.com/image.jpg',
-  isBookmarked: false
+  buildingId: "1",
+  price: "500000000",
+  buildingName: "래미안 강남",
+  imageUrl: "https://www.rtech.or.kr/MarketPrice/getMarketPriceAptRepImage.do?aptSeq=20333000",
+  isBookmarked: false,
+  rank: 4.5
 }
 
 const handleBookmark = (data) => {
   console.log('Bookmark:', data)
+}
+
+const handleCardClick = (property) => {
+  router.push(`/property/detail/${property.buildingId}`)
 }
 &lt;/script&gt;</code></pre>
         </div>
@@ -80,12 +89,12 @@ const handleBookmark = (data) => {
         <div class="code-example">
           <h3>Property 객체 구조</h3>
           <pre><code>{
-  id: Number,           // 부동산 고유 ID
-  title: String,        // 부동산 이름
-  price: String,        // 가격 (예: '₩700,000,000')
-  rating: String,       // 별점 (예: '4.7')
+  buildingId: String,   // 부동산 고유 ID
+  price: String,        // 가격 (예: '500000000')
+  buildingName: String, // 부동산 이름 (예: '래미안 강남')
   imageUrl: String,     // 이미지 URL
-  isBookmarked: Boolean // 즐겨찾기 여부
+  isBookmarked: Boolean, // 즐겨찾기 여부
+  rank: Number          // 평점 (예: 4.5)
 }</code></pre>
         </div>
       </section>
@@ -99,7 +108,7 @@ const handleBookmark = (data) => {
   const { propertyId, isBookmarked } = data
   
   // 즐겨찾기 상태 업데이트
-  const property = properties.value.find(p => p.id === propertyId)
+  const property = properties.value.find(p => p.buildingId === propertyId)
   if (property) {
     property.isBookmarked = isBookmarked
   }
@@ -130,6 +139,12 @@ const handleBookmark = (data) => {
                 <td>{ propertyId, isBookmarked }</td>
                 <td>즐겨찾기 상태 변경 시 발생</td>
               </tr>
+              <tr>
+                <td>click</td>
+                <td>카드 클릭</td>
+                <td>property object</td>
+                <td>카드 클릭 시 발생 (상세 페이지 이동용)</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -141,7 +156,7 @@ const handleBookmark = (data) => {
         <div class="code-example">
           <h3>Bookmark 이벤트 데이터 구조</h3>
           <pre><code>{
-  propertyId: Number,   // 부동산 ID
+  propertyId: String,   // 부동산 ID (buildingId)
   isBookmarked: Boolean // 즐겨찾기 상태 (true/false)
 }</code></pre>
         </div>
@@ -151,7 +166,11 @@ const handleBookmark = (data) => {
       <section class="section">
         <h2 class="section-title">인터랙티브 데모</h2>
         <div class="demo-card">
-          <PropertyCardMain :property="interactiveProperty" @bookmark="handleInteractiveBookmark" />
+          <PropertyCardMain
+            :property="interactiveProperty"
+            @bookmark="handleInteractiveBookmark"
+            @click="handleInteractiveCardClick"
+          />
         </div>
         <div v-if="lastEvent" class="event-log">
           <p>
@@ -169,63 +188,74 @@ import PropertyCardMain from '@/components/common/PropertyCardMain.vue'
 
 const sampleProperties = ref([
   {
-    id: 1,
-    title: '힐하우스',
-    price: '₩700,000,000',
-    rating: '4.7',
-    imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop',
+    buildingId: '1',
+    price: '500000000',
+    buildingName: '래미안 강남',
+    imageUrl: 'https://www.rtech.or.kr/MarketPrice/getMarketPriceAptRepImage.do?aptSeq=20333000',
     isBookmarked: false,
+    rank: 4.5,
   },
   {
-    id: 2,
-    title: '리버뷰 아파트',
-    price: '₩850,000,000',
-    rating: '4.9',
-    imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop',
+    buildingId: '2',
+    price: '300000000',
+    buildingName: '청구아파트',
+    imageUrl: 'https://www.rtech.or.kr/MarketPrice/getMarketPriceAptRepImage.do?aptSeq=20333000',
     isBookmarked: true,
+    rank: 4.2,
   },
   {
-    id: 3,
-    title: '그린힐스 빌라',
-    price: '₩1,200,000,000',
-    rating: '4.5',
-    imageUrl: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=300&fit=crop',
+    buildingId: '3',
+    price: '1500000',
+    buildingName: '한양 럭스 아파트',
+    imageUrl: 'https://www.rtech.or.kr/MarketPrice/getMarketPriceAptRepImage.do?aptSeq=20333000',
     isBookmarked: false,
+    rank: 4.9,
   },
   {
-    id: 4,
-    title: '센트럴 파크 타워',
-    price: '₩950,000,000',
-    rating: '4.8',
-    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop',
+    buildingId: '4',
+    price: '800000000',
+    buildingName: '센트럴 파크 타워',
+    imageUrl: 'https://www.rtech.or.kr/MarketPrice/getMarketPriceAptRepImage.do?aptSeq=20333000',
     isBookmarked: false,
+    rank: 4.7,
   },
 ])
 
 // 인터랙티브 데모용 매물
 const interactiveProperty = ref({
-  id: 999,
-  title: '인터랙티브 데모 매물',
-  price: '₩600,000,000',
-  rating: '4.8',
-  imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop',
+  buildingId: '999',
+  price: '600000000',
+  buildingName: '인터랙티브 데모 매물',
+  imageUrl: 'https://www.rtech.or.kr/MarketPrice/getMarketPriceAptRepImage.do?aptSeq=20333000',
   isBookmarked: false,
+  rank: 4.8,
 })
 
 const lastEvent = ref('')
 
 const handleBookmark = (data) => {
-  const property = sampleProperties.value.find((p) => p.id === data.propertyId)
+  const property = sampleProperties.value.find((p) => p.buildingId === data.propertyId)
   if (property) {
     property.isBookmarked = data.isBookmarked
-    console.log(`Property ${property.title} bookmark: ${data.isBookmarked}`)
+    console.log(`Property ${property.buildingName} bookmark: ${data.isBookmarked}`)
   }
+}
+
+const handleCardClick = (property) => {
+  console.log('Card clicked:', property.buildingName)
+  // 실제 구현에서는 여기서 라우팅 처리
+  // router.push(`/property/detail/${property.buildingId}`)
 }
 
 const handleInteractiveBookmark = (data) => {
   interactiveProperty.value.isBookmarked = data.isBookmarked
   lastEvent.value = `북마크: ${data.isBookmarked ? '추가' : '제거'}`
   console.log('Interactive Bookmark:', data)
+}
+
+const handleInteractiveCardClick = (property) => {
+  lastEvent.value = `카드 클릭: ${property.buildingName}`
+  console.log('Interactive Card Click:', property)
 }
 </script>
 

@@ -52,12 +52,15 @@ import GuideMainView from '@/pages/guide/GuideMainView.vue'
 import ColorGuideView from '@/pages/guide/ColorGuideView.vue'
 import PropertyCardGuideView from '@/pages/guide/PropertyCardGuideView.vue'
 import PropertyCardMainView from '@/pages/guide/PropertyCardMainView.vue'
+import PropertyCardWaitingView from '@/pages/guide/PropertyCardWaitingView.vue'
 import ButtonGuideView from '@/pages/guide/ButtonGuideView.vue'
 import InputGuideView from '@/pages/guide/InputGuideView.vue'
 import DropboxGuideView from '@/pages/guide/DropboxGuideView.vue'
 import FooterGuideView from '@/pages/guide/FooterGuideView.vue'
 import PopupModalGuideView from '@/pages/guide/PopupModalGuideView.vue'
+import HeaderGuideView from '@/pages/guide/HeaderGuideView.vue'
 import TailwindGuideView from '@/pages/guide/TailwindGuideView.vue'
+import SidebarGuideView from '@/pages/guide/SidebarGuideView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -130,6 +133,11 @@ const router = createRouter({
       path: '/property/register',
       name: 'property-register',
       component: PropertyRegisterView,
+    },
+    {
+      path: '/property/waiting',
+      name: 'property-waiting',
+      component: PropertyCardWaitingView,
     },
 
     // 채팅 관련 라우트
@@ -247,6 +255,11 @@ const router = createRouter({
       component: PropertyCardMainView,
     },
     {
+      path: '/guide/property-card-waiting-guide',
+      name: 'property-card-waiting-guide',
+      component: PropertyCardWaitingView,
+    },
+    {
       path: '/guide/button-guide',
       name: 'button-guide',
       component: ButtonGuideView,
@@ -272,9 +285,19 @@ const router = createRouter({
       component: PopupModalGuideView,
     },
     {
+      path: '/guide/header-guide',
+      name: 'header-guide',
+      component: HeaderGuideView,
+    },
+    {
       path: '/guide/tailwind-guide',
       name: 'tailwind-guide',
       component: TailwindGuideView,
+    },
+    {
+      path: '/guide/sidebar-guide',
+      name: 'sidebar-guide',
+      component: SidebarGuideView,
     },
   ],
 })
