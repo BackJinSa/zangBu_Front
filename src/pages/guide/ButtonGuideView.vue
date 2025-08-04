@@ -59,6 +59,11 @@
             <Button variant="button10" @click="handleButtonClick('button10')">Button 10</Button>
             <p class="text-sm text-gray-600 mt-3">흰색 배경, 회색 테두리 (183x40px)</p>
           </div>
+          <div class="bg-white p-6 rounded-lg shadow-md text-center">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Button 11</h3>
+            <Button variant="button11" @click="handleButtonClick('button11')">취소하기</Button>
+            <p class="text-sm text-gray-600 mt-3">흰색 배경, 빨간색 테두리와 텍스트 (183x40px)</p>
+          </div>
         </div>
       </section>
 
@@ -154,7 +159,7 @@ const handleClick = () => {
                 <td class="py-3 px-4 border-b border-gray-200">String</td>
                 <td class="py-3 px-4 border-b border-gray-200">❌</td>
                 <td class="py-3 px-4 border-b border-gray-200">primary</td>
-                <td class="py-3 px-4 border-b border-gray-200">버튼 스타일 (button1~button10)</td>
+                <td class="py-3 px-4 border-b border-gray-200">버튼 스타일 (button1~button11)</td>
               </tr>
               <tr>
                 <td class="py-3 px-4 border-b border-gray-200">size</td>
@@ -244,6 +249,7 @@ const handleClick = () => {
             >Outline Button</Button
           >
           <Button variant="button9" @click="handleDemoClick('Danger Button')">Danger Button</Button>
+          <Button variant="button11" @click="handleDemoClick('Cancel Button')">취소하기</Button>
           <Button variant="button1" icon="fas fa-plus" @click="handleDemoClick('Icon Button')"
             >Icon Button</Button
           >
