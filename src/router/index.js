@@ -22,8 +22,7 @@ import PropertyRegisterView from '@/pages/property/PropertyRegisterView.vue'
 
 // 채팅 관련 페이지
 import ChatListView from '@/pages/chat/ChatListView.vue'
-import ChatSellerView from '@/pages/chat/ChatSellerView.vue'
-import ChatBuyerView from '@/pages/chat/ChatBuyerView.vue'
+import ChatRoomView from '@/pages/chat/ChatRoomView.vue'
 
 // 거래 관련 페이지
 import DealGuideView from '@/pages/deal/DealGuideView.vue'
@@ -44,6 +43,9 @@ import NotificationView from '@/pages/notification/NotificationView.vue'
 
 // 결제 관련 페이지
 import PaymentView from '@/pages/payment/PaymentView.vue'
+import PaymentSuccessView from '@/pages/payment/PaymentSuccessView.vue'
+import PaymentFailView from '@/pages/payment/PaymentFailView.vue'
+import PaymentConfirmView from '@/pages/payment/PaymentConfirmView.vue'
 
 // 가이드 페이지
 import GuideMainView from '@/pages/guide/GuideMainView.vue'
@@ -145,16 +147,10 @@ const router = createRouter({
       component: ChatListView,
     },
     {
-      path: '/chat/seller/:roomId',
-      name: 'chat-seller',
-      component: ChatSellerView,
-      props: true,
-    },
-    {
-      path: '/chat/buyer/:roomId',
-      name: 'chat-buyer',
-      component: ChatBuyerView,
-      props: true,
+      path: '/chat/room',
+      // path: '/chat/room/:roomId',
+      name: 'chat-room',
+      component: ChatRoomView,
     },
 
     // 거래 관련 라우트
@@ -220,6 +216,21 @@ const router = createRouter({
       path: '/payment',
       name: 'payment',
       component: PaymentView,
+    },
+    {
+      path: '/payment/success',
+      name: 'payment-success',
+      component: PaymentSuccessView,
+    },
+    {
+      path: '/payment/fail',
+      name: 'payment-fail',
+      component: PaymentFailView,
+    },
+    {
+      path: '/payment/confirm',
+      name: 'payment-confirm',
+      component: PaymentConfirmView,
     },
 
     // 가이드 라우트
