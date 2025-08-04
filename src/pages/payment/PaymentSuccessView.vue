@@ -45,7 +45,14 @@ const handleConfirmPayment = async () => {
     confirmed.value = true
   } catch (error) {
     console.error('결제 승인 실패:', error)
-    errorMessage.value = '결제 승인에 실패했습니다.'
+
+    // 네트워크 오류인 경우 더 자세한 메시지 표시
+    if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+      errorMessage.value =
+        '백엔드 서버에 연결할 수 없습니다. 개발 환경에서는 로컬 백엔드 서버가 실행 중인지 확인해주세요.'
+    } else {
+      errorMessage.value = '결제 승인에 실패했습니다.'
+    }
   } finally {
     loading.value = false
   }

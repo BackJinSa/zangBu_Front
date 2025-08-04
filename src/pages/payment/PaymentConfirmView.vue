@@ -25,6 +25,16 @@ const tossPayments = ref(null)
 const widgets = ref(null)
 const buyerInfoLoading = ref(false)
 
+// 현재 URL 정보
+const currentUrl = ref('')
+const currentDomain = ref('')
+
+// URL 정보 업데이트
+const updateUrlInfo = () => {
+  currentUrl.value = window.location.href
+  currentDomain.value = window.location.origin
+}
+
 // 주문 ID 생성
 const generateOrderId = () => {
   return window.btoa(Math.random()).slice(0, 20)
@@ -41,7 +51,12 @@ const loadBuyerInfo = async () => {
     console.log('구매자 정보 로드 완료:', buyerInfo)
   } catch (error) {
     console.error('구매자 정보 로드 실패:', error)
-    errorMessage.value = '구매자 정보를 불러오는데 실패했습니다.'
+    // 백엔드 실패 시 더미 데이터 사용
+    paymentInfo.customerName = '테스트 사용자'
+    paymentInfo.customerEmail = 'test@example.com'
+    paymentInfo.customerMobilePhone = '01012345678'
+    console.log('더미 데이터로 대체:', paymentInfo)
+    errorMessage.value = '백엔드 연결 실패로 테스트 데이터를 사용합니다.'
   } finally {
     buyerInfoLoading.value = false
   }
@@ -55,18 +70,28 @@ const initializeTossPayments = async () => {
     console.log('ANONYMOUS 상수:', ANONYMOUS)
 
     if (typeof loadTossPayments !== 'function') {
-      throw new Error('loadTossPayments 함수를 찾을 수 없습니다.')
+      throw new Error(
+        'loadTossPayments 함수를 찾을 수 없습니다. SDK가 제대로 로드되었는지 확인해주세요.'
+      )
     }
 
     tossPayments.value = await loadTossPayments('test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm')
     console.log('토스페이먼츠 SDK 로딩 완료')
     console.log('tossPayments 객체:', tossPayments.value)
 
+    if (!tossPayments.value) {
+      throw new Error('토스페이먼츠 SDK 객체가 null입니다.')
+    }
+
     widgets.value = tossPayments.value.widgets({
       customerKey: ANONYMOUS,
     })
     console.log('위젯 초기화 완료')
     console.log('widgets 객체:', widgets.value)
+
+    if (!widgets.value) {
+      throw new Error('토스페이먼츠 위젯 객체가 null입니다.')
+    }
 
     // 선택된 옵션의 금액으로 위젯 설정
     if (paymentInfo.selectedOption) {
@@ -98,12 +123,25 @@ const initializeTossPayments = async () => {
   } catch (error) {
     console.error('토스페이먼츠 초기화 실패:', error)
     errorMessage.value = `결제 시스템 초기화에 실패했습니다: ${error.message}`
+
+    // 더 자세한 디버깅 정보
+    console.log('현재 페이지 URL:', window.location.href)
+    console.log('현재 도메인:', window.location.origin)
+    console.log('토스페이먼츠 SDK 상태:', {
+      loadTossPayments: typeof loadTossPayments,
+      ANONYMOUS: ANONYMOUS,
+      tossPayments: tossPayments.value,
+      widgets: widgets.value,
+    })
   }
 }
 
 // 컴포넌트 마운트 시 초기화
 onMounted(async () => {
   console.log('PaymentConfirmView 컴포넌트 마운트됨')
+
+  // URL 정보 업데이트
+  updateUrlInfo()
 
   // URL 파라미터에서 선택된 옵션 정보 가져오기
   const selectedOptionData = route.query.selectedOption
@@ -136,18 +174,24 @@ onMounted(async () => {
 const handlePayment = async () => {
   console.log('handlePayment 호출됨')
 
+  // 입력값 검증
   if (!paymentInfo.customerName.trim()) {
-    errorMessage.value = '구매자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.'
+    errorMessage.value = '구매자 이름이 없습니다.'
     return
   }
 
   if (!paymentInfo.customerEmail.trim()) {
-    errorMessage.value = '구매자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.'
+    errorMessage.value = '구매자 이메일이 없습니다.'
     return
   }
 
   if (!paymentInfo.customerMobilePhone.trim()) {
-    errorMessage.value = '구매자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.'
+    errorMessage.value = '구매자 휴대폰 번호가 없습니다.'
+    return
+  }
+
+  if (!paymentInfo.selectedOption) {
+    errorMessage.value = '선택된 결제 옵션이 없습니다.'
     return
   }
 
@@ -165,6 +209,11 @@ const handlePayment = async () => {
     console.log('결제 요청 시작...')
     console.log('선택된 옵션:', paymentInfo.selectedOption)
     console.log('위젯 상태:', widgets.value)
+    console.log('구매자 정보:', {
+      name: paymentInfo.customerName,
+      email: paymentInfo.customerEmail,
+      phone: paymentInfo.customerMobilePhone,
+    })
 
     const orderId = generateOrderId()
     console.log('주문 ID 생성:', orderId)
@@ -173,7 +222,6 @@ const handlePayment = async () => {
     const paymentRequest = {
       orderId: orderId,
       orderName: paymentInfo.selectedOption.title,
-      amount: paymentInfo.selectedOption.price,
       successUrl: `${window.location.origin}/payment/success`,
       failUrl: `${window.location.origin}/payment/fail`,
       customerEmail: paymentInfo.customerEmail,
@@ -186,6 +234,11 @@ const handlePayment = async () => {
     console.log('결제 요청 완료')
   } catch (error) {
     console.error('결제 요청 실패:', error)
+    console.error('오류 상세 정보:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    })
     errorMessage.value = `결제 요청 중 오류가 발생했습니다: ${error.message}`
   } finally {
     loading.value = false
@@ -389,6 +442,21 @@ const goBack = () => {
         </button>
       </div>
 
+      <!-- 디버깅 정보 (개발용) -->
+      <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h3 class="text-sm font-medium text-yellow-900 mb-2">🔧 디버깅 정보</h3>
+        <div class="text-sm text-yellow-800 space-y-2">
+          <div>
+            <strong>선택된 옵션:</strong> {{ paymentInfo.selectedOption ? '있음' : '없음' }}
+          </div>
+          <div>
+            <strong>구매자 정보:</strong> {{ paymentInfo.customerName ? '로드됨' : '로드 안됨' }}
+          </div>
+          <div><strong>토스페이먼츠 위젯:</strong> {{ widgets ? '초기화됨' : '초기화 안됨' }}</div>
+          <div><strong>현재 URL:</strong> {{ currentUrl }}</div>
+        </div>
+      </div>
+
       <!-- 안내사항 -->
       <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h3 class="text-sm font-medium text-blue-900 mb-2">💡 안내사항</h3>
@@ -400,6 +468,7 @@ const goBack = () => {
           <li>• 실제 결제가 이루어지지 않으며, 샌드박스 환경에서 테스트됩니다.</li>
           <li>• 결제 완료 후 성공/실패 페이지로 리다이렉트됩니다.</li>
           <li>• 문제가 발생하면 브라우저 개발자 도구(F12)의 콘솔을 확인해주세요.</li>
+          <li>• 토스페이먼츠 페이지가 안 뜨면 위의 디버깅 정보를 확인해주세요.</li>
         </ul>
       </div>
     </div>
