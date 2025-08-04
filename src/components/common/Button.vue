@@ -52,6 +52,7 @@ const props = defineProps({
         'button8',
         'button9',
         'button10',
+        'button11',
       ].includes(value),
   },
   // 버튼 크기 (sm, md, lg)
@@ -97,6 +98,7 @@ const variantClasses = {
   button8: 'bg-brand-3 hover:bg-brand-2 text-text-3', // 진한 녹색 배경 (전체 너비용), 흰색 텍스트
   button9: 'bg-status-2 hover:bg-red-700 text-text-3', // 빨간색 배경, 흰색 텍스트
   button10: 'bg-bg-2 hover:bg-gray-50 text-text-2 border border-text-1', // 흰색 배경, 회색 테두리
+  button11: 'bg-white border border-red-500 text-red-500 hover:bg-red-50', // 흰색 배경, 빨간색 테두리와 텍스트
 }
 
 // 크기별 클래스 (variant별로 고정 크기 - 원래 CSS와 동일)
@@ -111,6 +113,7 @@ const sizeClasses = {
   button8: 'w-26.25 h-8.5 px-3 py-1 text-sm', // 105x34px
   button9: 'w-45.75 h-10 px-4 py-2 text-base', // 183x40px
   button10: 'w-45.75 h-10 px-4 py-2 text-base', // 183x40px
+  button11: 'w-45.75 h-10 px-4 py-2 text-base', // 183x40px
 }
 
 // 아이콘 크기 클래스
@@ -125,6 +128,7 @@ const iconSizeClasses = {
   button8: 'w-4 h-4',
   button9: 'w-5 h-5',
   button10: 'w-5 h-5',
+  button11: 'w-5 h-5',
 }
 </script>
 

@@ -237,12 +237,11 @@
           <div class="guide-icon">
             <div class="tailwind-preview">
               <div class="preview-tailwind-logo">
-                <div class="tailwind-icon">
-                  <div class="tailwind-wind"></div>
-                  <div class="tailwind-wind"></div>
-                  <div class="tailwind-wind"></div>
-                </div>
-                <div class="tailwind-text">CSS</div>
+                <svg class="tailwind-svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12.001,4.8c-3.2,0-5.2,1.6-6,4.8c1.2-1.6,2.6-2.2,4.2-1.8c0.913,0.228,1.565,0.89,2.288,1.624 C13.666,10.618,15.027,12,18.001,12c3.2,0,5.2-1.6,6-4.8c-1.2,1.6-2.6,2.2-4.2,1.8c-0.913-0.228-1.565-0.89-2.288-1.624 C16.337,6.182,14.976,4.8,12.001,4.8z M6.001,12c-3.2,0-5.2,1.6-6,4.8c1.2-1.6,2.6-2.2,4.2-1.8c0.913,0.228,1.565,0.89,2.288,1.624 c1.177,1.194,2.538,2.576,5.512,2.576c3.2,0,5.2-1.6,6-4.8c-1.2,1.6-2.6,2.2-4.2,1.8c-0.913-0.228-1.565-0.89-2.288-1.624 C10.337,13.382,8.976,12,6.001,12z"
+                  />
+                </svg>
               </div>
             </div>
           </div>
@@ -255,6 +254,65 @@
               <span class="feature-tag">유틸리티</span>
               <span class="feature-tag">반응형</span>
               <span class="feature-tag">커스텀</span>
+            </div>
+          </div>
+          <div class="guide-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+
+        <!-- Header 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('header-guide')">
+          <div class="guide-icon">
+            <div class="header-preview">
+              <div class="preview-header-container">
+                <div class="preview-header-bar"></div>
+                <div class="preview-header-menu">
+                  <div class="preview-menu-bar"></div>
+                  <div class="preview-menu-bar"></div>
+                  <div class="preview-menu-bar"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">Header 가이드</h3>
+            <p class="guide-description">
+              네비게이션과 사용자 메뉴를 포함한 반응형 Header 컴포넌트를 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">반응형</span>
+              <span class="feature-tag">네비게이션</span>
+              <span class="feature-tag">사용자 메뉴</span>
+            </div>
+          </div>
+          <div class="guide-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+
+        <!-- Sidebar 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('sidebar-guide')">
+          <div class="guide-icon">
+            <div class="sidebar-preview">
+              <div class="preview-sidebar-container">
+                <div class="preview-sidebar-menu">
+                  <div class="preview-menu-dot"></div>
+                  <div class="preview-menu-dot"></div>
+                  <div class="preview-menu-dot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">Sidebar 가이드</h3>
+            <p class="guide-description">
+              타입 A와 타입 B를 지원하는 사이드바 네비게이션 컴포넌트를 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">2가지 타입</span>
+              <span class="feature-tag">슬라이드 애니메이션</span>
+              <span class="feature-tag">커스텀 메뉴</span>
             </div>
           </div>
           <div class="guide-arrow">
@@ -958,67 +1016,132 @@ const navigateToGuide = (routeName) => {
   width: 60px;
   height: 60px;
   background: linear-gradient(135deg, #06b6d4, #0891b2);
-  border-radius: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 2px 8px rgba(6, 182, 212, 0.3);
+}
+
+.tailwind-svg {
+  width: 32px;
+  height: 32px;
+  color: white;
+}
+
+/* Header preview icon */
+.header-preview {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-header-container {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  padding: 8px;
+}
+
+.preview-header-bar {
+  height: 2px;
+  background: #e9ecef;
+  border-radius: 1px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.preview-header-menu {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-menu-bar {
+  width: 4px;
+  height: 4px;
+  background: #2c3e50;
+  border-radius: 50%;
+}
+
+.preview-header-user {
+  width: 20px;
+  height: 20px;
+  background: #e74c3c;
+  border-radius: 50%;
+}
+
+.preview-header-bottom {
+  height: 1px;
+  background: #e9ecef;
+  border-radius: 1px;
+  width: 100%;
+}
+
+/* Sidebar preview icon */
+.sidebar-preview {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-sidebar-container {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
 }
 
-.tailwind-icon {
-  position: relative;
-  width: 24px;
-  height: 16px;
-  margin-bottom: 4px;
+.preview-sidebar-menu {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
 }
 
-.tailwind-wind {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: white;
+.preview-menu-dot {
+  width: 6px;
+  height: 6px;
+  background: #7f8c8d;
   border-radius: 50%;
-  opacity: 0.9;
-  animation: windFloat 3s ease-in-out infinite;
+  animation: dotPulse 1.5s infinite;
 }
 
-.tailwind-wind:nth-child(1) {
-  top: 0;
-  left: 0;
+.preview-menu-dot:nth-child(1) {
   animation-delay: 0s;
 }
-
-.tailwind-wind:nth-child(2) {
-  top: 4px;
-  left: 8px;
+.preview-menu-dot:nth-child(2) {
   animation-delay: 0.5s;
 }
-
-.tailwind-wind:nth-child(3) {
-  top: 8px;
-  left: 16px;
+.preview-menu-dot:nth-child(3) {
   animation-delay: 1s;
 }
 
-@keyframes windFloat {
+@keyframes dotPulse {
   0%,
   100% {
-    transform: translateY(0) scale(1);
-    opacity: 0.9;
+    transform: scale(0.8);
+    opacity: 0.7;
   }
   50% {
-    transform: translateY(-2px) scale(1.1);
+    transform: scale(1);
     opacity: 1;
   }
-}
-
-.tailwind-text {
-  color: white;
-  font-size: 8px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
 }
 </style>
