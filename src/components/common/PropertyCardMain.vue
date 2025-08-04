@@ -4,7 +4,7 @@
     <div class="image-container">
       <img
         :src="property.imageUrl || '/default-property.jpg'"
-        :alt="property.title || 'Property Image'"
+        :alt="property.buildingName || 'Property Image'"
         class="property-image"
       />
       <button
@@ -18,15 +18,15 @@
 
     <!-- Property information -->
     <div class="info-container">
-      <h3 class="property-title">{{ property.title || '힐하우스' }}</h3>
+      <h3 class="property-title">{{ property.buildingName || '래미안 강남' }}</h3>
 
       <div class="price-info">
-        <span class="price-text">{{ property.price || '₩700,000,000' }}</span>
+        <span class="price-text">{{ formatPrice(property.price) || '₩700,000,000' }}</span>
       </div>
 
-      <div class="rating-info">
+      <div class="rating-info" v-if="property.rank">
         <i class="fas fa-star star-icon"></i>
-        <span class="rating-text">{{ property.rating || '4.7' }}</span>
+        <span class="rating-text">{{ property.rank }}</span>
       </div>
     </div>
   </div>
@@ -40,12 +40,12 @@ const props = defineProps({
     type: Object,
     required: true,
     default: () => ({
-      id: null,
-      title: '',
-      imageUrl: '',
+      buildingId: '',
       price: '',
-      rating: '',
+      buildingName: '',
+      imageUrl: '',
       isBookmarked: false,
+      rank: 0,
     }),
   },
 })
@@ -55,9 +55,22 @@ const emit = defineEmits(['bookmark'])
 // Toggle bookmark
 const toggleBookmark = () => {
   emit('bookmark', {
-    propertyId: props.property.id,
+    propertyId: props.property.buildingId,
     isBookmarked: !props.property.isBookmarked,
   })
+}
+
+// Format price
+const formatPrice = (price) => {
+  if (!price) return ''
+  const numPrice = parseInt(price)
+  if (numPrice >= 100000000) {
+    return `₩${(numPrice / 100000000).toFixed(0)}억`
+  } else if (numPrice >= 10000) {
+    return `₩${(numPrice / 10000).toFixed(0)}만`
+  } else {
+    return `₩${numPrice.toLocaleString()}`
+  }
 }
 </script>
 

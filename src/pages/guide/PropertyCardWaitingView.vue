@@ -14,7 +14,7 @@ const apiResponse = ref({
       image_url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop',
       address: '서울시 광진구 자양로 21길 16-26',
       deal_status: '구매중',
-      created_at: '2024-01-15T10:30:00Z',
+      created_at: '1일 전 등록',
     },
     {
       building_id: '2',
@@ -26,7 +26,7 @@ const apiResponse = ref({
         'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=300&fit=crop',
       address: '서울시 마포구 합정동 123-45',
       deal_status: '판매중',
-      created_at: '2024-01-14T14:20:00Z',
+      created_at: '2일 전 등록',
     },
     {
       building_id: '3',
@@ -37,7 +37,7 @@ const apiResponse = ref({
       image_url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop',
       address: '서울시 송파구 잠실로 222',
       deal_status: '판매중',
-      created_at: '2024-01-13T09:15:00Z',
+      created_at: '3일 전 등록',
     },
     {
       building_id: '4',
@@ -49,7 +49,7 @@ const apiResponse = ref({
         'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=300&fit=crop',
       address: '경기도 성남시 분당구 수내동 88-1',
       deal_status: '구매중',
-      created_at: '2024-01-12T16:45:00Z',
+      created_at: '1주 전 등록',
     },
   ],
 })
@@ -57,20 +57,15 @@ const apiResponse = ref({
 // API 데이터를 컴포넌트 형식으로 변환하는 함수
 const transformApiData = (deals) => {
   return deals.map((deal) => ({
-    id: deal.building_id,
-    title: deal.building_name,
-    location: deal.address,
+    buildingId: deal.building_id,
+    buildingName: deal.building_name,
+    address: deal.address,
     imageUrl: deal.image_url,
     price: formatPrice(deal.price),
-    description: `${deal.house_type} ${deal.sale_type} 매물입니다. ${deal.address}에 위치한 ${deal.building_name}입니다.`,
-    waitingStatus: deal.deal_status,
-    waitingMessage: `${deal.deal_status} 진행 중입니다`,
-    submittedDate: formatDate(deal.created_at),
-    isBookmarked: false,
-    // 추가 정보
-    houseType: deal.house_type,
+    dealStatus: deal.deal_status,
+    createdAt: deal.created_at,
     saleType: deal.sale_type,
-    originalPrice: deal.price,
+    houseType: deal.house_type,
   }))
 }
 
@@ -83,23 +78,6 @@ const formatPrice = (price) => {
     return `₩${(numPrice / 10000).toFixed(0)}만`
   } else {
     return `₩${numPrice.toLocaleString()}`
-  }
-}
-
-// 날짜 포맷팅 함수
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffTime = Math.abs(now - date)
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 1) {
-    return '1일 전 등록'
-  } else if (diffDays < 7) {
-    return `${diffDays}일 전 등록`
-  } else {
-    const weeks = Math.floor(diffDays / 7)
-    return `${weeks}주 전 등록`
   }
 }
 
@@ -152,26 +130,12 @@ const setFilter = (filter) => {
 }
 
 // 이벤트 핸들러
-const handleBookmark = (data) => {
-  const property = sampleProperties.value.find((p) => p.id === data.propertyId)
-  if (property) {
-    property.isBookmarked = data.isBookmarked
-  }
-  console.log('Bookmark:', data)
-}
-
 const handleContinue = (property) => {
   console.log('Continue:', property)
 }
 
 const handleCancel = (property) => {
   console.log('Cancel:', property)
-}
-
-const handleInteractiveBookmark = (data) => {
-  interactiveProperty.value.isBookmarked = data.isBookmarked
-  lastEvent.value = `북마크: ${data.isBookmarked ? '추가' : '제거'}`
-  console.log('Interactive Bookmark:', data)
 }
 
 const handleInteractiveContinue = (property) => {
@@ -198,7 +162,6 @@ const handleInteractiveCancel = (property) => {
             v-for="property in sampleProperties"
             :key="property.id"
             :property="property"
-            @bookmark="handleBookmark"
             @edit="handleContinue"
             @cancel="handleCancel"
           />
@@ -213,9 +176,8 @@ const handleInteractiveCancel = (property) => {
           <pre><code>&lt;template&gt;
   &lt;PropertyCardWaiting
     v-for="property in properties"
-    :key="property.id"
+    :key="property.buildingId"
     :property="property"
-    @bookmark="handleBookmark"
     @edit="handleContinue"
     @cancel="handleCancel"
   /&gt;
@@ -237,7 +199,7 @@ const apiResponse = ref({
       image_url: "/path/to/image.jpg",
       address: "서울시 광진구 자양로 21길 16-26",
       deal_status: "구매중",
-      created_at: "2024-01-15T10:30:00Z"
+      created_at: "1일 전 등록"
     }
   ]
 })
@@ -248,16 +210,15 @@ const properties = computed(() => transformApiData(apiResponse.value.deals))
 // 데이터 변환 함수
 const transformApiData = (deals) => {
   return deals.map(deal => ({
-    id: deal.building_id,
-    title: deal.building_name,
-    location: deal.address,
+    buildingId: deal.building_id,
+    buildingName: deal.building_name,
+    address: deal.address,
     imageUrl: deal.image_url,
     price: formatPrice(deal.price),
-    description: `${deal.house_type} ${deal.sale_type} 매물입니다.`,
-    waitingStatus: deal.deal_status,
-    waitingMessage: `${deal.deal_status} 진행 중입니다`,
-    submittedDate: formatDate(deal.created_at),
-    isBookmarked: false
+    dealStatus: deal.deal_status,
+    createdAt: deal.created_at,
+    saleType: deal.sale_type,
+    houseType: deal.house_type
   }))
 }
 
@@ -270,17 +231,7 @@ const formatPrice = (price) => {
   return `₩${(numPrice / 10000).toFixed(0)}만`
 }
 
-// 날짜 포맷팅
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffDays = Math.ceil(Math.abs(now - date) / (1000 * 60 * 60 * 24))
-  return `${diffDays}일 전 등록`
-}
 
-const handleBookmark = (data) => {
-  console.log('Bookmark:', data)
-}
 
 const handleContinue = (property) => {
   console.log('Continue:', property)
@@ -326,16 +277,15 @@ const handleCancel = (property) => {
         <div class="code-example">
           <h3>Property 객체 구조</h3>
           <pre><code>{
-  id: Number,              // 매물 고유 ID
-  title: String,           // 매물 제목
-  location: String,        // 위치
+  buildingId: String,      // 매물 고유 ID
+  buildingName: String,    // 매물 이름
+  address: String,         // 주소
   imageUrl: String,        // 이미지 URL
   price: String,           // 가격
-  description: String,     // 설명
-  waitingStatus: String,   // 대기 상태 (구매중/판매중)
-  waitingMessage: String,  // 대기 메시지
-  submittedDate: String,   // 등록 날짜
-  isBookmarked: Boolean    // 즐겨찾기 여부
+  dealStatus: String,      // 거래 상태 (구매중/판매중)
+  createdAt: String,       // 등록 날짜
+  saleType: String,        // 거래 유형 (매매/전세/월세)
+  houseType: String        // 부동산 유형 (아파트/오피스텔/빌라)
 }</code></pre>
         </div>
       </section>
@@ -388,12 +338,6 @@ const handleCancel = (property) => {
             </thead>
             <tbody>
               <tr>
-                <td>bookmark</td>
-                <td>북마크 버튼 클릭</td>
-                <td>{ propertyId, isBookmarked }</td>
-                <td>즐겨찾기 상태 변경 시 발생</td>
-              </tr>
-              <tr>
                 <td>edit</td>
                 <td>거래 이어가기 버튼 클릭</td>
                 <td>property object</td>
@@ -414,25 +358,17 @@ const handleCancel = (property) => {
       <section class="section">
         <h2 class="section-title">이벤트 구조 코드</h2>
         <div class="code-example">
-          <h3>Bookmark 이벤트 데이터 구조</h3>
-          <pre><code>{
-  propertyId: Number,   // 매물 ID
-  isBookmarked: Boolean // 즐겨찾기 상태 (true/false)
-}</code></pre>
-        </div>
-        <div class="code-example">
           <h3>Edit/Cancel 이벤트 데이터 구조</h3>
           <pre><code>{
-  id: Number,
-  title: String,
-  location: String,
+  buildingId: String,
+  buildingName: String,
+  address: String,
   imageUrl: String,
   price: String,
-  description: String,
-  waitingStatus: String,
-  waitingMessage: String,
-  submittedDate: String,
-  isBookmarked: Boolean
+  dealStatus: String,
+  createdAt: String,
+  saleType: String,
+  houseType: String
 }</code></pre>
         </div>
       </section>
@@ -443,7 +379,6 @@ const handleCancel = (property) => {
         <div class="demo-card">
           <PropertyCardWaiting
             :property="interactiveProperty"
-            @bookmark="handleInteractiveBookmark"
             @edit="handleInteractiveContinue"
             @cancel="handleInteractiveCancel"
           />
@@ -472,9 +407,8 @@ const handleCancel = (property) => {
           <div class="filtered-cards">
             <PropertyCardWaiting
               v-for="property in filteredProperties"
-              :key="property.id"
+              :key="property.buildingId"
               :property="property"
-              @bookmark="handleBookmark"
               @edit="handleContinue"
               @cancel="handleCancel"
             />

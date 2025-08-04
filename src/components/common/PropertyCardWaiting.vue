@@ -1,18 +1,11 @@
 <template>
   <div class="property-card-waiting">
-    <!-- Header with waiting status and bookmark -->
+    <!-- Header with waiting status -->
     <div class="card-header">
       <div class="waiting-badge">
         <i class="fas fa-clock waiting-icon"></i>
-        <span class="waiting-text">{{ property.waitingStatus || '대기중' }}</span>
+        <span class="waiting-text">{{ property.dealStatus || '대기중' }}</span>
       </div>
-      <button
-        @click="toggleBookmark"
-        class="bookmark-button"
-        :class="{ bookmarked: property.isBookmarked }"
-      >
-        <i class="fas fa-heart bookmark-icon"></i>
-      </button>
     </div>
 
     <!-- Property image with waiting overlay -->
@@ -30,33 +23,29 @@
 
     <!-- Property details -->
     <div class="details-container">
-      <h3 class="property-title">{{ property.title || '홍대 아늑한 스튜디오' }}</h3>
+      <h3 class="property-title">{{ property.buildingName || '스카이빌' }}</h3>
 
       <div class="price-info">
-        <span class="price-text">{{ property.price || '₩300,000,000' }}</span>
+        <span class="price-text">{{ property.price || '₩750,000,000' }}</span>
       </div>
 
       <div class="location-info">
         <i class="fas fa-map-marker-alt location-icon"></i>
-        <span class="location-text">{{ property.location || '서울시 마포구' }}</span>
+        <span class="location-text">{{ property.address || '서울시 광진구' }}</span>
       </div>
 
-      <div class="description-text">
-        {{
-          property.description ||
-          '젊은 전문가에게 완벽한 스튜디오 아파트입니다. 밤 문화와 대학가에 가깝습니다.'
-        }}
+      <div class="property-type-info">
+        <span class="property-type">{{ property.houseType || '아파트' }}</span>
+        <span class="sale-type">{{ property.saleType || '매매' }}</span>
       </div>
 
       <div class="waiting-info">
         <i class="fas fa-info-circle info-icon"></i>
-        <span class="waiting-info-text">{{
-          property.waitingMessage || '관리자 승인 후 게시됩니다'
-        }}</span>
+        <span class="waiting-info-text">{{ property.dealStatus || '대기중' }} 진행 중입니다</span>
       </div>
 
       <div class="submitted-date">
-        {{ property.submittedDate || '1일 전 등록' }}
+        {{ property.createdAt || '1일 전 등록' }}
       </div>
 
       <!-- Progress indicator -->
@@ -84,29 +73,20 @@ const props = defineProps({
     type: Object,
     required: true,
     default: () => ({
-      id: null,
-      title: '',
-      location: '',
+      buildingId: null,
+      buildingName: '',
+      address: '',
       imageUrl: '',
       price: '',
-      isBookmarked: false,
-      description: '',
-      waitingStatus: '대기중',
-      waitingMessage: '관리자 승인 후 게시됩니다',
-      submittedDate: '',
+      dealStatus: '대기중',
+      createdAt: '',
+      saleType: '',
+      houseType: '',
     }),
   },
 })
 
-const emit = defineEmits(['bookmark', 'edit', 'cancel'])
-
-// Toggle bookmark
-const toggleBookmark = () => {
-  emit('bookmark', {
-    propertyId: props.property.id,
-    isBookmarked: !props.property.isBookmarked,
-  })
-}
+const emit = defineEmits(['edit', 'cancel'])
 
 // Handle edit
 const handleEdit = () => {
@@ -140,7 +120,7 @@ const handleCancel = () => {
 .card-header {
   padding: 16px 20px 12px 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
 }
 
@@ -164,34 +144,6 @@ const handleCancel = () => {
   font-weight: bold;
   font-family: 'Roboto', sans-serif;
   line-height: 1.2;
-}
-
-.bookmark-button {
-  width: 28px;
-  height: 28px;
-  background: var(--bg-2);
-  border-radius: 50%;
-  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.bookmark-button:hover {
-  transform: scale(1.1);
-}
-
-.bookmark-icon {
-  font-size: 14px;
-  color: var(--status-2);
-  transition: all 0.2s ease;
-}
-
-.bookmark-button.bookmarked .bookmark-icon {
-  color: var(--status-2);
 }
 
 /* Image with waiting overlay */
@@ -284,15 +236,30 @@ const handleCancel = () => {
   font-family: 'Roboto', sans-serif;
 }
 
-.description-text {
-  color: var(--text-2);
-  font-size: 14px;
-  font-weight: normal;
-  font-family: 'Roboto', sans-serif;
-  line-height: 1.5;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+.property-type-info {
+  display: flex;
+  gap: 8px;
   margin-top: 8px;
+}
+
+.property-type {
+  background: var(--brand-1);
+  color: var(--text-3);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Roboto', sans-serif;
+}
+
+.sale-type {
+  background: var(--brand-3);
+  color: var(--text-3);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Roboto', sans-serif;
 }
 
 .waiting-info {
