@@ -55,7 +55,9 @@ import InputGuideView from '@/pages/guide/InputGuideView.vue'
 import DropboxGuideView from '@/pages/guide/DropboxGuideView.vue'
 import FooterGuideView from '@/pages/guide/FooterGuideView.vue'
 import PopupModalGuideView from '@/pages/guide/PopupModalGuideView.vue'
+import HeaderGuideView from '@/pages/guide/HeaderGuideView.vue'
 import TailwindGuideView from '@/pages/guide/TailwindGuideView.vue'
+import SidebarGuideView from '@/pages/guide/SidebarGuideView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -260,9 +262,19 @@ const router = createRouter({
       component: PopupModalGuideView,
     },
     {
+      path: '/guide/header-guide',
+      name: 'header-guide',
+      component: HeaderGuideView,
+    },
+    {
       path: '/guide/tailwind-guide',
       name: 'tailwind-guide',
       component: TailwindGuideView,
+    },
+    {
+      path: '/guide/sidebar-guide',
+      name: 'sidebar-guide',
+      component: SidebarGuideView,
     },
   ],
 })
