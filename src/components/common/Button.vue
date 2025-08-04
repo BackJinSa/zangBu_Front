@@ -23,6 +23,23 @@
     <!-- 왼쪽 아이콘 (iconRight가 false일 때) -->
     <i v-if="icon && !iconRight" :class="[icon, 'mr-2', iconSizeClasses[variant]]"></i>
 
+    <!-- button4의 기본 다운로드 아이콘 -->
+    <svg
+      v-if="variant === 'button4' && !icon"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth="{1.5}"
+      stroke="currentColor"
+      class="mr-2 w-5 h-5"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+      />
+    </svg>
+
     <!-- 버튼 텍스트 (slot으로 외부에서 주입) -->
     <span v-if="$slots.default">
       <slot />
@@ -92,12 +109,12 @@ const variantClasses = {
   button2: 'bg-brand-4 hover:bg-brand-3 text-text-3', // 연한 녹색 배경, 흰색 텍스트
   button3: 'bg-status-1 hover:bg-blue-700 text-text-3', // 파란색 배경, 흰색 텍스트
   button4: 'bg-status-1 hover:bg-blue-700 text-text-3', // 파란색 배경 (아이콘용), 흰색 텍스트
-  button5: 'bg-transparent border border-brand-1 text-brand-1 hover:bg-brand-1 hover:text-text-3', // 투명 배경, 녹색 테두리
+  button5: 'bg-transparent border-2 border-brand-2 text-brand-2 hover:bg-brand-2 hover:text-text-3', // 투명 배경, 녹색 테두리
   button6: 'bg-brand-3 hover:bg-brand-2 text-text-3', // 진한 녹색 배경, 흰색 텍스트
-  button7: 'bg-transparent border border-brand-3 text-brand-3 hover:bg-brand-3 hover:text-text-3', // 투명 배경, 진한 녹색 테두리
+  button7: 'bg-transparent border-2 border-brand-3 text-brand-3 hover:bg-brand-3 hover:text-text-3', // 투명 배경, 진한 녹색 테두리
   button8: 'bg-brand-3 hover:bg-brand-2 text-text-3', // 진한 녹색 배경 (전체 너비용), 흰색 텍스트
   button9: 'bg-status-2 hover:bg-red-700 text-text-3', // 빨간색 배경, 흰색 텍스트
-  button10: 'bg-bg-2 hover:bg-gray-50 text-text-2 border border-text-1', // 흰색 배경, 회색 테두리
+  button10: 'bg-bg-2 hover:bg-gray-50 text-text-2 border-text-1', // 흰색 배경, 회색 테두리
   button11: 'bg-white border border-red-500 text-red-500 hover:bg-red-50', // 흰색 배경, 빨간색 테두리와 텍스트
 }
 
