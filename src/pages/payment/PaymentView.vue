@@ -50,7 +50,7 @@ const loadBuyerInfo = async () => {
     console.log('구매자 정보 로드 완료:', buyerInfo)
   } catch (error) {
     console.error('구매자 정보 로드 실패:', error)
-    errorMessage.value = '구매자 정보를 불러오는데 실패했습니다. 수동으로 입력해주세요.'
+    errorMessage.value = '구매자 정보를 불러오는데 실패했습니다.'
   } finally {
     buyerInfoLoading.value = false
   }
