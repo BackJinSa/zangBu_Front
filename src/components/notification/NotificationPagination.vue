@@ -1,47 +1,58 @@
-<!-- NotificationPagination.vue -->
+// NotificationPagination.vue
 <template>
-  <div class="flex justify-center gap-2 mt-6 flex-wrap">
+  <div class="flex justify-center gap-1 py-4 text-sm">
+    <!-- 이전 그룹 이동 -->
     <button
-      class="px-2 py-1 bg-gray-100 rounded text-sm"
-      :disabled="!canGoPrev"
-      @click="goToPrevGroup"
+      v-if="startPage > 1"
+      @click="$emit('change-page', startPage - maxVisible)"
+      class="px-2 py-1 border rounded bg-white text-gray-600 border-gray-300"
     >
-      ＜
+      &laquo;
     </button>
+
+    <!-- 현재 그룹 페이지 -->
     <button
-      v-for="page in visiblePages"
-      :key="page"
-      @click="$emit('page-change', page)"
+      v-for="p in pageRange"
+      :key="p"
+      @click="$emit('change-page', p)"
       :class="[
-        'px-2 py-1 rounded text-sm',
-        page === currentPage ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-700',
+        'px-3 py-1 border rounded',
+        p === currentPage ? 'bg-black text-white' : 'bg-white text-black border-gray-200',
       ]"
     >
-      {{ page }}
+      {{ p }}
     </button>
+
+    <!-- 다음 그룹 이동 -->
     <button
-      class="px-2 py-1 bg-gray-100 rounded text-sm"
-      :disabled="!canGoNext"
-      @click="goToNextGroup"
+      v-if="endPage < totalPages"
+      @click="$emit('change-page', startPage + maxVisible)"
+      class="px-2 py-1 border rounded bg-white text-gray-600 border-gray-300"
     >
-      ＞
+      &raquo;
     </button>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-const props = defineProps({ currentPage: Number, totalPages: Number })
-const emit = defineEmits(['page-change'])
-const groupSize = 10
-const currentGroup = computed(() => Math.floor((props.currentPage - 1) / groupSize))
-const startPage = computed(() => currentGroup.value * groupSize + 1)
-const endPage = computed(() => Math.min(startPage.value + groupSize - 1, props.totalPages))
-const visiblePages = computed(() =>
-  Array.from({ length: endPage.value - startPage.value + 1 }, (_, i) => startPage.value + i)
-)
-const canGoPrev = computed(() => startPage.value > 1)
-const canGoNext = computed(() => endPage.value < props.totalPages)
-const goToPrevGroup = () => canGoPrev.value && emit('page-change', startPage.value - 1)
-const goToNextGroup = () => canGoNext.value && emit('page-change', endPage.value + 1)
+
+const props = defineProps({
+  currentPage: Number,
+  totalPages: Number,
+})
+
+const maxVisible = 10
+
+const startPage = computed(() => {
+  return Math.floor((props.currentPage - 1) / maxVisible) * maxVisible + 1
+})
+
+const endPage = computed(() => {
+  return Math.min(startPage.value + maxVisible - 1, props.totalPages)
+})
+
+const pageRange = computed(() => {
+  return Array.from({ length: endPage.value - startPage.value + 1 }, (_, i) => startPage.value + i)
+})
 </script>

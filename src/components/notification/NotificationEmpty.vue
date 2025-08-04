@@ -1,7 +1,6 @@
-<!-- NotificationEmpty.vue -->
+// NotificationEmpty.vue
 <template>
-  <div class="flex flex-col items-center justify-center text-gray-400 py-10 gap-3">
-    <i class="fa fa-bell-slash text-3xl"></i>
-    <p class="text-sm">표시할 알림이 없습니다.</p>
-  </div>
+  <div class="text-center py-10 text-gray-400 text-sm">표시할 알림이 없습니다.</div>
 </template>
+
+<script setup></script>
