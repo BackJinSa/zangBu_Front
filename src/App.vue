@@ -1,11 +1,14 @@
-<script setup></script>
+<script setup>
+import Header from './components/common/Header.vue'
+import footer from './components/common/footer.vue'
+</script>
 
 <template>
-  <header>
-    <div class="wrapper">
-      <nav></nav>
-    </div>
-  </header>
-
-  <RouterView />
+  <div id="app">
+    <Header />
+    <main>
+      <RouterView />
+    </main>
+    <footer />
+  </div>
 </template>
