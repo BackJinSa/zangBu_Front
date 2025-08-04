@@ -1,5 +1,5 @@
 <template>
-  <div class="w-80 h-11 flex items-center justify-center bg-white p-3 box-border">
+  <div class="w-full">
     <input
       :type="type"
       :placeholder="placeholder"
@@ -10,7 +10,7 @@
       :minlength="minlength"
       :name="name"
       :id="id"
-      class="w-70 h-5 px-3 py-2 text-base leading-6 text-gray-700 bg-white border border-white outline-none font-roboto box-border placeholder:text-gray-400 placeholder:text-base disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed disabled:opacity-60 focus:border-gray-300 focus:ring-1 focus:ring-gray-300"
+      class="w-full px-3 py-2 text-base leading-6 text-text-2 bg-bg-2 border border-bg-1 rounded-lg outline-none box-border placeholder:text-text-1 placeholder:text-base disabled:bg-bg-1 disabled:text-text-1 disabled:cursor-not-allowed disabled:opacity-60 focus:border-brand-3 focus:ring-1 focus:ring-brand-3 transition-colors"
       @input="handleInput"
       @focus="handleFocus"
       @blur="handleBlur"
