@@ -89,6 +89,38 @@
           </div>
         </div>
 
+        <!-- PropertyCardWaiting 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('property-card-waiting-guide')">
+          <div class="guide-icon">
+            <div class="property-card-waiting-preview">
+              <div class="preview-image-waiting"></div>
+              <div class="preview-waiting-overlay">
+                <div class="preview-clock-icon"></div>
+                <div class="preview-waiting-text"></div>
+              </div>
+              <div class="preview-content-waiting">
+                <div class="preview-title-waiting"></div>
+                <div class="preview-price-waiting"></div>
+                <div class="preview-waiting-badge"></div>
+              </div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">PropertyCardWaiting 가이드</h3>
+            <p class="guide-description">
+              대기 중인 매물을 표시하는 PropertyCardWaiting 컴포넌트의 사용법을 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">대기 상태</span>
+              <span class="feature-tag">진행 표시</span>
+              <span class="feature-tag">액션 버튼</span>
+            </div>
+          </div>
+          <div class="guide-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+
         <!-- Input 가이드 -->
         <div class="guide-card" @click="navigateToGuide('input-guide')">
           <div class="guide-icon">
@@ -545,6 +577,77 @@ const navigateToGuide = (routeName) => {
 .preview-rating {
   height: 4px;
   background: #f39c12;
+  border-radius: 2px;
+  width: 40%;
+}
+
+/* PropertyCardWaiting preview icon */
+.property-card-waiting-preview {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.preview-image-waiting {
+  height: 25px;
+  background: linear-gradient(45deg, #e0e0e0, #f0f0f0);
+  filter: grayscale(30%);
+}
+
+.preview-waiting-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+}
+
+.preview-clock-icon {
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+}
+
+.preview-waiting-text {
+  height: 2px;
+  background: white;
+  border-radius: 1px;
+  width: 20px;
+}
+
+.preview-content-waiting {
+  padding: 4px;
+}
+
+.preview-title-waiting {
+  height: 4px;
+  background: #2c3e50;
+  border-radius: 2px;
+  margin-bottom: 2px;
+}
+
+.preview-price-waiting {
+  height: 3px;
+  background: #27ae60;
+  border-radius: 2px;
+  margin-bottom: 2px;
+  width: 70%;
+}
+
+.preview-waiting-badge {
+  height: 3px;
+  background: #ffc107;
   border-radius: 2px;
   width: 40%;
 }
