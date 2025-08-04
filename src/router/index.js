@@ -22,8 +22,7 @@ import PropertyRegisterView from '@/pages/property/PropertyRegisterView.vue'
 
 // 채팅 관련 페이지
 import ChatListView from '@/pages/chat/ChatListView.vue'
-import ChatSellerView from '@/pages/chat/ChatSellerView.vue'
-import ChatBuyerView from '@/pages/chat/ChatBuyerView.vue'
+import ChatRoomView from '@/pages/chat/ChatRoomView.vue'
 
 // 거래 관련 페이지
 import TradeGuideView from '@/pages/trade/TradeGuideView.vue'
@@ -44,18 +43,24 @@ import NotificationView from '@/pages/notification/NotificationView.vue'
 
 // 결제 관련 페이지
 import PaymentView from '@/pages/payment/PaymentView.vue'
+import PaymentSuccessView from '@/pages/payment/PaymentSuccessView.vue'
+import PaymentFailView from '@/pages/payment/PaymentFailView.vue'
+import PaymentConfirmView from '@/pages/payment/PaymentConfirmView.vue'
 
 // 가이드 페이지
 import GuideMainView from '@/pages/guide/GuideMainView.vue'
 import ColorGuideView from '@/pages/guide/ColorGuideView.vue'
 import PropertyCardGuideView from '@/pages/guide/PropertyCardGuideView.vue'
 import PropertyCardMainView from '@/pages/guide/PropertyCardMainView.vue'
+import PropertyCardWaitingView from '@/pages/guide/PropertyCardWaitingView.vue'
 import ButtonGuideView from '@/pages/guide/ButtonGuideView.vue'
 import InputGuideView from '@/pages/guide/InputGuideView.vue'
 import DropboxGuideView from '@/pages/guide/DropboxGuideView.vue'
 import FooterGuideView from '@/pages/guide/FooterGuideView.vue'
 import PopupModalGuideView from '@/pages/guide/PopupModalGuideView.vue'
+import HeaderGuideView from '@/pages/guide/HeaderGuideView.vue'
 import TailwindGuideView from '@/pages/guide/TailwindGuideView.vue'
+import SidebarGuideView from '@/pages/guide/SidebarGuideView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -129,6 +134,11 @@ const router = createRouter({
       name: 'property-register',
       component: PropertyRegisterView,
     },
+    {
+      path: '/property/waiting',
+      name: 'property-waiting',
+      component: PropertyCardWaitingView,
+    },
 
     // 채팅 관련 라우트
     {
@@ -137,16 +147,10 @@ const router = createRouter({
       component: ChatListView,
     },
     {
-      path: '/chat/seller/:roomId',
-      name: 'chat-seller',
-      component: ChatSellerView,
-      props: true,
-    },
-    {
-      path: '/chat/buyer/:roomId',
-      name: 'chat-buyer',
-      component: ChatBuyerView,
-      props: true,
+      path: '/chat/room',
+      // path: '/chat/room/:roomId',
+      name: 'chat-room',
+      component: ChatRoomView,
     },
 
     // 거래 관련 라우트
@@ -212,6 +216,21 @@ const router = createRouter({
       name: 'payment',
       component: PaymentView,
     },
+    {
+      path: '/payment/success',
+      name: 'payment-success',
+      component: PaymentSuccessView,
+    },
+    {
+      path: '/payment/fail',
+      name: 'payment-fail',
+      component: PaymentFailView,
+    },
+    {
+      path: '/payment/confirm',
+      name: 'payment-confirm',
+      component: PaymentConfirmView,
+    },
 
     // 가이드 라우트
     {
@@ -233,6 +252,11 @@ const router = createRouter({
       path: '/guide/property-card-main-guide',
       name: 'property-card-main-guide',
       component: PropertyCardMainView,
+    },
+    {
+      path: '/guide/property-card-waiting-guide',
+      name: 'property-card-waiting-guide',
+      component: PropertyCardWaitingView,
     },
     {
       path: '/guide/button-guide',
@@ -260,9 +284,19 @@ const router = createRouter({
       component: PopupModalGuideView,
     },
     {
+      path: '/guide/header-guide',
+      name: 'header-guide',
+      component: HeaderGuideView,
+    },
+    {
       path: '/guide/tailwind-guide',
       name: 'tailwind-guide',
       component: TailwindGuideView,
+    },
+    {
+      path: '/guide/sidebar-guide',
+      name: 'sidebar-guide',
+      component: SidebarGuideView,
     },
   ],
 })

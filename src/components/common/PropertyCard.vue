@@ -1,50 +1,52 @@
 <template>
   <div class="property-card">
-    <!-- Header with property type and bookmark -->
+    <!-- Header with property type and bookmark count -->
     <div class="card-header">
-      <div class="property-type-badge" :class="getBadgeClass(property.status)">
-        <span class="property-type-text">{{ property.status || '전세' }}</span>
+      <div class="property-type-badge" :class="getBadgeClass(property.sale_type)">
+        <span class="property-type-text">{{ property.sale_type || '전세' }}</span>
       </div>
-      <button
-        @click="toggleBookmark"
-        class="bookmark-button"
-        :class="{ bookmarked: property.isBookmarked }"
-      >
+      <div class="bookmark-count-display" v-if="property.bookmark_count">
         <i class="fas fa-heart bookmark-icon"></i>
-      </button>
+        <span class="bookmark-count-text">{{ property.bookmark_count }}</span>
+      </div>
     </div>
 
     <!-- Property image -->
     <div class="image-container">
       <img
-        :src="property.imageUrl || '/default-property.jpg'"
-        :alt="property.title || 'Property Image'"
+        :src="property.image_url || '/default-property.jpg'"
+        :alt="property.building_name || 'Property Image'"
         class="property-image"
       />
     </div>
 
     <!-- Property details -->
     <div class="details-container">
-      <h3 class="property-title">{{ property.title || '홍대 아늑한 스튜디오' }}</h3>
+      <h3 class="property-title">{{ property.building_name || '스카이빌' }}</h3>
 
       <div class="price-info">
-        <span class="price-text">{{ property.price || '₩300,000,000' }}</span>
+        <span class="price-text">{{ formatPrice(property.price) || '₩300,000,000' }}</span>
+        <span class="deposit-text" v-if="property.deposit"
+          >보증금: {{ formatPrice(property.deposit) }}</span
+        >
       </div>
 
-      <div class="location-info">
-        <i class="fas fa-map-marker-alt location-icon"></i>
-        <span class="location-text">{{ property.location || '서울시 마포구' }}</span>
+      <div class="property-info">
+        <span class="property-type-badge">{{ property.property_type || '아파트' }}</span>
+        <span class="seller-info">{{ property.seller_nickname || '판매자' }}</span>
       </div>
 
       <div class="description-text">
-        {{
-          property.description ||
-          '젊은 전문가에게 완벽한 스튜디오 아파트입니다. 밤 문화와 대학가에 가깝습니다.'
-        }}
+        {{ property.info_oneline || '매물에 대한 한 줄 소개입니다.' }}
+      </div>
+
+      <div class="facility-info" v-if="property.facility">
+        <i class="fas fa-map-marker-alt facility-icon"></i>
+        <span class="facility-text">{{ property.facility }}</span>
       </div>
 
       <div class="saved-date">
-        {{ property.savedDate || '1주 전 저장' }}
+        {{ property.created_at || '1주 전 저장' }}
       </div>
 
       <!-- Action buttons -->
@@ -64,28 +66,26 @@ const props = defineProps({
     type: Object,
     required: true,
     default: () => ({
-      id: null,
-      title: '',
-      location: '',
-      imageUrl: '',
-      status: '',
+      bookmark_id: '',
+      building_id: '',
+      complex_id: '',
+      seller_nickname: '',
+      sale_type: '',
       price: '',
-      isBookmarked: false,
-      description: '',
-      savedDate: '',
+      deposit: '',
+      bookmark_count: '',
+      created_at: '',
+      building_name: '',
+      seller_type: '',
+      property_type: '',
+      info_oneline: '',
+      image_url: '',
+      facility: '',
     }),
   },
 })
 
-const emit = defineEmits(['bookmark', 'contact', 'detail', 'delete'])
-
-// Toggle bookmark
-const toggleBookmark = () => {
-  emit('bookmark', {
-    propertyId: props.property.id,
-    isBookmarked: !props.property.isBookmarked,
-  })
-}
+const emit = defineEmits(['contact', 'detail', 'delete'])
 
 // Handle detail view
 const handleDetail = () => {
@@ -98,8 +98,8 @@ const handleDelete = () => {
 }
 
 // Get badge class based on property status
-const getBadgeClass = (status) => {
-  switch (status) {
+const getBadgeClass = (saleType) => {
+  switch (saleType) {
     case '매매':
       return 'status-1'
     case '전세':
@@ -108,6 +108,19 @@ const getBadgeClass = (status) => {
       return 'status-3'
     default:
       return 'status-2' // Default to '전세'
+  }
+}
+
+// Format price
+const formatPrice = (price) => {
+  if (!price) return ''
+  const numPrice = parseInt(price)
+  if (numPrice >= 100000000) {
+    return `₩${(numPrice / 100000000).toFixed(0)}억`
+  } else if (numPrice >= 10000) {
+    return `₩${(numPrice / 10000).toFixed(0)}만`
+  } else {
+    return `₩${numPrice.toLocaleString()}`
   }
 }
 </script>
@@ -159,32 +172,26 @@ const getBadgeClass = (status) => {
   line-height: 1.2;
 }
 
-.bookmark-button {
-  width: 28px;
-  height: 28px;
-  background: var(--bg-2);
-  border-radius: 50%;
-  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+.bookmark-count-display {
   display: flex;
-  justify-content: center;
   align-items: center;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.bookmark-button:hover {
-  transform: scale(1.1);
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--bg-2);
+  border-radius: 12px;
+  color: var(--text-2);
 }
 
 .bookmark-icon {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--status-2);
-  transition: all 0.2s ease;
 }
 
-.bookmark-button.bookmarked .bookmark-icon {
-  color: var(--status-2);
+.bookmark-count-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-1);
+  font-family: 'Roboto', sans-serif;
 }
 
 /* Image */
@@ -230,19 +237,24 @@ const getBadgeClass = (status) => {
   font-family: 'Roboto', sans-serif;
 }
 
-.location-info {
+.property-info {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
-.location-icon {
-  color: var(--text-1);
-  font-size: 14px;
+.property-type-badge {
+  background: var(--brand-1);
+  color: var(--text-3);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Roboto', sans-serif;
 }
 
-.location-text {
+.seller-info {
   color: var(--text-2);
   font-size: 14px;
   font-weight: normal;
@@ -258,6 +270,33 @@ const getBadgeClass = (status) => {
   word-wrap: break-word;
   overflow-wrap: break-word;
   margin-top: 8px;
+}
+
+.facility-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.facility-icon {
+  color: var(--text-1);
+  font-size: 14px;
+}
+
+.facility-text {
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: normal;
+  font-family: 'Roboto', sans-serif;
+}
+
+.deposit-text {
+  color: var(--text-1);
+  font-size: 12px;
+  font-weight: normal;
+  font-family: 'Roboto', sans-serif;
+  margin-top: 4px;
 }
 
 .saved-date {
