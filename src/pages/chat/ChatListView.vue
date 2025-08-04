@@ -1,78 +1,80 @@
 <template>
-  <div class="chat-list-wrapper">
-    <!-- 헤더 -->
-    <div class="chat-list-header">
-      <button @click="router.back()" class="back-button">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-      <h3>채팅방 목록</h3>
-    </div>
-
-    <main class="chat-content">
-      <!-- 필터 탭 -->
-      <div class="chat-tab-container">
-        <div
-          v-for="tab in tabs"
-          :key="tab.type"
-          :class="['chat-tab', { active: tab.type === selectedTab }]"
-          @click="selectTab(tab.type)"
-        >
-          <div class="count">
-            {{ tab.count }}
-            <span v-if="tab.unread > 0" class="tab-unread">{{ tab.unread }}</span>
-          </div>
-          <div class="label">{{ tab.label }}</div>
-        </div>
+  <div class="page-container">
+    <div class="chat-list-wrapper">
+      <!-- 헤더 -->
+      <div class="chat-list-header">
+        <button @click="router.back()" class="back-button">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <h3>채팅방 목록</h3>
       </div>
 
-      <!-- 채팅방 리스트 -->
-      <div class="chat-room-list">
-        <div
-          v-for="room in paginatedRooms"
-          :key="room.chatRoomId"
-          class="chat-room-item"
-          @click="goToChatRoom(room.chatRoomId)"
-        >
+      <main class="chat-content">
+        <!-- 필터 탭 -->
+        <div class="chat-tab-container">
           <div
-            class="chat-avatar"
-            :style="{ backgroundColor: room.type === 'BUY' ? 'var(--brand-3)' : 'var(--brand-2)' }"
+            v-for="tab in tabs"
+            :key="tab.type"
+            :class="['chat-tab', { active: tab.type === selectedTab }]"
+            @click="selectTab(tab.type)"
           >
-            {{ room.sellerNickname.charAt(0) }}
+            <div class="count">
+              {{ tab.count }}
+              <span v-if="tab.unread > 0" class="tab-unread">{{ tab.unread }}</span>
+            </div>
+            <div class="label">{{ tab.label }}</div>
           </div>
-          <div class="chat-room-content">
-            <div class="chat-room-header">
-              <div class="nickname-and-badges">
-                <div>
-                  <div class="nickname-and-badges">
-                    <span class="nickname">{{ room.sellerNickname }}</span>
-                    <div class="badges">
-                      <span class="badge role">{{ room.sellerType }}</span>
-                      <span class="badge status">{{ room.status }}</span>
+        </div>
+
+        <!-- 채팅방 리스트 -->
+        <div class="chat-room-list">
+          <div
+            v-for="room in paginatedRooms"
+            :key="room.chatRoomId"
+            class="chat-room-item"
+            @click="goToChatRoom(room.chatRoomId)"
+          >
+            <div
+              class="chat-avatar"
+              :style="{
+                backgroundColor: room.type === 'BUY' ? 'var(--brand-3)' : 'var(--brand-2)',
+              }"
+            >
+              {{ room.sellerNickname.charAt(0) }}
+            </div>
+            <div class="chat-room-content">
+              <div class="chat-room-header">
+                <div class="nickname-and-badges">
+                  <div>
+                    <div class="nickname-and-badges">
+                      <span class="nickname">{{ room.sellerNickname }}</span>
+                      <div class="badges">
+                        <span class="badge role">{{ room.sellerType }}</span>
+                        <span class="badge status">{{ room.status }}</span>
+                      </div>
+                    </div>
+                    <div class="building-info">
+                      🏠 {{ room.buildingName }} | 💰 전세 {{ room.price }}억
                     </div>
                   </div>
-                  <div class="building-info">
-                    🏠 {{ room.buildingName }} | 💰 전세 {{ room.price }}억
-                  </div>
                 </div>
+                <span class="time">{{ room.lastMessageTime }}</span>
               </div>
-              <span class="time">{{ room.lastMessageTime }}</span>
+              <div class="message">{{ room.lastMessage }}</div>
             </div>
-            <div class="message">{{ room.lastMessage }}</div>
+            <div v-if="room.unreadCount > 0" class="unread-badge">{{ room.unreadCount }}</div>
           </div>
-          <div v-if="room.unreadCount > 0" class="unread-badge">{{ room.unreadCount }}</div>
         </div>
-      </div>
 
-      <VueAwesomePaginate
-        :total-pages="totalPages"
-        :max-pages-shown="5"
-        :current-page="currentPage"
-        @page-click="changePage"
-      />
-    </main>
-  </div>
-  <div class="footer-wrapper">
-    <Footer />
+        <VueAwesomePaginate
+          :total-pages="totalPages"
+          :max-pages-shown="5"
+          :current-page="currentPage"
+          @page-click="changePage"
+        />
+      </main>
+    </div>
+    <Footer class="mt-12" />
   </div>
 </template>
 
@@ -332,7 +334,7 @@ const chatRooms = ref([
   },
 ])
 
-// ✅ 탭 정보 자동 계산 함수
+//  탭 정보 자동 계산 함수
 const updateTabs = () => {
   const buyRooms = chatRooms.value.filter((r) => r.type === 'BUY')
   const sellRooms = chatRooms.value.filter((r) => r.type === 'SELL')
@@ -347,7 +349,7 @@ const updateTabs = () => {
   ]
 }
 
-// ✅ 탭 상태
+//  탭 상태
 const tabs = ref([
   { label: '전체', type: 'ALL', count: 0, unread: 0 },
   { label: '구매', type: 'BUY', count: 0, unread: 0 },
@@ -620,7 +622,8 @@ const goToChatRoom = (roomId) => {
   background-color: var(--brand-3);
   color: white;
 }
-.footer-wrapper {
+.page-container {
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
