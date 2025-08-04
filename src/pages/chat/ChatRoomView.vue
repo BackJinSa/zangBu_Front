@@ -106,7 +106,7 @@
 </template>
 
 <script setup>
-import Footer from '@/components/common/footer.vue'
+import Footer from '@/components/common/Footer.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
