@@ -40,17 +40,12 @@ export const useChatStore = defineStore('chat', () => {
     // 메시지 전송 로직
     try {
       sendStompMessage('/pub/chat.message', message)
-      messages.value.push({
-        ...message,
-        createdAt: new Date().toISOString(),
-        sendNickname: message.sendNickname, // 보낸 사람 닉네임 등
-      })
     } catch (err) {
       console.error('STOMP 메시지 전송 실패:', err)
     }
   }
 
-  async function createChatRoom(participants) {
+  async function createChatRoom(buildingId, consumerId) {
     // 채팅방 생성 로직
     try {
       const res = await axios.post('/chat/room', {

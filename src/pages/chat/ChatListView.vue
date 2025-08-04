@@ -1,6 +1,5 @@
 <template>
   <div class="w-full max-w-screen-xl mx-auto px-8 md:px-12 xl:px-16">
-    <!-- <Header /> -->
     <div class="flex flex-col min-h-screen bg-[var(--bg-1)] py-6 px-4 md:px-6 xl:px-8">
       <!-- 헤더 -->
       <div class="flex items-center gap-3 text-lg mb-5">

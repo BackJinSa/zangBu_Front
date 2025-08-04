@@ -107,8 +107,12 @@
 </template>
 
 <script setup>
+<<<<<<< HEAD
 import Footer from '@/components/common/footer.vue'
 import Header from '@/components/common/Header.vue'
+=======
+import Footer from '@/components/common/Footer.vue'
+>>>>>>> aab147d479f3ae84fdda899e1956825413890a3f
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
