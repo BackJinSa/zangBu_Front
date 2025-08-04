@@ -89,7 +89,6 @@
           </div>
         </div>
 
-<<<<<<< HEAD
         <!-- Header 가이드 -->
         <div class="guide-card" @click="navigateToGuide('header-guide')">
           <div class="guide-icon">
@@ -113,84 +112,6 @@
               <span class="feature-tag">반응형</span>
               <span class="feature-tag">네비게이션</span>
               <span class="feature-tag">검색</span>
-=======
-        <!-- Button 가이드 -->
-        <div class="guide-card" @click="navigateToGuide('button-guide')">
-          <div class="guide-icon">
-            <div class="button-preview">
-              <div class="preview-button primary"></div>
-              <div class="preview-button secondary"></div>
-              <div class="preview-button outline"></div>
-            </div>
-          </div>
-          <div class="guide-content">
-            <h3 class="guide-title">Button 가이드</h3>
-            <p class="guide-description">
-              공용 Button 컴포넌트의 10가지 variant와 다양한 옵션을 확인하세요.
-            </p>
-            <div class="guide-features">
-              <span class="feature-tag">10가지 variant</span>
-              <span class="feature-tag">아이콘 지원</span>
-              <span class="feature-tag">반응형</span>
-            </div>
-          </div>
-          <div class="guide-arrow">
-            <i class="fas fa-chevron-right"></i>
-          </div>
-        </div>
-
-        <!-- DropBox 가이드 -->
-        <div class="guide-card" @click="navigateToGuide('dropbox-guide')">
-          <div class="guide-icon">
-            <div class="dropbox-preview">
-              <div class="preview-dropdown">
-                <div class="preview-selector"></div>
-                <div class="preview-options">
-                  <div class="preview-option"></div>
-                  <div class="preview-option"></div>
-                  <div class="preview-option"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="guide-content">
-            <h3 class="guide-title">DropBox 가이드</h3>
-            <p class="guide-description">
-              드롭다운 선택 기능을 제공하는 DropBox 컴포넌트의 사용법을 확인하세요.
-            </p>
-            <div class="guide-features">
-              <span class="feature-tag">v-model 지원</span>
-              <span class="feature-tag">커스텀 옵션</span>
-              <span class="feature-tag">외부 클릭 감지</span>
-            </div>
-          </div>
-          <div class="guide-arrow">
-            <i class="fas fa-chevron-right"></i>
-          </div>
-        </div>
-
-        <!-- Footer 가이드 -->
-        <div class="guide-card" @click="navigateToGuide('footer-guide')">
-          <div class="guide-icon">
-            <div class="footer-preview">
-              <div class="preview-footer-content">
-                <div class="preview-info-line"></div>
-                <div class="preview-info-line"></div>
-                <div class="preview-info-line"></div>
-                <div class="preview-copyright"></div>
-              </div>
-            </div>
-          </div>
-          <div class="guide-content">
-            <h3 class="guide-title">Footer 가이드</h3>
-            <p class="guide-description">
-              회사 정보와 연락처를 포함한 반응형 Footer 컴포넌트를 확인하세요.
-            </p>
-            <div class="guide-features">
-              <span class="feature-tag">반응형</span>
-              <span class="feature-tag">회사 정보</span>
-              <span class="feature-tag">브랜드 컬러</span>
->>>>>>> 8e6bd71f1639c35cf49543ed4ab81e756630d942
             </div>
           </div>
           <div class="guide-arrow">
@@ -198,36 +119,122 @@
           </div>
         </div>
       </div>
+      <div class="guide-arrow">
+        <i class="fas fa-chevron-right"></i>
+      </div>
+    </div>
 
-      <!-- 추가 가이드 섹션 -->
-      <section class="additional-section">
-        <h2 class="section-title">추가 리소스</h2>
-        <div class="resources-grid">
-          <div class="resource-card">
-            <div class="resource-icon">
-              <i class="fas fa-book"></i>
+    <!-- Button 가이드 -->
+    <div class="guide-card" @click="navigateToGuide('button-guide')">
+      <div class="guide-icon">
+        <div class="button-preview">
+          <div class="preview-button primary"></div>
+          <div class="preview-button secondary"></div>
+          <div class="preview-button outline"></div>
+        </div>
+      </div>
+      <div class="guide-content">
+        <h3 class="guide-title">Button 가이드</h3>
+        <p class="guide-description">
+          공용 Button 컴포넌트의 10가지 variant와 다양한 옵션을 확인하세요.
+        </p>
+        <div class="guide-features">
+          <span class="feature-tag">10가지 variant</span>
+          <span class="feature-tag">아이콘 지원</span>
+          <span class="feature-tag">반응형</span>
+        </div>
+      </div>
+      <div class="guide-arrow">
+        <i class="fas fa-chevron-right"></i>
+      </div>
+    </div>
+
+    <!-- DropBox 가이드 -->
+    <div class="guide-card" @click="navigateToGuide('dropbox-guide')">
+      <div class="guide-icon">
+        <div class="dropbox-preview">
+          <div class="preview-dropdown">
+            <div class="preview-selector"></div>
+            <div class="preview-options">
+              <div class="preview-option"></div>
+              <div class="preview-option"></div>
+              <div class="preview-option"></div>
             </div>
-            <h4>문서</h4>
-            <p>프로젝트 문서 및 API 참조</p>
-          </div>
-          <div class="resource-card">
-            <div class="resource-icon">
-              <i class="fas fa-code"></i>
-            </div>
-            <h4>코드 예시</h4>
-            <p>실제 사용 예시 코드</p>
-          </div>
-          <div class="resource-card">
-            <div class="resource-icon">
-              <i class="fas fa-palette"></i>
-            </div>
-            <h4>디자인 시스템</h4>
-            <p>디자인 가이드라인</p>
           </div>
         </div>
-      </section>
+      </div>
+      <div class="guide-content">
+        <h3 class="guide-title">DropBox 가이드</h3>
+        <p class="guide-description">
+          드롭다운 선택 기능을 제공하는 DropBox 컴포넌트의 사용법을 확인하세요.
+        </p>
+        <div class="guide-features">
+          <span class="feature-tag">v-model 지원</span>
+          <span class="feature-tag">커스텀 옵션</span>
+          <span class="feature-tag">외부 클릭 감지</span>
+        </div>
+      </div>
+      <div class="guide-arrow">
+        <i class="fas fa-chevron-right"></i>
+      </div>
+    </div>
+
+    <!-- Footer 가이드 -->
+    <div class="guide-card" @click="navigateToGuide('footer-guide')">
+      <div class="guide-icon">
+        <div class="footer-preview">
+          <div class="preview-footer-content">
+            <div class="preview-info-line"></div>
+            <div class="preview-info-line"></div>
+            <div class="preview-info-line"></div>
+            <div class="preview-copyright"></div>
+          </div>
+        </div>
+      </div>
+      <div class="guide-content">
+        <h3 class="guide-title">Footer 가이드</h3>
+        <p class="guide-description">
+          회사 정보와 연락처를 포함한 반응형 Footer 컴포넌트를 확인하세요.
+        </p>
+        <div class="guide-features">
+          <span class="feature-tag">반응형</span>
+          <span class="feature-tag">회사 정보</span>
+          <span class="feature-tag">브랜드 컬러</span>
+        </div>
+      </div>
+      <div class="guide-arrow">
+        <i class="fas fa-chevron-right"></i>
+      </div>
     </div>
   </div>
+
+  <!-- 추가 가이드 섹션 -->
+  <section class="additional-section">
+    <h2 class="section-title">추가 리소스</h2>
+    <div class="resources-grid">
+      <div class="resource-card">
+        <div class="resource-icon">
+          <i class="fas fa-book"></i>
+        </div>
+        <h4>문서</h4>
+        <p>프로젝트 문서 및 API 참조</p>
+      </div>
+      <div class="resource-card">
+        <div class="resource-icon">
+          <i class="fas fa-code"></i>
+        </div>
+        <h4>코드 예시</h4>
+        <p>실제 사용 예시 코드</p>
+      </div>
+      <div class="resource-card">
+        <div class="resource-icon">
+          <i class="fas fa-palette"></i>
+        </div>
+        <h4>디자인 시스템</h4>
+        <p>디자인 가이드라인</p>
+      </div>
+    </div>
+  </section>
 </template>
 
 <script setup>
@@ -427,7 +434,6 @@ const navigateToGuide = (routeName) => {
   width: 40%;
 }
 
-<<<<<<< HEAD
 /* Header preview icon */
 .header-preview {
   width: 60px;
@@ -477,7 +483,8 @@ const navigateToGuide = (routeName) => {
   border-radius: 2px;
   width: 40%;
   align-self: flex-end;
-=======
+}
+
 /* Button preview icon */
 .button-preview {
   display: flex;
@@ -606,7 +613,6 @@ const navigateToGuide = (routeName) => {
   border-radius: 1px;
   width: 70%;
   margin-top: auto;
->>>>>>> 8e6bd71f1639c35cf49543ed4ab81e756630d942
 }
 
 .guide-content {

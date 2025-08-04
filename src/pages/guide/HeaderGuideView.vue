@@ -31,62 +31,44 @@
           </div>
 
           <div class="demo-preview">
-            <div v-if="activeTab === 'desktop'" class="desktop-preview">
-              <div class="preview-frame desktop-frame">
-                <div class="preview-header">
-                  <div class="preview-logo"></div>
-                  <div class="preview-search"></div>
-                  <div class="preview-nav">
-                    <div class="nav-item">지도</div>
-                    <div class="nav-item">채팅</div>
-                    <div class="nav-item">알림</div>
-                    <div class="nav-item">거래</div>
-                    <div class="nav-item">마이페이지</div>
-                  </div>
-                  <div class="preview-user">
-                    <div class="user-avatar"></div>
-                    <div class="user-name">김철수</div>
-                    <div class="logout-btn">로그아웃</div>
-                  </div>
+            <div class="preview-container">
+              <div class="preview-frame-container">
+                <div class="preview-frame" :class="frameClass" :style="frameStyle">
+                  <Header />
                 </div>
               </div>
-              <div class="preview-info">
-                <h3>데스크톱 레이아웃 특징</h3>
-                <ul>
-                  <li>전체 너비 1536px, 최소 너비 1024px</li>
-                  <li>로고, 검색창, 네비게이션, 사용자 프로필이 한 줄에 배치</li>
-                  <li>검색창은 지역, 매물명, 지하철역으로 검색 가능</li>
-                  <li>네비게이션 링크에 호버 효과 적용</li>
-                  <li>사용자 프로필과 로그아웃 버튼 포함</li>
-                </ul>
-              </div>
             </div>
+            <div class="preview-info">
+              <h3>{{ previewTitle }}</h3>
+              <div class="screen-info">
+                <p><strong>화면 크기:</strong> {{ screenSize }}</p>
+                <p><strong>헤더 높이:</strong> {{ headerHeight }}</p>
+                <p><strong>주요 특징:</strong></p>
+              </div>
+              <ul>
+                <li v-for="feature in previewFeatures" :key="feature">{{ feature }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <div v-if="activeTab === 'mobile'" class="mobile-preview">
-              <div class="preview-frame mobile-frame">
-                <div class="preview-header-mobile">
-                  <div class="preview-logo-mobile"></div>
-                  <div class="preview-actions">
-                    <div class="action-btn search-btn"></div>
-                    <div class="action-btn menu-btn">
-                      <div class="hamburger-line"></div>
-                      <div class="hamburger-line"></div>
-                      <div class="hamburger-line"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="preview-info">
-                <h3>모바일 레이아웃 특징</h3>
-                <ul>
-                  <li>컴팩트한 헤더 높이 (64px)</li>
-                  <li>로고와 액션 버튼만 표시</li>
-                  <li>검색 버튼 클릭 시 검색 오버레이 표시</li>
-                  <li>햄버거 메뉴 클릭 시 사이드 메뉴 표시</li>
-                  <li>모든 네비게이션은 사이드 메뉴에서 접근</li>
-                </ul>
-              </div>
-            </div>
+      <!-- 실제 반응형 테스트 -->
+      <section class="section">
+        <h2 class="section-title">실제 반응형 테스트</h2>
+        <div class="live-responsive-demo">
+          <div class="demo-instructions">
+            <h3>실시간 반응형 확인</h3>
+            <p>
+              아래 Header 컴포넌트는 실제로 반응형으로 동작합니다. 브라우저 창 크기를 조절해보세요:
+            </p>
+            <ul>
+              <li><strong>1024px 이상:</strong> 데스크톱 레이아웃 (전체 기능 표시)</li>
+              <li><strong>1024px 미만:</strong> 모바일 레이아웃 (컴팩트 헤더 + 사이드 메뉴)</li>
+            </ul>
+          </div>
+          <div class="live-header-container">
+            <Header />
           </div>
         </div>
       </section>
@@ -216,7 +198,7 @@ const handleNavigation = (route) => {
               <i class="fas fa-mobile-alt"></i>
             </div>
             <h3>반응형 디자인</h3>
-            <p>데스크톱과 모바일에서 최적화된 레이아웃 자동 전환</p>
+            <p>1024px 기준으로 데스크톱과 모바일 레이아웃 자동 전환</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">
@@ -252,7 +234,11 @@ Text-2: #555555 (일반 텍스트)
 
 // 배경 컬러
 Background: #FFFFFF (헤더 배경)
-Search-BG: #F3F4F6 (검색창 배경)</code></pre>
+Search-BG: #F3F4F6 (검색창 배경)
+
+// SVG 아이콘 컬러
+Search-Icon: #555555
+User-Icon: #000000</code></pre>
           </div>
           <div class="code-example">
             <h3>타이포그래피</h3>
@@ -263,7 +249,11 @@ Inter: 검색창, 버튼 텍스트
 // 폰트 크기
 text-lg: 네비게이션 링크 (18px)
 text-base: 검색창, 버튼 (16px)
-text-sm: 사용자 이름 (14px)</code></pre>
+text-sm: 사용자 이름 (14px)
+
+// 반응형 폰트 크기
+모바일: text-sm (14px)
+데스크톱: text-base (16px)</code></pre>
           </div>
         </div>
       </section>
@@ -285,6 +275,7 @@ text-sm: 사용자 이름 (14px)</code></pre>
             <li>검색창에 텍스트를 입력해보세요</li>
             <li>네비게이션 링크를 클릭해보세요</li>
             <li>로그아웃 버튼을 클릭해보세요</li>
+            <li>모바일에서는 검색 버튼과 메뉴 버튼을 클릭해보세요</li>
             <li>브라우저 창 크기를 조절하여 반응형 동작을 확인해보세요</li>
           </ul>
         </div>
@@ -300,7 +291,82 @@ import Header from '@/components/common/Header.vue'
 const activeTab = ref('desktop')
 const lastEvent = ref('')
 
-// 이벤트 핸들러 (향후 구현 예정)
+// 반응형 프리뷰 데이터
+const previewData = {
+  desktop: {
+    title: '데스크톱 레이아웃 (1024px+)',
+    screenSize: '1024px 이상',
+    headerHeight: '96px (h-24)',
+    features: [
+      '전체 너비 1536px, 최소 너비 1024px',
+      '로고, 검색창, 네비게이션, 사용자 프로필이 한 줄에 배치',
+      '검색창은 지역, 매물명, 지하철역으로 검색 가능',
+      'SVG 아이콘 사용 (검색, 사용자 아이콘)',
+      '네비게이션 링크에 호버 효과 적용',
+      '사용자 프로필과 로그아웃 버튼 포함',
+      '브랜드 컬러 시스템 적용',
+      '모든 기능이 한 화면에 표시',
+    ],
+  },
+  mobile: {
+    title: '모바일 레이아웃 (1024px 미만)',
+    screenSize: '1024px 미만',
+    headerHeight: '64px (h-16)',
+    features: [
+      '컴팩트한 헤더 높이 (64px)',
+      '로고와 액션 버튼만 표시',
+      '검색 버튼 클릭 시 검색 오버레이 표시',
+      '햄버거 메뉴 클릭 시 사이드 메뉴 표시',
+      '사이드 메뉴에서 모든 네비게이션 접근',
+      '사용자 프로필과 로그아웃 기능 포함',
+      '터치 친화적인 버튼 크기',
+      '공간 효율적인 레이아웃',
+    ],
+  },
+}
+
+// Computed properties
+const frameClass = computed(() => {
+  return {
+    'desktop-frame': activeTab.value === 'desktop',
+    'mobile-frame': activeTab.value === 'mobile',
+  }
+})
+
+// 프레임 스타일 계산
+const frameStyle = computed(() => {
+  const styles = {
+    desktop: {
+      '--breakpoint': '1024px',
+      '--force-desktop': 'true',
+      '--force-mobile': 'false',
+    },
+    mobile: {
+      '--breakpoint': '1023px',
+      '--force-desktop': 'false',
+      '--force-mobile': 'true',
+    },
+  }
+  return styles[activeTab.value] || styles.desktop
+})
+
+const previewTitle = computed(() => {
+  return previewData[activeTab.value]?.title || '데스크톱 레이아웃'
+})
+
+const screenSize = computed(() => {
+  return previewData[activeTab.value]?.screenSize || '1024px 이상'
+})
+
+const headerHeight = computed(() => {
+  return previewData[activeTab.value]?.headerHeight || '96px'
+})
+
+const previewFeatures = computed(() => {
+  return previewData[activeTab.value]?.features || []
+})
+
+// 이벤트 핸들러
 const handleLogout = () => {
   lastEvent.value = '로그아웃 버튼 클릭'
   console.log('로그아웃 처리')
@@ -398,29 +464,48 @@ const handleNavigation = (route) => {
 }
 
 .demo-preview {
+  width: 100%;
   display: flex;
-  gap: 40px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.preview-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.preview-frame-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .preview-frame {
   border: 2px solid #e0e0e0;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 120px;
 }
 
 .desktop-frame {
-  width: 400px;
+  width: 1200px;
   height: 120px;
 }
 
 .mobile-frame {
-  width: 200px;
+  width: 600px;
   height: 80px;
 }
 
-.preview-header {
+/* 프레임 내부의 Header 컴포넌트 스타일 조정 */
+.preview-frame :deep(header) {
+  width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
@@ -561,6 +646,24 @@ const handleNavigation = (route) => {
   left: 0;
   font-weight: bold;
 }
+
+/* Screen info styles */
+.screen-info {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-left: 3px solid #3498db;
+}
+
+.screen-info p {
+  margin: 4px 0;
+  color: #2c3e50;
+  font-size: 14px;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Responsive controls */
 
 /* Code example styles */
 .code-example {
@@ -770,9 +873,49 @@ const handleNavigation = (route) => {
     gap: 24px;
   }
 
+  .preview-container {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .preview-container {
+    width: 100%;
+  }
+
+  .preview-frame-container {
+    width: 100%;
+  }
+
   .desktop-frame,
   .mobile-frame {
     width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 80px;
+  }
+
+  .preview-info {
+    max-width: 100%;
+    padding: 0 20px;
+  }
+
+  .demo-tabs {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tab-button {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .control-buttons {
+    flex-direction: column;
+  }
+
+  .control-btn {
+    width: 100%;
+    text-align: center;
   }
 
   .style-content {

@@ -48,13 +48,10 @@ import GuideMainView from '@/pages/guide/GuideMainView.vue'
 import ColorGuideView from '@/pages/guide/ColorGuideView.vue'
 import PropertyCardGuideView from '@/pages/guide/PropertyCardGuideView.vue'
 import PropertyCardMainView from '@/pages/guide/PropertyCardMainView.vue'
-<<<<<<< HEAD
 import HeaderGuideView from '@/pages/guide/HeaderGuideView.vue'
-=======
 import ButtonGuideView from '@/pages/guide/ButtonGuideView.vue'
 import DropboxGuideView from '@/pages/guide/DropboxGuideView.vue'
 import FooterGuideView from '@/pages/guide/FooterGuideView.vue'
->>>>>>> 8e6bd71f1639c35cf49543ed4ab81e756630d942
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -232,11 +229,11 @@ const router = createRouter({
       component: PropertyCardMainView,
     },
     {
-<<<<<<< HEAD
       path: '/guide/header-guide',
       name: 'header-guide',
       component: HeaderGuideView,
-=======
+    },
+    {
       path: '/guide/button-guide',
       name: 'button-guide',
       component: ButtonGuideView,
@@ -250,7 +247,6 @@ const router = createRouter({
       path: '/guide/footer-guide',
       name: 'footer-guide',
       component: FooterGuideView,
->>>>>>> 8e6bd71f1639c35cf49543ed4ab81e756630d942
     },
   ],
 })
