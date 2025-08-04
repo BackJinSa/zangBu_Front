@@ -5,6 +5,8 @@
       <img
         :src="property.image_url || '/default-property.jpg'"
         :alt="property.building_name || 'Property Image'"
+        :src="property.image_url || '/default-property.jpg'"
+        :alt="property.building_name || 'Property Image'"
         class="property-image"
       />
       <!-- Overlay badge for deal status -->
@@ -55,6 +57,11 @@ const props = defineProps({
       complex_id: '',
       seller_nickname: '',
       sale_type: '',
+      bookmark_id: '',
+      building_id: '',
+      complex_id: '',
+      seller_nickname: '',
+      sale_type: '',
       price: '',
       deposit: '',
       bookmark_count: '',
@@ -72,6 +79,7 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits(['contact', 'detail', 'delete'])
 const emit = defineEmits(['contact', 'detail', 'delete'])
 
 // Handle detail view
