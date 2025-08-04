@@ -8,7 +8,7 @@ import {
 } from '@/api/system/system'
 
 export const useSystemStore = defineStore('system', () => {
-  // 📦 상태: 알림
+  // 상태: 알림
   const loading = ref(false)
   const notifications = ref([])
   const unreadNotifications = ref(0)
@@ -17,7 +17,7 @@ export const useSystemStore = defineStore('system', () => {
   const pageSize = 10
   const totalCount = ref(0)
 
-  // 🧪 더미 데이터 생성용 (테스트용)
+  // 더미 데이터 생성용 (테스트용)
   const dummyTypes = ['property', 'transaction', 'review']
   const dummyIcons = { property: 'home', transaction: 'chart', review: 'star' }
   const dummyTags = { property: '전세 5억', transaction: '매매 12억', review: null }
@@ -41,7 +41,7 @@ export const useSystemStore = defineStore('system', () => {
     totalCount.value = notifications.value.length
   }
 
-  // 🔽 필터링 & 페이징
+  // 필터링 & 페이징
   const filters = computed(() => {
     const counts = {
       all: notifications.value.length,
@@ -72,7 +72,7 @@ export const useSystemStore = defineStore('system', () => {
     return filteredNotifications.value.slice(start, start + pageSize)
   })
 
-  // 📡 알림 API 연동 함수들
+  // 알림 API 연동 함수들
   async function getNotifications(page = 1, size = 10) {
     loading.value = true
     try {
