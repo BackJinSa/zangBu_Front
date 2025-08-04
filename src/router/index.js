@@ -25,10 +25,10 @@ import ChatListView from '@/pages/chat/ChatListView.vue'
 import ChatRoomView from '@/pages/chat/ChatRoomView.vue'
 
 // 거래 관련 페이지
-import TradeGuideView from '@/pages/trade/TradeGuideView.vue'
-import TradeSellerView from '@/pages/trade/TradeSellerView.vue'
-import TradeBuyerView from '@/pages/trade/TradeBuyerView.vue'
-import TradeWaitingView from '@/pages/trade/TradeWaitingView.vue'
+import DealGuideView from '@/pages/deal/DealGuideView.vue'
+import DealSellerView from '@/pages/deal/DealSellerView.vue'
+import DealBuyerView from '@/pages/deal/DealBuyerView.vue'
+import DealWaitingListView from '@/pages/deal/DealWaitingListView.vue'
 
 // 문서 관련 페이지
 import DocumentView from '@/pages/document/DocumentView.vue'
@@ -155,26 +155,27 @@ const router = createRouter({
 
     // 거래 관련 라우트
     {
-      path: '/trade/guide',
-      name: 'trade-guide',
-      component: TradeGuideView,
+      path: '/deal/guide',
+      name: 'deal-guide',
+      component: DealGuideView,
     },
     {
-      path: '/trade/seller/:tradeId',
-      name: 'trade-seller',
-      component: TradeSellerView,
+      path: '/deal/seller/:dealId',
+      name: 'deal-seller',
+      component: DealSellerView,
       props: true,
     },
     {
-      path: '/trade/buyer/:tradeId',
-      name: 'trade-buyer',
-      component: TradeBuyerView,
+      path: '/deal/buyer/:dealId',
+      name: 'deal-buyer',
+      component: DealBuyerView,
       props: true,
     },
+    // 거래 중인 매물(전체) 불러오기
     {
-      path: '/trade/waiting/:tradeId',
-      name: 'trade-waiting',
-      component: TradeWaitingView,
+      path: '/deal/waitinglist',
+      name: 'deal-waitinglist',
+      component: DealWaitingListView,
       props: true,
     },
 
