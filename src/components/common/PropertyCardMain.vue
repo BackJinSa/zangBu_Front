@@ -1,5 +1,5 @@
 <template>
-  <div class="property-card-main">
+  <div class="property-card-main" @click="handleCardClick">
     <!-- Property image with heart button overlay -->
     <div class="image-container">
       <img
@@ -8,7 +8,7 @@
         class="property-image"
       />
       <button
-        @click="toggleBookmark"
+        @click.stop="toggleBookmark"
         class="heart-button"
         :class="{ bookmarked: property.isBookmarked }"
       >
@@ -50,7 +50,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['bookmark'])
+const emit = defineEmits(['bookmark', 'click'])
 
 // Toggle bookmark
 const toggleBookmark = () => {
@@ -58,6 +58,11 @@ const toggleBookmark = () => {
     propertyId: props.property.buildingId,
     isBookmarked: !props.property.isBookmarked,
   })
+}
+
+// Handle card click
+const handleCardClick = () => {
+  emit('click', props.property)
 }
 
 // Format price
@@ -84,6 +89,7 @@ const formatPrice = (price) => {
   display: flex;
   flex-direction: column;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
 .property-card-main:hover {

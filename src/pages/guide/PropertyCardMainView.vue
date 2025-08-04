@@ -12,6 +12,7 @@
             :key="property.buildingId"
             :property="property"
             @bookmark="handleBookmark"
+            @click="handleCardClick"
           />
         </div>
       </section>
@@ -25,11 +26,15 @@
   &lt;PropertyCardMain
     :property="propertyData"
     @bookmark="handleBookmark"
+    @click="handleCardClick"
   /&gt;
 &lt;/template&gt;
 
 &lt;script setup&gt;
 import PropertyCardMain from '@/components/common/PropertyCardMain.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const propertyData = {
   buildingId: "1",
@@ -42,6 +47,10 @@ const propertyData = {
 
 const handleBookmark = (data) => {
   console.log('Bookmark:', data)
+}
+
+const handleCardClick = (property) => {
+  router.push(`/property/detail/${property.buildingId}`)
 }
 &lt;/script&gt;</code></pre>
         </div>
@@ -130,6 +139,12 @@ const handleBookmark = (data) => {
                 <td>{ propertyId, isBookmarked }</td>
                 <td>즐겨찾기 상태 변경 시 발생</td>
               </tr>
+              <tr>
+                <td>click</td>
+                <td>카드 클릭</td>
+                <td>property object</td>
+                <td>카드 클릭 시 발생 (상세 페이지 이동용)</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -151,7 +166,11 @@ const handleBookmark = (data) => {
       <section class="section">
         <h2 class="section-title">인터랙티브 데모</h2>
         <div class="demo-card">
-          <PropertyCardMain :property="interactiveProperty" @bookmark="handleInteractiveBookmark" />
+          <PropertyCardMain
+            :property="interactiveProperty"
+            @bookmark="handleInteractiveBookmark"
+            @click="handleInteractiveCardClick"
+          />
         </div>
         <div v-if="lastEvent" class="event-log">
           <p>
@@ -222,10 +241,21 @@ const handleBookmark = (data) => {
   }
 }
 
+const handleCardClick = (property) => {
+  console.log('Card clicked:', property.buildingName)
+  // 실제 구현에서는 여기서 라우팅 처리
+  // router.push(`/property/detail/${property.buildingId}`)
+}
+
 const handleInteractiveBookmark = (data) => {
   interactiveProperty.value.isBookmarked = data.isBookmarked
   lastEvent.value = `북마크: ${data.isBookmarked ? '추가' : '제거'}`
   console.log('Interactive Bookmark:', data)
+}
+
+const handleInteractiveCardClick = (property) => {
+  lastEvent.value = `카드 클릭: ${property.buildingName}`
+  console.log('Interactive Card Click:', property)
 }
 </script>
 
