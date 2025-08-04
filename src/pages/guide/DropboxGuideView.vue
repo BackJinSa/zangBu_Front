@@ -17,7 +17,7 @@
             <Dropbox
               v-model="selectedCity"
               :options="cityOptions"
-              placeholder="도시를 선택하세요"
+              placeholder="도시"
               @change="handleCityChange"
             />
             <p class="result">선택된 도시: {{ selectedCity }}</p>
@@ -27,7 +27,7 @@
             <Dropbox
               v-model="selectedCategory"
               :options="categoryOptions"
-              placeholder="카테고리를 선택하세요"
+              placeholder="카테고리"
               @change="handleCategoryChange"
             />
             <p class="result">선택된 카테고리: {{ selectedCategory }}</p>

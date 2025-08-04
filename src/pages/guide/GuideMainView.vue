@@ -89,65 +89,60 @@
           </div>
         </div>
 
-        <!-- Header 가이드 -->
-        <div class="guide-card" @click="navigateToGuide('header-guide')">
+        <!-- Input 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('input-guide')">
           <div class="guide-icon">
-            <div class="header-preview">
-              <div class="preview-logo"></div>
-              <div class="preview-search"></div>
-              <div class="preview-nav">
-                <div class="nav-item"></div>
-                <div class="nav-item"></div>
-                <div class="nav-item"></div>
+            <div class="input-preview">
+              <div class="preview-input-box">
+                <div class="preview-input-line"></div>
+                <div class="preview-input-line"></div>
+                <div class="preview-input-line"></div>
+                <div class="preview-input-cursor"></div>
               </div>
-              <div class="preview-user"></div>
             </div>
           </div>
           <div class="guide-content">
-            <h3 class="guide-title">Header 가이드</h3>
+            <h3 class="guide-title">Input 가이드</h3>
             <p class="guide-description">
-              반응형 Header 컴포넌트의 사용법과 데스크톱/모바일 레이아웃을 확인하세요.
+              깔끔하고 모던한 디자인의 Input 컴포넌트 사용법을 확인하세요.
             </p>
             <div class="guide-features">
+              <span class="feature-tag">v-model 지원</span>
+              <span class="feature-tag">다양한 타입</span>
               <span class="feature-tag">반응형</span>
-              <span class="feature-tag">네비게이션</span>
-              <span class="feature-tag">검색</span>
             </div>
           </div>
           <div class="guide-arrow">
             <i class="fas fa-chevron-right"></i>
           </div>
         </div>
-      </div>
-      <div class="guide-arrow">
-        <i class="fas fa-chevron-right"></i>
-      </div>
-    </div>
 
-    <!-- Button 가이드 -->
-    <div class="guide-card" @click="navigateToGuide('button-guide')">
-      <div class="guide-icon">
-        <div class="button-preview">
-          <div class="preview-button primary"></div>
-          <div class="preview-button secondary"></div>
-          <div class="preview-button outline"></div>
+        <!-- Button 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('button-guide')">
+          <div class="guide-icon">
+            <div class="button-preview">
+              <div class="preview-button-hexagon">
+                <div class="preview-btn-hex primary-hex"></div>
+                <div class="preview-btn-hex secondary-hex"></div>
+                <div class="preview-btn-hex outline-hex"></div>
+              </div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">Button 가이드</h3>
+            <p class="guide-description">
+              공용 Button 컴포넌트의 10가지 variant와 다양한 옵션을 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">10가지 variant</span>
+              <span class="feature-tag">아이콘 지원</span>
+              <span class="feature-tag">반응형</span>
+            </div>
+          </div>
+          <div class="guide-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
         </div>
-      </div>
-      <div class="guide-content">
-        <h3 class="guide-title">Button 가이드</h3>
-        <p class="guide-description">
-          공용 Button 컴포넌트의 10가지 variant와 다양한 옵션을 확인하세요.
-        </p>
-        <div class="guide-features">
-          <span class="feature-tag">10가지 variant</span>
-          <span class="feature-tag">아이콘 지원</span>
-          <span class="feature-tag">반응형</span>
-        </div>
-      </div>
-      <div class="guide-arrow">
-        <i class="fas fa-chevron-right"></i>
-      </div>
-    </div>
 
     <!-- DropBox 가이드 -->
     <div class="guide-card" @click="navigateToGuide('dropbox-guide')">
@@ -179,34 +174,94 @@
       </div>
     </div>
 
-    <!-- Footer 가이드 -->
-    <div class="guide-card" @click="navigateToGuide('footer-guide')">
-      <div class="guide-icon">
-        <div class="footer-preview">
-          <div class="preview-footer-content">
-            <div class="preview-info-line"></div>
-            <div class="preview-info-line"></div>
-            <div class="preview-info-line"></div>
-            <div class="preview-copyright"></div>
+        <!-- Footer 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('footer-guide')">
+          <div class="guide-icon">
+            <div class="footer-preview">
+              <div class="preview-footer-content">
+                <div class="preview-info-line"></div>
+                <div class="preview-info-line"></div>
+                <div class="preview-info-line"></div>
+                <div class="preview-copyright"></div>
+              </div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">Footer 가이드</h3>
+            <p class="guide-description">
+              회사 정보와 연락처를 포함한 반응형 Footer 컴포넌트를 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">반응형</span>
+              <span class="feature-tag">회사 정보</span>
+              <span class="feature-tag">브랜드 컬러</span>
+            </div>
+          </div>
+          <div class="guide-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+
+        <!-- PopupModal 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('popup-modal-guide')">
+          <div class="guide-icon">
+            <div class="popup-modal-preview">
+              <div class="preview-modal-container">
+                <div class="preview-modal-title"></div>
+                <div class="preview-modal-message"></div>
+                <div class="preview-modal-buttons">
+                  <div class="preview-modal-button cancel"></div>
+                  <div class="preview-modal-button confirm"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">PopupModal 가이드</h3>
+            <p class="guide-description">
+              확인/취소 기능을 제공하는 모달 팝업 컴포넌트를 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">모달</span>
+              <span class="feature-tag">확인/취소</span>
+              <span class="feature-tag">커스터마이징</span>
+            </div>
+          </div>
+          <div class="guide-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+
+        <!-- Tailwind CSS 가이드 -->
+        <div class="guide-card" @click="navigateToGuide('tailwind-guide')">
+          <div class="guide-icon">
+            <div class="tailwind-preview">
+              <div class="preview-tailwind-logo">
+                <div class="tailwind-icon">
+                  <div class="tailwind-wind"></div>
+                  <div class="tailwind-wind"></div>
+                  <div class="tailwind-wind"></div>
+                </div>
+                <div class="tailwind-text">CSS</div>
+              </div>
+            </div>
+          </div>
+          <div class="guide-content">
+            <h3 class="guide-title">Tailwind CSS 가이드</h3>
+            <p class="guide-description">
+              프로젝트에서 사용되는 Tailwind CSS 유틸리티 클래스와 커스텀 설정을 확인하세요.
+            </p>
+            <div class="guide-features">
+              <span class="feature-tag">유틸리티</span>
+              <span class="feature-tag">반응형</span>
+              <span class="feature-tag">커스텀</span>
+            </div>
+          </div>
+          <div class="guide-arrow">
+            <i class="fas fa-chevron-right"></i>
           </div>
         </div>
       </div>
-      <div class="guide-content">
-        <h3 class="guide-title">Footer 가이드</h3>
-        <p class="guide-description">
-          회사 정보와 연락처를 포함한 반응형 Footer 컴포넌트를 확인하세요.
-        </p>
-        <div class="guide-features">
-          <span class="feature-tag">반응형</span>
-          <span class="feature-tag">회사 정보</span>
-          <span class="feature-tag">브랜드 컬러</span>
-        </div>
-      </div>
-      <div class="guide-arrow">
-        <i class="fas fa-chevron-right"></i>
-      </div>
-    </div>
-  </div>
 
   <!-- 추가 가이드 섹션 -->
   <section class="additional-section">
@@ -487,34 +542,86 @@ const navigateToGuide = (routeName) => {
 
 /* Button preview icon */
 .button-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   width: 60px;
   height: 60px;
+  display: flex;
+  align-items: center;
   justify-content: center;
 }
 
-.preview-button {
-  height: 8px;
-  border-radius: 4px;
+.preview-button-hexagon {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.preview-button-hexagon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(6, 182, 212, 0.1) 50%, transparent 70%);
+  animation: hexShine 3s ease-in-out infinite;
+}
+
+@keyframes hexShine {
+  0%,
+  100% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+}
+
+.preview-btn-hex {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.preview-button.primary {
+.preview-btn-hex.primary-hex {
   background: var(--brand-3);
-  width: 100%;
+  top: 10px;
+  left: 10px;
+  animation: hexFloat 2s ease-in-out infinite;
 }
 
-.preview-button.secondary {
+.preview-btn-hex.secondary-hex {
   background: var(--status-1);
-  width: 80%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: hexFloat 2s ease-in-out infinite 0.5s;
 }
 
-.preview-button.outline {
+.preview-btn-hex.outline-hex {
   background: transparent;
   border-color: var(--brand-3);
-  width: 60%;
+  bottom: 10px;
+  right: 10px;
+  animation: hexFloat 2s ease-in-out infinite 1s;
+}
+
+@keyframes hexFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(180deg);
+  }
 }
 
 /* DropBox preview icon */
@@ -527,8 +634,8 @@ const navigateToGuide = (routeName) => {
 }
 
 .preview-dropdown {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   background: white;
   border-radius: 6px;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
@@ -581,8 +688,8 @@ const navigateToGuide = (routeName) => {
 }
 
 .preview-footer-content {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   background: white;
   border-radius: 6px;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
@@ -767,5 +874,200 @@ const navigateToGuide = (routeName) => {
     grid-template-columns: 1fr;
     gap: 20px;
   }
+}
+
+/* Input preview icon */
+.input-preview {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-input-box {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.preview-input-line {
+  height: 3px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  width: 100%;
+}
+
+.preview-input-line:nth-child(2) {
+  width: 80%;
+}
+
+.preview-input-line:nth-child(3) {
+  width: 60%;
+}
+
+.preview-input-cursor {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 12px;
+  background: var(--brand-3);
+  border-radius: 1px;
+  animation: cursorBlink 1.5s infinite;
+}
+
+@keyframes cursorBlink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* PopupModal preview icon */
+.popup-modal-preview {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-modal-container {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.preview-modal-title {
+  height: 4px;
+  background: #2c3e50;
+  border-radius: 2px;
+  width: 80%;
+  margin-bottom: 2px;
+}
+
+.preview-modal-message {
+  height: 3px;
+  background: #7f8c8d;
+  border-radius: 2px;
+  width: 60%;
+  margin-bottom: 4px;
+}
+
+.preview-modal-buttons {
+  display: flex;
+  gap: 2px;
+  justify-content: space-between;
+}
+
+.preview-modal-button {
+  height: 6px;
+  border-radius: 2px;
+  flex: 1;
+}
+
+.preview-modal-button.cancel {
+  background: #e53950;
+}
+
+.preview-modal-button.confirm {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+}
+
+/* Tailwind CSS preview icon */
+.tailwind-preview {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-tailwind-logo {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+.tailwind-icon {
+  position: relative;
+  width: 24px;
+  height: 16px;
+  margin-bottom: 4px;
+}
+
+.tailwind-wind {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.9;
+  animation: windFloat 3s ease-in-out infinite;
+}
+
+.tailwind-wind:nth-child(1) {
+  top: 0;
+  left: 0;
+  animation-delay: 0s;
+}
+
+.tailwind-wind:nth-child(2) {
+  top: 4px;
+  left: 8px;
+  animation-delay: 0.5s;
+}
+
+.tailwind-wind:nth-child(3) {
+  top: 8px;
+  left: 16px;
+  animation-delay: 1s;
+}
+
+@keyframes windFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(-2px) scale(1.1);
+    opacity: 1;
+  }
+}
+
+.tailwind-text {
+  color: white;
+  font-size: 8px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
 }
 </style>
