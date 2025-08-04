@@ -1,11 +1,19 @@
-<!-- NotificationCardActions.vue -->
+// NotificationCardActions.vue
 <template>
-  <div class="flex flex-col gap-2 ml-auto mt-1">
-    <button v-if="!isRead" @click="$emit('mark-read')" class="text-green-600 text-lg">✔</button>
-    <button @click="$emit('delete')" class="text-red-500 text-lg">❌</button>
+  <div class="flex flex-col gap-1">
+    <button
+      v-if="!isRead"
+      @click.stop="$emit('mark-read')"
+      class="text-green-600 hover:underline text-xs"
+    >
+      ✔
+    </button>
+    <button @click.stop="$emit('delete')" class="text-red-500 hover:underline text-xs">✖</button>
   </div>
 </template>
 
 <script setup>
-defineProps({ isRead: Boolean })
+const props = defineProps({
+  isRead: Boolean,
+})
 </script>
