@@ -153,7 +153,7 @@ import Footer from '@/components/common/Footer.vue'
 </template>
 
 <script setup>
-import Footer from '@/components/common/Footer.vue'
+import Footer from '@/components/common/footer.vue'
 </script>
 
 <style scoped>

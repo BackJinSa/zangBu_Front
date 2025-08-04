@@ -9,7 +9,7 @@ module.exports = {
           1: '#1C4025',
           2: '#285934',
           3: '#68A63C',
-          4: '#68A63C',
+          4: '#9ccc65',
           5: '#F2F2F2',
         },
         // Status Colors
