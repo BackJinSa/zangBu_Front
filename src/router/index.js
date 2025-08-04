@@ -22,8 +22,7 @@ import PropertyRegisterView from '@/pages/property/PropertyRegisterView.vue'
 
 // 채팅 관련 페이지
 import ChatListView from '@/pages/chat/ChatListView.vue'
-import ChatSellerView from '@/pages/chat/ChatSellerView.vue'
-import ChatBuyerView from '@/pages/chat/ChatBuyerView.vue'
+import ChatRoomView from '@/pages/chat/ChatRoomView.vue'
 
 // 거래 관련 페이지
 import TradeGuideView from '@/pages/trade/TradeGuideView.vue'
@@ -135,16 +134,10 @@ const router = createRouter({
       component: ChatListView,
     },
     {
-      path: '/chat/seller/:roomId',
-      name: 'chat-seller',
-      component: ChatSellerView,
-      props: true,
-    },
-    {
-      path: '/chat/buyer/:roomId',
-      name: 'chat-buyer',
-      component: ChatBuyerView,
-      props: true,
+      path: '/chat/room',
+      // path: '/chat/room/:roomId',
+      name: 'chat-room',
+      component: ChatRoomView,
     },
 
     // 거래 관련 라우트
