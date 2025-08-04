@@ -222,7 +222,7 @@ const goToPaymentConfirm = (option) => {
         <!-- 건당 결제 -->
         <div
           :class="[
-            'bg-white rounded-lg shadow-md p-6 border-2 transition-colors cursor-pointer',
+            'bg-white rounded-lg shadow-md p-6 border-2 transition-colors cursor-pointer h-full flex flex-col',
             selectedPaymentInfo?.title === paymentOptions[0].title
               ? 'border-blue-500 bg-blue-50'
               : 'border-gray-200 hover:border-blue-300',
@@ -261,7 +261,7 @@ const goToPaymentConfirm = (option) => {
           <button
             @click="goToPaymentConfirm(paymentOptions[0])"
             :disabled="buyerInfoLoading"
-            class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+            class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors mt-auto"
           >
             {{ paymentOptions[0].buttonText }}
           </button>
@@ -270,7 +270,7 @@ const goToPaymentConfirm = (option) => {
         <!-- 멤버십 플랜 -->
         <div
           :class="[
-            'bg-white rounded-lg shadow-md p-6 border-2 relative cursor-pointer',
+            'bg-white rounded-lg shadow-md p-6 border-2 relative cursor-pointer h-full flex flex-col',
             selectedPaymentInfo?.title === paymentOptions[1].title
               ? 'border-green-500 bg-green-50'
               : 'border-green-300 hover:border-green-400',
@@ -316,7 +316,7 @@ const goToPaymentConfirm = (option) => {
           <button
             @click="goToPaymentConfirm(paymentOptions[1])"
             :disabled="buyerInfoLoading"
-            class="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+            class="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors mt-auto"
           >
             {{ paymentOptions[1].buttonText }}
           </button>
