@@ -2,7 +2,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getDeals } from '@/api/deal/deal.js'
-import PropertyCard from '@/components/common/PropertyCard.vue'
+import PropertyCardWaiting from '@/components/common/PropertyCardWaiting.vue'
+import Header from '@/components/common/Header.vue'
+import Button from '@/components/common/Button.vue'
 import Footer from '@/components/common/footer.vue'
 
 const router = useRouter()
@@ -206,9 +208,6 @@ onMounted(() => {
 
 <template>
   <div class="deal-waiting-list-view">
-    <!-- Header (비워둠) -->
-    <div class="header-placeholder"></div>
-
     <!-- Main Content -->
     <div class="main-content">
       <!-- Section Title -->
@@ -218,24 +217,27 @@ onMounted(() => {
 
       <!-- Filter Tabs -->
       <div class="filter-tabs">
-        <button
+        <Button
+          :variant="activeFilter === 'all' ? 'button1' : 'button10'"
+          size="sm"
           @click="setActiveFilter('all')"
-          :class="['filter-tab', { active: activeFilter === 'all' }]"
         >
           전체
-        </button>
-        <button
+        </Button>
+        <Button
+          :variant="activeFilter === 'buying' ? 'button1' : 'button10'"
+          size="sm"
           @click="setActiveFilter('buying')"
-          :class="['filter-tab', { active: activeFilter === 'buying' }]"
         >
           구매 중
-        </button>
-        <button
+        </Button>
+        <Button
+          :variant="activeFilter === 'selling' ? 'button1' : 'button10'"
+          size="sm"
           @click="setActiveFilter('selling')"
-          :class="['filter-tab', { active: activeFilter === 'selling' }]"
         >
           판매 중
-        </button>
+        </Button>
       </div>
 
       <!-- Loading State -->
@@ -248,10 +250,7 @@ onMounted(() => {
       <div v-else-if="error" class="error-container">
         <i class="fas fa-exclamation-triangle error-icon"></i>
         <p class="error-text">{{ error }}</p>
-        <button @click="fetchDeals" class="retry-button">
-          <i class="fas fa-redo"></i>
-          다시 시도
-        </button>
+        <Button variant="button1" @click="fetchDeals" icon="fas fa-redo"> 다시 시도 </Button>
       </div>
 
       <!-- Empty State -->
@@ -264,7 +263,7 @@ onMounted(() => {
       <!-- Deals List -->
       <div v-else class="deals-container">
         <div class="deals-grid">
-          <PropertyCard
+          <PropertyCardWaiting
             v-for="deal in filteredDeals"
             :key="deal.id"
             :property="formatDealForPropertyCard(deal)"
@@ -273,9 +272,6 @@ onMounted(() => {
         </div>
       </div>
     </div>
-
-    <!-- Footer -->
-    <Footer />
   </div>
 </template>
 
@@ -285,31 +281,39 @@ onMounted(() => {
   background: var(--bg-1);
   display: flex;
   flex-direction: column;
-}
-
-/* Header Placeholder */
-.header-placeholder {
-  height: 80px; /* 헤더 높이만큼 공간 확보 */
+  width: 100%;
+  align-items: center;
 }
 
 /* Main Content */
 .main-content {
   flex: 1;
-  padding: 20px;
-  max-width: 1200px;
+  padding: 1.25rem;
+  max-width: 75rem;
   margin: 0 auto;
   width: 100%;
+  min-height: calc(100vh - 12.5rem); /* Header + Footer 높이 고려 */
+  overflow-y: auto;
+  background: var(--bg-1);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Section Title */
 .section-title {
-  text-align: center;
-  margin-bottom: 32px;
+  text-align: left;
+  margin-bottom: 2rem;
+  padding-left: 1.25rem;
+  max-width: 100%;
+  width: 100%;
+  align-self: flex-start;
 }
 
 .section-title h1 {
-  color: #374151; /* 더 진한 회색으로 변경 */
-  font-size: 28px;
+  color: #374151;
+  font-size: 1.75rem;
   font-weight: bold;
   font-family: 'Roboto', sans-serif;
   margin: 0;
@@ -318,34 +322,52 @@ onMounted(() => {
 /* Filter Tabs */
 .filter-tabs {
   display: flex;
-  justify-content: center;
-  gap: 12px; /* 간격 줄임 */
-  margin-bottom: 40px;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+  padding-left: 1.25rem;
+  max-width: 100%;
+  width: 100%;
+  align-self: flex-start;
+  flex-wrap: wrap;
 }
 
-.filter-tab {
-  padding: 12px 24px;
-  border: 1px solid #e0e0e0; /* 테두리 색상 변경 */
-  background: #f2f2f2; /* 기본 배경색을 연한 회색으로 */
-  color: #374151; /* 텍스트 색상을 진한 회색으로 */
-  border-radius: 8px;
-  font-size: 18px; /* 폰트 크기 증가 */
-  font-weight: 600;
-  cursor: pointer;
+.filter-tabs :deep(button) {
   transition: all 0.2s ease;
-  font-family: 'Inter', sans-serif;
-  min-width: 100px;
+  white-space: nowrap;
 }
 
-.filter-tab:hover {
-  border-color: var(--brand-3);
-  color: var(--brand-3);
+.filter-tabs :deep(button:hover) {
+  transform: translateY(-1px);
 }
 
-.filter-tab.active {
-  background: var(--brand-3); /* 초록색 배경 */
-  color: var(--text-3); /* 흰색 텍스트 */
-  border-color: var(--brand-3);
+/* Deals Container */
+.deals-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  max-width: 100%;
+  align-self: stretch;
+}
+
+.deals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 75rem;
+  justify-items: center;
+  transition: all 0.3s ease;
+}
+
+/* Card transition effects */
+.deals-grid :deep(.property-card-waiting) {
+  transition: all 0.3s ease;
+}
+
+.deals-grid :deep(.property-card-waiting:hover) {
+  transform: translateY(-4px);
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.15);
 }
 
 /* Loading State */
@@ -354,17 +376,18 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 2.5rem 1.25rem;
+  min-height: calc(100vh - 18.75rem);
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--bg-2);
-  border-top: 4px solid var(--brand-3);
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0.25rem solid var(--bg-2);
+  border-top: 0.25rem solid var(--brand-3);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
 @keyframes spin {
@@ -378,7 +401,7 @@ onMounted(() => {
 
 .loading-text {
   color: var(--text-2);
-  font-size: 16px;
+  font-size: 1rem;
   font-family: 'Roboto', sans-serif;
 }
 
@@ -388,40 +411,22 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 2.5rem 1.25rem;
   text-align: center;
+  min-height: calc(100vh - 18.75rem);
 }
 
 .error-icon {
-  font-size: 48px;
+  font-size: 3rem;
   color: var(--status-2);
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
 .error-text {
   color: var(--text-2);
-  font-size: 16px;
-  margin-bottom: 20px;
+  font-size: 1rem;
+  margin-bottom: 1.25rem;
   font-family: 'Roboto', sans-serif;
-}
-
-.retry-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: var(--brand-3);
-  color: var(--text-3);
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.retry-button:hover {
-  background: var(--brand-2);
 }
 
 /* Empty State */
@@ -430,71 +435,229 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 2.5rem 1.25rem;
   text-align: center;
+  min-height: calc(100vh - 18.75rem);
 }
 
 .empty-icon {
-  font-size: 64px;
+  font-size: 4rem;
   color: var(--text-1);
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
 .empty-title {
   color: var(--text-2);
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
   font-family: 'Roboto', sans-serif;
 }
 
 .empty-text {
   color: var(--text-1);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-family: 'Roboto', sans-serif;
 }
 
-/* Deals Container */
-.deals-container {
-  width: 100%;
-}
-
-.deals-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-  justify-items: center;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
+/* Mobile styles (768px 이하) */
+@media (max-width: 48rem) {
   .main-content {
-    padding: 16px;
+    padding: 1rem;
+    min-height: calc(100vh - 11.25rem);
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    align-items: center;
+  }
+
+  .section-title {
+    padding-left: 0;
+    margin-bottom: 1.5rem;
+    text-align: left;
+    align-self: flex-start;
+    width: 100%;
   }
 
   .section-title h1 {
-    font-size: 24px;
+    font-size: 1.5rem;
   }
 
   .filter-tabs {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 12px;
+    gap: 0.5rem;
+    padding-left: 0;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+    justify-content: flex-start;
+    align-self: flex-start;
+    width: 100%;
   }
 
-  .filter-tab {
-    width: 200px;
+  .deals-container {
+    width: 100%;
+    padding: 0;
+    align-self: stretch;
   }
 
   .deals-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 1.25rem;
+    justify-items: center;
+    width: 100%;
+    padding: 0 0.5rem;
+  }
+
+  /* Custom button sizing for mobile */
+  .filter-tabs :deep(button) {
+    min-width: 3.75rem !important;
+    height: 2rem !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .loading-container,
+  .error-container,
+  .empty-container {
+    min-height: calc(100vh - 15.625rem);
+    padding: 2rem 1rem;
+  }
+
+  .loading-spinner {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .loading-text,
+  .error-text {
+    font-size: 0.875rem;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+  }
+
+  .empty-title {
+    font-size: 1.125rem;
+  }
+
+  .empty-text {
+    font-size: 0.8125rem;
   }
 }
 
-@media (max-width: 480px) {
-  .header-placeholder {
-    height: 60px;
+/* Small Mobile styles (480px 이하) */
+@media (max-width: 30rem) {
+  .main-content {
+    padding: 0.75rem;
+  }
+
+  .section-title {
+    margin-bottom: 1.25rem;
+  }
+
+  .section-title h1 {
+    font-size: 1.375rem;
+  }
+
+  .filter-tabs {
+    gap: 0.375rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .deals-grid {
+    gap: 1rem;
+    padding: 0 0.25rem;
+  }
+
+  .filter-tabs :deep(button) {
+    min-width: 3.25rem !important;
+    height: 1.875rem !important;
+    padding: 0.25rem 0.375rem !important;
+    font-size: 0.6875rem !important;
+  }
+}
+
+/* Tablet styles (769px - 1023px) */
+@media (min-width: 48.0625rem) and (max-width: 64rem) {
+  .main-content {
+    padding: 1.25rem;
+    min-height: calc(100vh - 12.5rem);
+  }
+
+  .deals-grid {
+    grid-template-columns: repeat(auto-fit, minmax(18.75rem, 1fr));
+    gap: 1.5rem;
+    max-width: 100%;
+  }
+
+  .filter-tabs :deep(button) {
+    min-width: 4.375rem !important;
+    height: 2.25rem !important;
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.8125rem !important;
+  }
+}
+
+/* Desktop styles (1024px 이상) */
+@media (min-width: 64rem) {
+  .main-content {
+    padding: 1.25rem;
+    min-height: calc(100vh - 12.5rem);
+  }
+
+  .section-title {
+    padding-left: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-title h1 {
+    font-size: 1.75rem;
+  }
+
+  .filter-tabs {
+    padding-left: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .deals-grid {
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 2rem;
+    justify-items: center;
+  }
+
+  .filter-tabs :deep(button) {
+    min-width: 5rem !important;
+    height: 2.5rem !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+  }
+}
+
+/* Large Desktop styles (1440px 이상) */
+@media (min-width: 90rem) {
+  .main-content {
+    padding: 1.5rem;
+  }
+
+  .deals-grid {
+    grid-template-columns: repeat(auto-fit, minmax(21.875rem, 1fr));
+    gap: 2.25rem;
+  }
+}
+
+/* Extra Large Desktop styles (1920px 이상) */
+@media (min-width: 120rem) {
+  .main-content {
+    padding: 2rem;
+    max-width: 85rem;
+  }
+
+  .deals-grid {
+    grid-template-columns: repeat(auto-fit, minmax(23.75rem, 1fr));
+    gap: 2.5rem;
   }
 }
 </style>
