@@ -38,9 +38,11 @@ import AnalysisReportView from '@/pages/document/AnalysisReportView.vue'
 import ReviewView from '@/pages/review/ReviewView.vue'
 import ReviewWriteView from '@/pages/review/ReviewWriteView.vue'
 
-// 시스템 관련 페이지
-import NotificationView from '@/pages/system/NotificationView.vue'
-import PaymentView from '@/pages/system/PaymentView.vue'
+// 알림 관련 페이지
+import NotificationView from '@/pages/notification/NotificationView.vue'
+
+// 결제 관련 페이지
+import PaymentView from '@/pages/payment/PaymentView.vue'
 
 // 가이드 페이지
 import GuideMainView from '@/pages/guide/GuideMainView.vue'
@@ -190,12 +192,14 @@ const router = createRouter({
       component: ReviewWriteView,
     },
 
-    // 시스템 관련 라우트
+    // 알림 관련 라우트
     {
       path: '/notification',
       name: 'notification',
       component: NotificationView,
     },
+
+    // 결제 관련 라우트
     {
       path: '/payment',
       name: 'payment',
