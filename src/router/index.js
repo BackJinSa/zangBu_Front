@@ -48,6 +48,7 @@ import GuideMainView from '@/pages/guide/GuideMainView.vue'
 import ColorGuideView from '@/pages/guide/ColorGuideView.vue'
 import PropertyCardGuideView from '@/pages/guide/PropertyCardGuideView.vue'
 import PropertyCardMainView from '@/pages/guide/PropertyCardMainView.vue'
+import PropertyCardWaitingView from '@/pages/guide/PropertyCardWaitingView.vue'
 import ButtonGuideView from '@/pages/guide/ButtonGuideView.vue'
 import InputGuideView from '@/pages/guide/InputGuideView.vue'
 import DropboxGuideView from '@/pages/guide/DropboxGuideView.vue'
@@ -126,6 +127,11 @@ const router = createRouter({
       path: '/property/register',
       name: 'property-register',
       component: PropertyRegisterView,
+    },
+    {
+      path: '/property/waiting',
+      name: 'property-waiting',
+      component: PropertyCardWaitingView,
     },
 
     // 채팅 관련 라우트
@@ -229,6 +235,11 @@ const router = createRouter({
       path: '/guide/property-card-main-guide',
       name: 'property-card-main-guide',
       component: PropertyCardMainView,
+    },
+    {
+      path: '/guide/property-card-waiting-guide',
+      name: 'property-card-waiting-guide',
+      component: PropertyCardWaitingView,
     },
     {
       path: '/guide/button-guide',
