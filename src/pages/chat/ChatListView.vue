@@ -1,5 +1,6 @@
 <template>
   <div class="w-full max-w-screen-xl mx-auto px-8 md:px-12 xl:px-16">
+    <!-- <Header /> -->
     <div class="flex flex-col min-h-screen bg-[var(--bg-1)] py-6 px-4 md:px-6 xl:px-8">
       <!-- 헤더 -->
       <div class="flex items-center gap-3 text-lg mb-5">
@@ -97,7 +98,8 @@
 </template>
 
 <script setup>
-import Footer from '@/components/common/Footer.vue'
+import Header from '@/components/common/Header.vue'
+import Footer from '@/components/common/footer.vue'
 import 'vue-awesome-paginate/dist/style.css'
 import { ref, onMounted, watch, computed } from 'vue'
 import axios from 'axios'
@@ -415,11 +417,3 @@ const goToChatRoom = (roomId) => {
   router.push(`/chat/room/${roomId}`)
 }
 </script>
-<style scoped>
-.page-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-</style>

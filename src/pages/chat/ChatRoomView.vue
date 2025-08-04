@@ -1,5 +1,6 @@
 <template>
   <div class="w-full max-w-screen-xl mx-auto px-8 md:px-12 xl:px-16">
+    <Header />
     <div class="flex flex-col h-screen bg-gray-50">
       <!-- 헤더 -->
       <header class="bg-[var(--brand-3)] text-white flex items-center justify-between px-4 py-3">
@@ -107,6 +108,7 @@
 
 <script setup>
 import Footer from '@/components/common/footer.vue'
+import Header from '@/components/common/Header.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -127,6 +129,11 @@ const messages = ref([
   { text: '토요일 오후 2시 괜찮을까요?', time: '오전 11:15', isMine: true },
   { text: '네, 좋습니다! 그럼 토요일 오후 2시에 뵙겠습니다.', time: '오후 1:20', isMine: false },
 ])
+const hasMore = ref(true)
+const lastMessageId = ref(null) // 가장 오래된 메시지 ID 저장
+const pageSize = 10 //한 번에 불러올 메시지 개수
+
+const roomId = '123' // 예시 채팅방 ID
 
 const newMessage = ref('')
 
