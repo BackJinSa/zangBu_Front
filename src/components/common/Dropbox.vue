@@ -1,21 +1,23 @@
 <template>
   <!-- 드롭박스 컨테이너 -->
-  <div class="dropbox-container">
+  <div class="relative w-32">
     <!-- 라벨 섹션 -->
     <div class="flex items-center mb-2">
-      <!-- 보라색 다이아몬드 아이콘 -->
-      <div class="w-4 h-4 bg-purple-500 transform rotate-45 mr-2"></div>
       <!-- 라벨 텍스트 -->
       <span class="text-sm font-medium text-gray-700">드롭박스</span>
     </div>
 
     <!-- 드롭다운 선택기 (클릭 가능한 영역) -->
-    <div class="dropbox-selector" @click="toggleDropdown" :class="{ 'border-brand-3': isOpen }">
+    <div
+      class="flex items-center justify-between w-full h-10 px-3 bg-bg-2 border border-text-1 rounded-lg cursor-pointer transition-all duration-200 hover:border-brand-3 focus:outline-none focus:border-brand-3"
+      :class="{ 'border-brand-3': isOpen }"
+      @click="toggleDropdown"
+    >
       <!-- 선택된 옵션 텍스트 또는 플레이스홀더 -->
-      <span class="selected-text">{{ selectedOption || placeholder }}</span>
+      <span class="text-text-2 text-sm font-medium">{{ selectedOption || placeholder }}</span>
       <!-- 화살표 아이콘 (드롭다운 상태에 따라 회전) -->
       <svg
-        class="chevron-icon"
+        class="w-4 h-4 text-text-1 transition-transform duration-200"
         :class="{ 'rotate-180': isOpen }"
         fill="currentColor"
         viewBox="0 0 20 20"
@@ -29,11 +31,14 @@
     </div>
 
     <!-- 드롭다운 옵션 목록 (열린 상태일 때만 표시) -->
-    <div v-if="isOpen" class="dropdown-options">
+    <div
+      v-if="isOpen"
+      class="absolute top-full left-0 right-0 bg-bg-2 border border-text-1 border-t-0 rounded-b-lg shadow-lg z-10 max-h-50 overflow-y-auto"
+    >
       <div
         v-for="option in options"
         :key="option.value"
-        class="dropdown-option"
+        class="px-4 py-3 text-text-2 text-sm cursor-pointer transition-colors duration-200 hover:bg-bg-1 last:rounded-b-lg"
         @click="selectOption(option)"
       >
         {{ option.label }}
@@ -107,7 +112,7 @@ const selectOption = (option) => {
  */
 const closeDropdown = (event) => {
   // 드롭박스 컨테이너 외부 클릭 시에만 닫기
-  if (!event.target.closest('.dropbox-container')) {
+  if (!event.target.closest('.relative')) {
     isOpen.value = false
   }
 }
@@ -123,91 +128,3 @@ onUnmounted(() => {
   document.removeEventListener('click', closeDropdown)
 })
 </script>
-
-<style scoped>
-/* 드롭박스 컨테이너 */
-.dropbox-container {
-  position: relative;
-  width: 128px;
-}
-
-/* 드롭다운 선택기 스타일 */
-.dropbox-selector {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: 40px;
-  padding: 0 12px;
-  background-color: var(--bg-2);
-  border: 1px solid var(--text-1);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-/* 호버 효과 */
-.dropbox-selector:hover {
-  border-color: var(--brand-3);
-}
-
-/* 열린 상태일 때 테두리 색상 */
-.dropbox-selector.border-brand-3 {
-  border-color: var(--brand-3);
-}
-
-/* 선택된 텍스트 스타일 */
-.selected-text {
-  color: var(--text-2);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* 화살표 아이콘 스타일 */
-.chevron-icon {
-  width: 16px;
-  height: 16px;
-  color: var(--text-1);
-  transition: transform 0.2s ease;
-}
-
-/* 열린 상태일 때 화살표 회전 */
-.chevron-icon.rotate-180 {
-  transform: rotate(180deg);
-}
-
-/* 드롭다운 옵션 목록 */
-.dropdown-options {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: var(--bg-2);
-  border: 1px solid var(--text-1);
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-/* 개별 드롭다운 옵션 */
-.dropdown-option {
-  padding: 12px 16px;
-  color: var(--text-2);
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-/* 옵션 호버 효과 */
-.dropdown-option:hover {
-  background-color: var(--bg-1);
-}
-
-/* 마지막 옵션의 하단 모서리 둥글게 */
-.dropdown-option:last-child {
-  border-radius: 0 0 8px 8px;
-}
-</style>
