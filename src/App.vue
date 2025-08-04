@@ -1,6 +1,6 @@
 <script setup>
 import Header from './components/common/Header.vue'
-import footer from './components/common/footer.vue'
+import Footer from './components/common/footer.vue'
 </script>
 
 <template>
@@ -9,6 +9,6 @@ import footer from './components/common/footer.vue'
     <main>
       <RouterView />
     </main>
-    <footer />
+    <Footer />
   </div>
 </template>
