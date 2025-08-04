@@ -1,68 +1,85 @@
 <template>
-  <div class="page-container">
-    <div class="chat-list-wrapper">
+  <div class="w-full max-w-screen-xl mx-auto px-8 md:px-12 xl:px-16">
+    <div class="flex flex-col min-h-screen bg-[var(--bg-1)] py-6 px-4 md:px-6 xl:px-8">
       <!-- 헤더 -->
-      <div class="chat-list-header">
-        <button @click="router.back()" class="back-button">
+      <div class="flex items-center gap-3 text-lg mb-5">
+        <button @click="router.back()" class="text-[var(--text-1)] hover:text-[var(--brand-1)]">
           <i class="fas fa-arrow-left"></i>
         </button>
-        <h3>채팅방 목록</h3>
+        <h3 class="font-semibold">채팅방 목록</h3>
       </div>
 
-      <main class="chat-content">
+      <main class="flex-1 flex flex-col">
         <!-- 필터 탭 -->
-        <div class="chat-tab-container">
+        <div class="flex justify-center my-6 gap-10 md:gap-[260px]">
           <div
             v-for="tab in tabs"
             :key="tab.type"
-            :class="['chat-tab', { active: tab.type === selectedTab }]"
+            :class="[
+              'flex flex-col-reverse items-center cursor-pointer text-[var(--text-1)] transition',
+              tab.type === selectedTab ? 'text-black font-bold' : '',
+            ]"
             @click="selectTab(tab.type)"
           >
-            <div class="count">
+            <div class="text-xl font-bold">
               {{ tab.count }}
-              <span v-if="tab.unread > 0" class="tab-unread">{{ tab.unread }}</span>
+              <span
+                v-if="tab.unread > 0"
+                class="inline-flex items-center justify-center ml-1 w-4 h-4 text-[11px] font-semibold bg-[var(--status-1)] text-white rounded-full"
+              >
+                {{ tab.unread }}
+              </span>
             </div>
-            <div class="label">{{ tab.label }}</div>
+            <div class="mt-1 text-sm">{{ tab.label }}</div>
           </div>
         </div>
 
         <!-- 채팅방 리스트 -->
-        <div class="chat-room-list">
+        <div class="flex flex-col gap-4">
           <div
             v-for="room in paginatedRooms"
             :key="room.chatRoomId"
-            class="chat-room-item"
+            class="flex items-start bg-[var(--bg-2)] p-4 rounded-lg relative cursor-pointer"
             @click="goToChatRoom(room.chatRoomId)"
           >
             <div
-              class="chat-avatar"
+              class="w-10 h-10 rounded-full text-white font-bold text-base flex items-center justify-center mr-3 flex-shrink-0"
               :style="{
                 backgroundColor: room.type === 'BUY' ? 'var(--brand-3)' : 'var(--brand-2)',
               }"
             >
               {{ room.sellerNickname.charAt(0) }}
             </div>
-            <div class="chat-room-content">
-              <div class="chat-room-header">
-                <div class="nickname-and-badges">
-                  <div>
-                    <div class="nickname-and-badges">
-                      <span class="nickname">{{ room.sellerNickname }}</span>
-                      <div class="badges">
-                        <span class="badge role">{{ room.sellerType }}</span>
-                        <span class="badge status">{{ room.status }}</span>
-                      </div>
-                    </div>
-                    <div class="building-info">
-                      🏠 {{ room.buildingName }} | 💰 전세 {{ room.price }}억
+
+            <div class="flex-1">
+              <div class="flex items-center justify-between text-sm text-[var(--text-2)] mb-1">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-semibold">{{ room.sellerNickname }}</span>
+                    <div class="flex gap-1">
+                      <span class="text-xs px-2 py-1 rounded bg-[var(--brand-3)] text-white">{{
+                        room.sellerType
+                      }}</span>
+                      <span class="text-xs px-2 py-1 rounded bg-[var(--status-1)] text-white">{{
+                        room.status
+                      }}</span>
                     </div>
                   </div>
+                  <div class="text-xs text-[var(--text-1)] mt-0.5">
+                    🏠 {{ room.buildingName }} | 💰 전세 {{ room.price }}억
+                  </div>
                 </div>
-                <span class="time">{{ room.lastMessageTime }}</span>
+                <span class="text-xs text-[var(--text-1)]">{{ room.lastMessageTime }}</span>
               </div>
-              <div class="message">{{ room.lastMessage }}</div>
+              <div class="text-sm text-[var(--text-1)]">{{ room.lastMessage }}</div>
             </div>
-            <div v-if="room.unreadCount > 0" class="unread-badge">{{ room.unreadCount }}</div>
+
+            <div
+              v-if="room.unreadCount > 0"
+              class="absolute right-3 bottom-3 text-xs px-2 py-0.5 rounded-full bg-[var(--brand-3)] text-white"
+            >
+              {{ room.unreadCount }}
+            </div>
           </div>
         </div>
 
@@ -71,6 +88,7 @@
           :max-pages-shown="5"
           :current-page="currentPage"
           @page-click="changePage"
+          class="flex justify-center mt-6 gap-2"
         />
       </main>
     </div>
@@ -397,231 +415,7 @@ const goToChatRoom = (roomId) => {
   router.push(`/chat/room/${roomId}`)
 }
 </script>
-
-<style>
-/* 전체 레이아웃 */
-.chat-list-wrapper {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 20px;
-  background-color: #f8f9fa;
-  min-height: 100vh;
-
-  display: flex;
-  flex-direction: column;
-}
-
-.chat-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 헤더 (뒤로가기 + 타이틀) */
-.chat-list-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 18px;
-  margin-bottom: 20px;
-}
-
-.back-button {
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: var(--text-1);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.back-button:hover {
-  color: var(--brand-1);
-  transform: scale(1.1);
-}
-
-.chat-tab-container {
-  display: flex;
-  justify-content: center;
-  margin: 24px 0;
-  gap: 40px; /* 모바일 기본 간격 */
-}
-
-@media (min-width: 768px) {
-  .chat-tab-container {
-    gap: 260px; /* 데스크탑 기준 간격 - 채팅방 카드 폭 기준 */
-  }
-}
-
-.chat-tab {
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: center;
-  cursor: pointer;
-  color: var(--text-1);
-  transition: color 0.2s ease;
-  position: relative;
-}
-
-.chat-tab.active {
-  color: black;
-  font-weight: bold;
-}
-
-.chat-tab .count {
-  font-size: 20px;
-  font-weight: bold;
-  line-height: 1.2;
-}
-
-.chat-tab .label {
-  margin-top: 6px;
-  font-size: 14px;
-}
-
-.tab-unread {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 6px;
-  width: 16px;
-  height: 16px;
-  font-size: 11px;
-  font-weight: 600;
-  background-color: var(--status-1); /* 파란색 */
-  color: white;
-  border-radius: 50%;
-  line-height: 1;
-}
-/* 채팅방 리스트 */
-.chat-room-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.chat-room-item {
-  display: flex;
-  align-items: flex-start;
-  background-color: var(--bg-2);
-  padding: 16px 16px 24px 16px;
-  border-radius: 8px;
-  position: relative;
-  cursor: pointer;
-}
-
-/* 아바타 */
-.chat-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 12px;
-  flex-shrink: 0;
-}
-
-/* 채팅방 내부 구조 */
-.chat-room-content {
-  flex: 1;
-}
-
-.chat-room-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 14px;
-  color: var(--text-2);
-}
-
-.nickname-and-badges {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.building-info {
-  font-size: 13px;
-  color: var(--text-1);
-  margin-top: 2px;
-}
-.nickname {
-  font-weight: 600;
-}
-
-.badges {
-  display: flex;
-  gap: 4px;
-}
-
-.badge {
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  color: var(--text-3);
-}
-
-.badge.role {
-  background-color: var(--brand-3);
-}
-
-.badge.status {
-  background-color: var(--status-1);
-}
-
-.time {
-  font-size: 12px;
-  color: var(--text-1);
-}
-
-.message {
-  color: var(--text-1);
-  font-size: 14px;
-}
-
-.unread-badge {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  background-color: var(--brand-3);
-  color: white;
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 9999px;
-}
-
-/* 페이지네이션 스타일 */
-:deep(.vue-awesome-paginate) {
-  display: flex;
-  justify-content: center;
-  margin-top: 24px;
-  gap: 8px;
-}
-
-:deep(.paginate-buttons) {
-  padding: 6px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: white;
-  border: 1px solid var(--brand-3);
-  color: var(--brand-3);
-  font-weight: bold;
-}
-
-:deep(.paginate-buttons:hover) {
-  background-color: var(--brand-3);
-  color: white;
-}
-
-:deep(.active-page) {
-  background-color: var(--brand-3);
-  color: white;
-}
+<style scoped>
 .page-container {
   width: 100%;
   max-width: 1200px;
