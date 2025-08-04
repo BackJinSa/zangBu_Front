@@ -387,5 +387,155 @@ const handleCancel = () => {
     width: 100%;
     max-width: 320px;
   }
+
+  .details-container {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .property-title {
+    font-size: 16px;
+  }
+
+  .price-text {
+    font-size: 18px;
+  }
+
+  .location-text {
+    font-size: 13px;
+  }
+
+  .action-buttons {
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .primary-button,
+  .secondary-button {
+    height: 36px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .property-card-waiting {
+    max-width: 100%;
+    margin: 0 8px;
+  }
+
+  .card-header {
+    padding: 12px 16px 8px 16px;
+  }
+
+  .waiting-badge {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
+  .waiting-icon {
+    font-size: 10px;
+  }
+
+  .waiting-text {
+    font-size: 10px;
+  }
+
+  .image-container {
+    height: 160px;
+  }
+
+  .overlay-icon {
+    font-size: 20px;
+  }
+
+  .overlay-text {
+    font-size: 12px;
+  }
+
+  .details-container {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .property-title {
+    font-size: 15px;
+  }
+
+  .price-text {
+    font-size: 16px;
+  }
+
+  .location-text {
+    font-size: 12px;
+  }
+
+  .property-type,
+  .sale-type {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  .waiting-info {
+    padding: 8px;
+    margin-top: 6px;
+  }
+
+  .info-icon {
+    font-size: 14px;
+  }
+
+  .waiting-info-text {
+    font-size: 11px;
+  }
+
+  .submitted-date {
+    font-size: 10px;
+  }
+
+  .action-buttons {
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .primary-button,
+  .secondary-button {
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .progress-text {
+    font-size: 10px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .property-card-waiting {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .details-container {
+    padding: 18px;
+    gap: 11px;
+  }
+
+  .property-title {
+    font-size: 17px;
+  }
+
+  .price-text {
+    font-size: 19px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .property-card-waiting {
+    width: 320px;
+  }
+
+  .property-card-waiting:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 8px 12px 0px rgba(0, 0, 0, 0.15);
+  }
 }
 </style>
