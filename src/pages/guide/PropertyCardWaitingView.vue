@@ -310,7 +310,7 @@ const handleCancel = (property) => {
 const handleContinue = (property) => {
   console.log('Continue:', property)
   // 거래 이어가기 처리
-  router.push(`/trade/continue/${property.id}`)
+  router.push(`/deal/continue/${property.id}`)
 }
 
 const handleCancel = (property) => {
