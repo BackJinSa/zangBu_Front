@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="w-full max-w-screen-xl mx-auto px-8 md:px-12 xl:px-16">
     <div class="flex flex-col h-screen bg-gray-50">
       <!-- 헤더 -->
       <header class="bg-[var(--brand-3)] text-white flex items-center justify-between px-4 py-3">
@@ -30,13 +30,13 @@
           <!--<div v-if="isSeller"> -->
           <div class="flex flex-col items-center text-sm">
             <span class="mb-1">거래 활성화</span>
-            <label class="relative cursor-pointer">
+            <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" v-model="isActive" class="sr-only peer" />
               <div
-                class="w-10 h-5 rounded-full shadow-inner transition-colors duration-300 bg-[var(--brand-5)] peer-checked:bg-[var(--brand-2)]"
+                class="w-10 h-5 bg-[var(--brand-5)] peer-checked:bg-[var(--brand-2)] rounded-full transition-colors duration-300"
               ></div>
               <div
-                class="absolute top-0 left-0 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 peer-checked:translate-x-5"
+                class="absolute left-0 top-0 w-5 h-5 bg-white border rounded-full transition-transform duration-300 transform peer-checked:translate-x-5"
               ></div>
             </label>
           </div>
@@ -144,19 +144,3 @@ const sendMessage = () => {
   newMessage.value = ''
 }
 </script>
-
-<style scoped>
-/* 토글 스위치 */
-.toggle-label {
-  transition: background-color 0.3s ease;
-}
-.toggle-ball {
-  transition: transform 0.3s ease;
-}
-.page-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-</style>
