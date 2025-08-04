@@ -1,30 +1,31 @@
-<!-- NotificationIcon.vue -->
+// NotificationIcon.vue
 <template>
   <div
-    class="w-10 h-10 rounded-full flex items-center justify-center text-white text-base"
-    :class="{
-      'bg-green-600': type === 'property' || type === 'transaction',
-      'bg-yellow-400': type === 'review',
-      'bg-gray-400': !['property', 'transaction', 'review'].includes(type),
-    }"
+    class="w-10 h-10 flex items-center justify-center rounded-md"
+    :style="{ backgroundColor: iconColor }"
   >
-    <i :class="iconClass" />
+    <i :class="iconClass" class="text-white text-base"></i>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-const props = defineProps({ type: String })
-const iconClass = computed(() => {
-  switch (props.type) {
-    case 'property':
-      return 'fa fa-home'
-    case 'transaction':
-      return 'fa fa-chart-line'
-    case 'review':
-      return 'fa fa-star'
-    default:
-      return 'fa fa-bell'
-  }
+const props = defineProps({
+  type: String,
 })
+
+const iconMap = {
+  BUILDING: 'fa-solid fa-building', // 시세변동
+  TRADE: 'fa-solid fa-handshake', // 실거래
+  REVIEW: 'fa-solid fa-comment-dots', // 리뷰
+}
+
+// 우리 브랜드 컬러 시스템에 맞춰 색상 매핑
+const colorMap = {
+  BUILDING: 'var(--brand-3)',
+  TRADE: 'var(--brand-4)',
+  REVIEW: 'var(--bg-3)',
+}
+
+const iconClass = iconMap[props.type] || 'fa-solid fa-bell'
+const iconColor = colorMap[props.type] || 'var(--text-1)'
 </script>

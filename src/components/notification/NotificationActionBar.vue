@@ -1,15 +1,10 @@
-<!-- NotificationActionBar.vue -->
+// NotificationActionBar.vue
 <template>
-  <div class="ml-auto">
-    <button
-      class="bg-gray-800 text-white text-sm px-3 py-1 rounded"
-      @click="$emit('mark-all-read')"
-    >
-      모두 읽음 처리
-    </button>
-  </div>
+  <button class="text-sm text-gray-600 hover:underline" @click="$emit('mark-all-read')">
+    모두 읽음 처리
+  </button>
 </template>
 
 <script setup>
-// emit 방식으로 변경됨
+// props 불필요, 단순 이벤트 발생
 </script>
