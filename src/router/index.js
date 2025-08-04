@@ -17,7 +17,6 @@ import ProfileEditView from '@/pages/user/ProfileEditView.vue'
 import WithdrawView from '@/pages/user/WithdrawView.vue'
 
 // 매물 관련 페이지
-import PropertyDetailView from '@/pages/property/PropertyDetailView.vue'
 import PropertyRegisterView from '@/pages/property/PropertyRegisterView.vue'
 
 // 채팅 관련 페이지
@@ -124,20 +123,10 @@ const router = createRouter({
 
     // 매물 관련 라우트
     {
-      path: '/property/detail/:id',
-      name: 'property-detail',
-      component: PropertyDetailView,
-      props: true,
-    },
-    {
       path: '/property/register',
-      name: 'property-register',
+      name: 'register',
       component: PropertyRegisterView,
-    },
-    {
-      path: '/property/waiting',
-      name: 'property-waiting',
-      component: PropertyCardWaitingView,
+      props: true,
     },
 
     // 채팅 관련 라우트
