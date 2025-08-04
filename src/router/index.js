@@ -43,7 +43,7 @@ import ReviewWriteView from '@/pages/review/ReviewWriteView.vue'
 import NotificationView from '@/pages/notification/NotificationView.vue'
 
 // 결제 관련 페이지
-import PaymentView from '@/pages/payment/PaymentView.vue'
+import PaymentView from '@/pages/system/PaymentView.vue'
 
 // 가이드 페이지
 import GuideMainView from '@/pages/guide/GuideMainView.vue'
