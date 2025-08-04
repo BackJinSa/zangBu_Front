@@ -29,7 +29,7 @@
 &lt;/template&gt;
 
 &lt;script setup&gt;
-import Footer from '@/components/common/footer.vue'
+import Footer from '@/components/common/Footer.vue'
 &lt;/script&gt;</code></pre>
         </div>
         <div class="code-example">
@@ -42,7 +42,7 @@ import Footer from '@/components/common/footer.vue'
 &lt;/template&gt;
 
 &lt;script setup&gt;
-import Footer from '@/components/common/footer.vue'
+import Footer from '@/components/common/Footer.vue'
 &lt;/script&gt;</code></pre>
         </div>
       </section>
@@ -124,19 +124,18 @@ import Footer from '@/components/common/footer.vue'
           <div class="breakpoint-item">
             <h3>1024px 이상 (데스크톱)</h3>
             <ul>
-              <li>라벨과 값이 가로 배치</li>
+              <li>모든 텍스트 가운데 정렬</li>
               <li>최대 너비 1200px</li>
               <li>패딩: 2rem 0</li>
-              <li>라벨 최소 너비: 120px</li>
+              <li>라벨과 값 사이 여백: 0.5rem</li>
             </ul>
           </div>
           <div class="breakpoint-item">
             <h3>1024px 미만 (태블릿/모바일)</h3>
             <ul>
-              <li>라벨과 값이 세로 배치</li>
+              <li>모든 텍스트 가운데 정렬</li>
               <li>패딩: 1.5rem 0</li>
-              <li>라벨 최소 너비 해제</li>
-              <li>라벨 하단 여백 추가</li>
+              <li>라벨과 값 사이 여백 제거</li>
             </ul>
           </div>
           <div class="breakpoint-item">
@@ -154,7 +153,7 @@ import Footer from '@/components/common/footer.vue'
 </template>
 
 <script setup>
-import Footer from '@/components/common/footer.vue'
+import Footer from '@/components/common/Footer.vue'
 </script>
 
 <style scoped>
@@ -192,57 +191,11 @@ import Footer from '@/components/common/footer.vue'
   padding-bottom: 8px;
 }
 
-.overview {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.overview p {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
 .footer-example {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-}
-
-.responsive-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
-}
-
-.responsive-item {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.responsive-item h3 {
-  color: #2c3e50;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  font-family: 'Roboto', sans-serif;
-}
-
-.responsive-item ul {
-  margin: 0;
-  padding-left: 20px;
-  color: #7f8c8d;
-  line-height: 1.6;
-}
-
-.responsive-item li {
-  margin-bottom: 8px;
 }
 
 .structure-analysis {
@@ -277,43 +230,6 @@ import Footer from '@/components/common/footer.vue'
   margin-bottom: 8px;
 }
 
-.color-system {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-}
-
-.color-item {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.color-swatch {
-  width: 100%;
-  height: 60px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.color-info h4 {
-  color: #2c3e50;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  font-family: 'Roboto', sans-serif;
-}
-
-.color-info p {
-  color: #7f8c8d;
-  font-size: 14px;
-  margin: 0;
-  font-family: 'Courier New', monospace;
-}
-
 .code-example {
   background: #f8f9fa;
   border-radius: 8px;
@@ -339,68 +255,6 @@ import Footer from '@/components/common/footer.vue'
   font-family: 'Courier New', monospace;
   font-size: 14px;
   line-height: 1.5;
-}
-
-.css-structure {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.css-item h3 {
-  color: #2c3e50;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  font-family: 'Roboto', sans-serif;
-}
-
-.css-item ul {
-  margin: 0;
-  padding-left: 20px;
-  color: #7f8c8d;
-  line-height: 1.6;
-}
-
-.css-item li {
-  margin-bottom: 8px;
-}
-
-.css-item code {
-  background: #f8f9fa;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  color: #e74c3c;
-}
-
-.features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-}
-
-.feature-item {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.feature-item h3 {
-  color: #2c3e50;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  font-family: 'Roboto', sans-serif;
-}
-
-.feature-item p {
-  color: #7f8c8d;
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0;
 }
 
 .breakpoints {
@@ -433,39 +287,6 @@ import Footer from '@/components/common/footer.vue'
 
 .breakpoint-item li {
   margin-bottom: 8px;
-}
-
-.customization {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
-}
-
-.custom-item {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.custom-item h3 {
-  color: #2c3e50;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  font-family: 'Roboto', sans-serif;
-}
-
-.custom-item pre {
-  background: #f8f9fa;
-  color: #2c3e50;
-  padding: 16px;
-  border-radius: 6px;
-  overflow-x: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0;
 }
 
 @media (max-width: 768px) {

@@ -77,7 +77,7 @@
 </template>
 
 <script setup>
-import Footer from '@/components/common/footer.vue'
+import Footer from '@/components/common/Footer.vue'
 import 'vue-awesome-paginate/dist/style.css'
 import { ref, onMounted, watch, computed } from 'vue'
 import axios from 'axios'
