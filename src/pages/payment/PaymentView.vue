@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadTossPayments, ANONYMOUS } from '@tosspayments/tosspayments-sdk'
+import { getBuyerInfo } from '@/api/payment/payment.js'
 
 const router = useRouter()
 
@@ -22,6 +23,7 @@ const errorMessage = ref('')
 const successMessage = ref('')
 const tossPayments = ref(null)
 const widgets = ref(null)
+const buyerInfoLoading = ref(false)
 
 // 결제 금액 옵션
 const amountOptions = [
@@ -35,6 +37,23 @@ const amountOptions = [
 // 주문 ID 생성
 const generateOrderId = () => {
   return window.btoa(Math.random()).slice(0, 20)
+}
+
+// 구매자 정보 로드
+const loadBuyerInfo = async () => {
+  buyerInfoLoading.value = true
+  try {
+    const buyerInfo = await getBuyerInfo()
+    paymentForm.customerName = buyerInfo.name || ''
+    paymentForm.customerEmail = buyerInfo.email || ''
+    paymentForm.customerMobilePhone = buyerInfo.phone || ''
+    console.log('구매자 정보 로드 완료:', buyerInfo)
+  } catch (error) {
+    console.error('구매자 정보 로드 실패:', error)
+    errorMessage.value = '구매자 정보를 불러오는데 실패했습니다. 수동으로 입력해주세요.'
+  } finally {
+    buyerInfoLoading.value = false
+  }
 }
 
 // 토스페이먼츠 초기화
@@ -91,6 +110,11 @@ onMounted(async () => {
   console.log('PaymentView 컴포넌트 마운트됨')
   await nextTick()
   console.log('nextTick 완료')
+
+  // 구매자 정보 로드
+  await loadBuyerInfo()
+
+  // 토스페이먼츠 초기화
   await initializeTossPayments()
 })
 
@@ -112,17 +136,17 @@ const handlePayment = async () => {
   }
 
   if (!paymentForm.customerName.trim()) {
-    errorMessage.value = '구매자 이름을 입력해주세요.'
+    errorMessage.value = '구매자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.'
     return
   }
 
   if (!paymentForm.customerEmail.trim()) {
-    errorMessage.value = '이메일을 입력해주세요.'
+    errorMessage.value = '구매자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.'
     return
   }
 
   if (!paymentForm.customerMobilePhone.trim()) {
-    errorMessage.value = '휴대폰 번호를 입력해주세요.'
+    errorMessage.value = '구매자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.'
     return
   }
 
@@ -207,46 +231,80 @@ const handlePayment = async () => {
             />
           </div>
 
-          <!-- 구매자 이름 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              구매자 이름 <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              v-model="paymentForm.customerName"
-              placeholder="구매자 이름을 입력하세요"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
+          <!-- 구매자 정보 섹션 -->
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-medium text-gray-900">구매자 정보</h3>
+              <div class="flex items-center space-x-2">
+                <div v-if="buyerInfoLoading" class="flex items-center text-sm text-blue-600">
+                  <svg
+                    class="animate-spin -ml-1 mr-2 h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  정보 불러오는 중...
+                </div>
+                <button
+                  v-if="!buyerInfoLoading"
+                  type="button"
+                  @click="loadBuyerInfo"
+                  class="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  정보 새로고침
+                </button>
+              </div>
+            </div>
 
-          <!-- 이메일 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              이메일 <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              v-model="paymentForm.customerEmail"
-              placeholder="이메일을 입력하세요"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
+            <!-- 구매자 이름 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"> 구매자 이름 </label>
+              <input
+                type="text"
+                v-model="paymentForm.customerName"
+                :placeholder="buyerInfoLoading ? '정보를 불러오는 중...' : '구매자 이름'"
+                readonly
+                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
+              />
+            </div>
 
-          <!-- 휴대폰 번호 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              휴대폰 번호 <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="tel"
-              v-model="paymentForm.customerMobilePhone"
-              placeholder="01012345678"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
+            <!-- 이메일 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"> 이메일 </label>
+              <input
+                type="email"
+                v-model="paymentForm.customerEmail"
+                :placeholder="buyerInfoLoading ? '정보를 불러오는 중...' : '이메일'"
+                readonly
+                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
+              />
+            </div>
+
+            <!-- 휴대폰 번호 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"> 휴대폰 번호 </label>
+              <input
+                type="tel"
+                v-model="paymentForm.customerMobilePhone"
+                :placeholder="buyerInfoLoading ? '정보를 불러오는 중...' : '휴대폰 번호'"
+                readonly
+                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
+              />
+            </div>
           </div>
 
           <!-- 결제 정보 요약 -->
@@ -331,6 +389,9 @@ const handlePayment = async () => {
       <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h3 class="text-sm font-medium text-blue-900 mb-2">💡 안내사항</h3>
         <ul class="text-sm text-blue-800 space-y-1">
+          <li>• 구매자 정보(이름, 이메일, 휴대폰 번호)는 백엔드에서 자동으로 불러와집니다.</li>
+          <li>• 구매자 정보는 읽기 전용이며, 수정할 수 없습니다.</li>
+          <li>• 정보가 표시되지 않으면 "정보 새로고침" 버튼을 클릭해주세요.</li>
           <li>• 이 페이지는 토스페이먼츠 위젯을 사용합니다.</li>
           <li>• 실제 결제가 이루어지지 않으며, 샌드박스 환경에서 테스트됩니다.</li>
           <li>• 결제 완료 후 성공/실패 페이지로 리다이렉트됩니다.</li>
