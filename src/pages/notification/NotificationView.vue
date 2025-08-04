@@ -1,4 +1,4 @@
-<!-- ✅ NotificationView.vue (Tailwind 스타일 적용) -->
+<!-- NotificationView.vue (Tailwind 스타일 적용) -->
 <template>
   <div class="min-h-screen bg-gray-100">
     <!-- 헤더 영역 (알림 제목 + 뒤로가기 + 전체 읽음 처리 버튼) -->
