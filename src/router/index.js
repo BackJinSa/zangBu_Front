@@ -43,7 +43,9 @@ import ReviewWriteView from '@/pages/review/ReviewWriteView.vue'
 import NotificationView from '@/pages/notification/NotificationView.vue'
 
 // 결제 관련 페이지
-import PaymentView from '@/pages/system/PaymentView.vue'
+import PaymentView from '@/pages/payment/PaymentView.vue'
+import PaymentSuccessView from '@/pages/payment/PaymentSuccessView.vue'
+import PaymentFailView from '@/pages/payment/PaymentFailView.vue'
 
 // 가이드 페이지
 import GuideMainView from '@/pages/guide/GuideMainView.vue'
@@ -211,6 +213,16 @@ const router = createRouter({
       path: '/payment',
       name: 'payment',
       component: PaymentView,
+    },
+    {
+      path: '/payment/success',
+      name: 'payment-success',
+      component: PaymentSuccessView,
+    },
+    {
+      path: '/payment/fail',
+      name: 'payment-fail',
+      component: PaymentFailView,
     },
 
     // 가이드 라우트
