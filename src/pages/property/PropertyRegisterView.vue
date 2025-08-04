@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import Footer from '@/components/common/footer.vue'
+import Footer from '@/components/common/Footer.vue'
 import Button from '@/components/common/Button.vue'
 import Input from '@/components/common/Input.vue'
 import PropertyBasicInfoForm from '@/components/property/PropertyBasicInfoForm.vue'

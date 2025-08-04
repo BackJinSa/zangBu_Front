@@ -5,7 +5,7 @@ import { getDeals } from '@/api/deal/deal.js'
 import PropertyCardWaiting from '@/components/common/PropertyCardWaiting.vue'
 import Header from '@/components/common/Header.vue'
 import Button from '@/components/common/Button.vue'
-import Footer from '@/components/common/footer.vue'
+import Footer from '@/components/common/Footer.vue'
 
 const router = useRouter()
 
