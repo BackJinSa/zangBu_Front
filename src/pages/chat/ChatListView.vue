@@ -1,7 +1,6 @@
 <template>
-  <div class="w-full max-w-screen-xl mx-auto px-8 md:px-12 xl:px-16">
+  <div class="w-full max-w-screen-xl mx-auto">
     <div class="flex flex-col min-h-screen bg-[var(--bg-1)] py-6 px-4 md:px-6 xl:px-8">
-      <!-- 헤더 -->
       <div class="flex items-center gap-3 text-lg mb-5">
         <button @click="router.back()" class="text-[var(--text-1)] hover:text-[var(--brand-1)]">
           <i class="fas fa-arrow-left"></i>
@@ -66,7 +65,9 @@
                     </div>
                   </div>
                   <div class="text-xs text-[var(--text-1)] mt-0.5">
-                    🏠 {{ room.buildingName }} | 💰 전세 {{ room.price }}억
+                    <i class="fa-solid fa-house fa-lg"></i>
+                    {{ room.buildingName }} | <i class="fa-solid fa-sack-dollar"></i> 전세
+                    {{ room.price }}억
                   </div>
                 </div>
                 <span class="text-xs text-[var(--text-1)]">{{ room.lastMessageTime }}</span>
@@ -97,8 +98,7 @@
 </template>
 
 <script setup>
-import Header from '@/components/common/Header.vue'
-import Footer from '@/components/common/footer.vue'
+import Footer from '@/components/common/Footer.vue'
 import 'vue-awesome-paginate/dist/style.css'
 import { ref, onMounted, watch, computed } from 'vue'
 import axios from 'axios'

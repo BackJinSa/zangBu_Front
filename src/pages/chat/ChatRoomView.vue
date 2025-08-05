@@ -1,6 +1,5 @@
 <template>
-  <div class="w-full max-w-screen-xl mx-auto px-8 md:px-12 xl:px-16">
-    <Header />
+  <div class="w-full max-w-screen-xl mx-auto">
     <div class="flex flex-col h-screen bg-gray-50">
       <!-- 헤더 -->
       <header class="bg-[var(--brand-3)] text-white flex items-center justify-between px-4 py-3">
@@ -107,16 +106,51 @@
 </template>
 
 <script setup>
-<<<<<<< HEAD
-import Footer from '@/components/common/footer.vue'
-import Header from '@/components/common/Header.vue'
-=======
 import Footer from '@/components/common/Footer.vue'
->>>>>>> aab147d479f3ae84fdda899e1956825413890a3f
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useChatStore } from '@/stores/chat/chat'
+import { useStomp } from '@/utils/useStomp'
 
+const route = useRoute()
 const router = useRouter()
+const chatStore = useChatStore()
+const { markAsRead } = useChatStore()
+const { connect, subscribe, disconnect, sendStompMessage } = useStomp()
+const roomId = route.params.roomId // URL 파라미터로부터 채팅방 ID 가져오기
+
+onMounted(() => {
+  // STOMP 연결
+  connect(() => {
+    // 연결 성공 후 해당 채팅방 구독
+    subscribe(`/topic/chat/${roomId}`, (message) => {
+      // 서버에서 메시지를 받으면 store.messages에 추가
+      chatStore.messages.push(message)
+
+      // 내가 보낸 게 아니면 읽음 처리
+      if (message.senderId !== myUserId) {
+        chatStore.markAsRead(roomId)
+      }
+    })
+    // 채팅방 입장 시 기존 안 읽은 메시지 읽음 처리
+    chatStore.markAsRead(roomId)
+  })
+
+  // 채팅방 기존 메시지 로드
+  chatStore.getChatMessages(roomId)
+})
+
+onMounted(() => {
+  // 채팅방 구독 시작
+  subscribeChatRoom(roomId)
+  //채팅방 입장 시 메시지들 읽음 처리
+  markAsRead(roomId)
+})
+
+onUnmounted(() => {
+  // 화면에서 나가면 stomp 연결 해제(자동으로 구독 해제됨)
+  disconnect()
+})
 
 const isSeller = localStorage.getItem('userRole') === 'SELLER' // 'BUYER' or 'SELLER'
 const isActive = ref(true) // 거래 활성화 toggle
@@ -126,6 +160,7 @@ const otherNickname = '구매자김씨' //대화 상대방 닉네임
 const buildingName = '강남 신축 빌라'
 const sellerType = '집주인' // or '세입자'
 
+//임의 데이터
 const messages = ref([
   { text: '안녕하세요 매물에 관심 가져주셔서 감사합니다.', time: '오후 1:00', isMine: false },
   { text: '안녕하세요! 언제 방문 가능한지 궁금합니다.', time: '오전 11:05', isMine: true },
@@ -137,21 +172,21 @@ const hasMore = ref(true)
 const lastMessageId = ref(null) // 가장 오래된 메시지 ID 저장
 const pageSize = 10 //한 번에 불러올 메시지 개수
 
-const roomId = '123' // 예시 채팅방 ID
-
 const newMessage = ref('')
 
 const sendMessage = () => {
   if (!newMessage.value.trim()) return
-  messages.value.push({
-    text: newMessage.value,
-    time: new Date().toLocaleTimeString('ko-KR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    }),
-    isMine: true,
-  })
+
+  // 서버로 보낼 메시지 구조
+  const messagePayload = {
+    chatRoomId: roomId,
+    message: newMessage.value,
+  }
+
+  // Pinia store에 정의한 액션으로 메시지 전송(stomp)
+  chatStore.sendMessage(messagePayload)
+
+  //입력창 비우기
   newMessage.value = ''
 }
 </script>
