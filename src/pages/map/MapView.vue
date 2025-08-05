@@ -551,7 +551,7 @@ onMounted(() => {
         <!-- 검색바 (사이드바 상단으로 이동) -->
         <div class="search-section">
           <div class="search-box">
-            <span class="search-icon">🔍</span>
+            <i class="fas fa-search search-icon"></i>
             <input
               v-model="searchQuery"
               type="text"
@@ -1035,6 +1035,8 @@ onMounted(() => {
   color: #666;
   font-size: 16px;
   z-index: 1;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .search-input {
