@@ -57,12 +57,15 @@
             >
               채팅
             </button>
-            <button
+
+            <!-- 알림 -->
+            <!-- <button
               @click="handleNavigation('notification')"
               class="text-green-900 text-base md:text-lg font-medium font-roboto hover:text-brand-1 transition-colors whitespace-nowrap"
             >
               알림
-            </button>
+            </button> -->
+
             <button
               @click="handleNavigation('trade')"
               class="text-green-900 text-base md:text-lg font-medium font-roboto hover:text-brand-1 transition-colors whitespace-nowrap"
@@ -101,6 +104,31 @@
                 김철수
               </span>
             </div>
+            <!-- Notification Bell Icon -->
+            <button class="relative" @click="handleNavigation('notification')">
+              <!-- 종 아이콘 -->
+              <svg
+                class="w-6 h-6 md:w-7 md:h-7 text-green-900 hover:text-brand-1 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 17h5l-1.405-1.405C18.21 14.79 18 13.918 18 13V9c0-3.314-2.686-6-6-6S6 5.686 6 9v4c0 .918-.21 1.79-.595 2.595L4 17h5m6 0a3 3 0 01-6 0m6 0H9"
+                />
+              </svg>
+
+              <!-- 숫자 뱃지 -->
+              <span
+                v-if="store.unreadCount > 0"
+                class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] text-xs bg-red-500 text-white rounded-full flex items-center justify-center px-1"
+              >
+                {{ store.unreadCount > 99 ? '99+' : store.unreadCount }}
+              </span>
+            </button>
             <button
               @click="handleLogout"
               class="px-3 py-1.5 md:px-4 md:py-2 text-brand-1 text-sm md:text-base font-semibold font-inter border border-brand-2 rounded-lg hover:bg-brand-2 hover:text-white transition-colors whitespace-nowrap"
@@ -174,6 +202,34 @@
               김철수
             </span>
           </div>
+          <!-- Notification Bell Icon -->
+          <button
+            @click="handleNavigation('notification')"
+            class="relative text-green-900 hover:text-brand-1 transition-colors"
+          >
+            <!-- 종 아이콘 -->
+            <svg
+              class="w-6 h-6 md:w-7 md:h-7"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15 17h5l-1.405-1.405C18.21 14.79 18 13.918 18 13V9c0-3.314-2.686-6-6-6S6 5.686 6 9v4c0 .918-.21 1.79-.595 2.595L4 17h5m6 0a3 3 0 01-6 0m6 0H9"
+              />
+            </svg>
+
+            <!-- 🔴 숫자 뱃지 -->
+            <span
+              v-if="store.unreadCount > 0"
+              class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] text-xs bg-red-500 text-white rounded-full flex items-center justify-center px-1"
+            >
+              {{ store.unreadCount > 99 ? '99+' : store.unreadCount }}
+            </span>
+          </button>
           <button
             @click="handleLogout"
             class="text-brand-1 text-xs font-semibold font-inter border border-brand-2 rounded px-2 py-1 sm:px-3 sm:py-1.5 hover:bg-brand-2 hover:text-white transition-colors whitespace-nowrap flex-shrink-0"
@@ -214,7 +270,9 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from './Sidebar.vue'
+import { useNotificationStore } from '@/stores/notification/notification'
 
+const store = useNotificationStore()
 const router = useRouter()
 
 // Reactive data
