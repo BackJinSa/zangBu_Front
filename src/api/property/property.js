@@ -5,6 +5,11 @@ export const getPropertyDetail = (params) => {
   return api.post('/building', params)
 }
 
+// 매물 상세보기 (buildingId로 조회)
+export const getPropertyDetailById = (buildingId) => {
+  return api.get(`/building/${buildingId}`)
+}
+
 // 매물 찜하기
 export const bookmarkProperty = (data) => {
   return api.post('/building/bookmark', data)
