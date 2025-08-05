@@ -937,7 +937,7 @@ onMounted(() => {
 <style scoped>
 .map-container {
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - 97px); /* 헤더 높이만큼 뺀 높이 */
   display: flex;
   flex-direction: column;
   background: #f5f5f5;
@@ -992,6 +992,7 @@ onMounted(() => {
   padding: 20px;
   overflow-y: auto;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  height: calc(100vh - 97px); /* 헤더 높이만큼 뺀 높이 */
 }
 
 .filter-section {
@@ -1290,7 +1291,7 @@ onMounted(() => {
   position: relative;
   z-index: 1000;
 
-  height: 100vh;
+  height: calc(100vh - 97px); /* 헤더 높이만큼 뺀 높이 */
   display: flex;
   flex-direction: column;
 }
@@ -1749,6 +1750,7 @@ onMounted(() => {
 
   .detail-sidebar-left {
     width: 100%;
+    height: calc(100vh - 97px); /* 헤더 높이만큼 뺀 높이 */
     position: relative;
     z-index: 1000;
   }
@@ -1764,7 +1766,7 @@ onMounted(() => {
   }
 
   .map-area {
-    height: 400px;
+    height: calc(100vh - 400px); /* 헤더 + 사이드바 높이만큼 뺀 높이 */
   }
 }
 
