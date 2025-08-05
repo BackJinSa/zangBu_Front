@@ -30,6 +30,8 @@ import DealGuideView from '@/pages/deal/DealGuideView.vue'
 import DealSellerView from '@/pages/deal/DealSellerView.vue'
 import DealBuyerView from '@/pages/deal/DealBuyerView.vue'
 import DealWaitingListView from '@/pages/deal/DealWaitingListView.vue'
+import DealNoticeView from '@/pages/deal/DealNoticeView.vue'
+import DealConsumerDocument from '@/pages/deal/DealConsumerDocument.vue'
 
 // 문서 관련 페이지
 import DocumentView from '@/pages/document/DocumentView.vue'
@@ -176,6 +178,12 @@ const router = createRouter({
       component: DealGuideView,
     },
     {
+      path: '/deal/notice/:buildingId',
+      name: 'deal-notice',
+      component: DealNoticeView,
+      props: true,
+    },
+    {
       path: '/deal/seller/:dealId',
       name: 'deal-seller',
       component: DealSellerView,
@@ -194,6 +202,13 @@ const router = createRouter({
       component: DealWaitingListView,
       props: true,
     },
+    // 소비자 문서 조회
+    {
+      path: '/deal/consumer/documents/:dealId/:type',
+      name: 'deal-consumer-document',
+      component: DealConsumerDocument,
+      props: true,
+    },
 
     // 문서 관련 라우트
     {
@@ -210,14 +225,16 @@ const router = createRouter({
 
     // 리뷰 관련 라우트
     {
-      path: '/review',
+      path: '/review/:buildingId',
       name: 'review',
       component: ReviewView,
+      props: true,
     },
     {
-      path: '/review/write',
+      path: '/review/write/:buildingId',
       name: 'review-write',
       component: ReviewWriteView,
+      props: true,
     },
 
     // 알림 관련 라우트
