@@ -22,11 +22,21 @@ selectedProperty.value가 존재할 때만 리뷰 페이지로 이동
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useMapStore } from '@/stores/map/map.js'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { getPropertyDetailById } from '@/api/property/property.js'
+
+// Props 정의
+const props = defineProps({
+  buildingId: {
+    type: String,
+    default: null,
+  },
+})
 
 // Store 사용
 const mapStore = useMapStore()
 const router = useRouter()
+const route = useRoute()
 
 // 상세 보기 상태
 const showDetail = ref(false)
@@ -453,16 +463,48 @@ const goToUpload = () => {
   router.push('/building/upload')
 }
 
+// 매물 상세 정보 가져오기
+const fetchPropertyDetail = async (buildingId) => {
+  try {
+    console.log('매물 상세 정보 가져오기 시작:', buildingId)
+    const response = await getPropertyDetailById(buildingId)
+    console.log('API 응답:', response)
+    if (response && response.data) {
+      selectedProperty.value = response.data
+      showDetail.value = true
+    } else {
+      console.warn('매물 데이터가 없습니다.')
+    }
+  } catch (error) {
+    console.error('매물 상세 정보 가져오기 실패:', error)
+    // alert 제거하여 페이지 로딩을 방해하지 않도록 함
+  }
+}
+
 // 매물 상세 보기 표시
 const showPropertyDetail = (property) => {
-  selectedProperty.value = property
-  showDetail.value = true
+  try {
+    selectedProperty.value = property
+    showDetail.value = true
+    // URL 업데이트
+    const buildingId =
+      property.buildingId || property.building_name?.replace(/\s+/g, '_') || 'unknown'
+    router.push(`/map/apt/${buildingId}`)
+  } catch (error) {
+    console.error('매물 상세 보기 표시 실패:', error)
+  }
 }
 
 // 상세 보기 닫기
 const closePropertyDetail = () => {
-  showDetail.value = false
-  selectedProperty.value = null
+  try {
+    showDetail.value = false
+    selectedProperty.value = null
+    // URL을 기본 맵 페이지로 변경
+    router.push('/map')
+  } catch (error) {
+    console.error('상세 보기 닫기 실패:', error)
+  }
 }
 
 // 채팅 페이지로 이동
@@ -489,6 +531,15 @@ watch(
 
 onMounted(() => {
   initializeKakaoMap()
+
+  // buildingId가 있으면 매물 상세 정보 가져오기
+  if (props.buildingId) {
+    try {
+      fetchPropertyDetail(props.buildingId)
+    } catch (error) {
+      console.error('매물 상세 정보 가져오기 실패:', error)
+    }
+  }
 })
 </script>
 
@@ -663,10 +714,24 @@ onMounted(() => {
           <button class="back-btn" @click="closePropertyDetail">
             <span class="back-icon">←</span>
           </button>
-          <h2 class="detail-title">{{ selectedProperty.building_name }}</h2>
+          <h2 class="detail-title">
+            {{ selectedProperty.resComplexName || selectedProperty.building_name }}
+          </h2>
           <div class="header-actions">
-            <button class="action-btn" title="찜하기">❤️</button>
-            <button class="action-btn" title="알림">🔔</button>
+            <button
+              class="action-btn"
+              :title="selectedProperty.isBookmarked ? '찜하기 취소' : '찜하기'"
+              :class="{ bookmarked: selectedProperty.isBookmarked }"
+            >
+              {{ selectedProperty.isBookmarked ? '❤️' : '🤍' }}
+            </button>
+            <button
+              class="action-btn"
+              :title="selectedProperty.isNotification ? '알림 해제' : '알림 설정'"
+              :class="{ notified: selectedProperty.isNotification }"
+            >
+              {{ selectedProperty.isNotification ? '🔔' : '🔕' }}
+            </button>
           </div>
         </div>
 
@@ -685,19 +750,27 @@ onMounted(() => {
               </div>
               <div class="info-item">
                 <span class="info-label">매매 종류</span>
-                <span class="info-value">{{ selectedProperty.saleType }}</span>
+                <span class="info-value">{{
+                  selectedProperty.resType || selectedProperty.saleType
+                }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">부동산 종류</span>
-                <span class="info-value">{{ selectedProperty.propertyType }}</span>
+                <span class="info-value">{{
+                  selectedProperty.resRealty || selectedProperty.propertyType
+                }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">면적</span>
-                <span class="info-value">84.5㎡</span>
+                <span class="info-value">{{
+                  selectedProperty.resAreaPriceList?.[0]?.resArea || '84.5㎡'
+                }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">도로명 주소</span>
-                <span class="info-value">{{ selectedProperty.address }}</span>
+                <span class="info-value">{{
+                  selectedProperty.commAddrRoadName || selectedProperty.address
+                }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">층수</span>
@@ -717,19 +790,27 @@ onMounted(() => {
               </div>
               <div class="info-item">
                 <span class="info-label">세대수</span>
-                <span class="info-value">1200세대</span>
+                <span class="info-value">{{
+                  selectedProperty.resCompositionCnt || '1200세대'
+                }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">관리비</span>
-                <span class="info-value">월 15만원 (관리비)</span>
+                <span class="info-label">준공일자</span>
+                <span class="info-value">{{
+                  selectedProperty.resApprovalDate || '2019년 12월'
+                }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">주차</span>
-                <span class="info-value">세대당 1.2대</span>
+                <span class="info-label">난방</span>
+                <span class="info-value">{{
+                  selectedProperty.resHeatingSystem || '지역난방'
+                }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">입주 가능 날짜</span>
-                <span class="info-value">즉시 입주 가능</span>
+                <span class="info-label">시설</span>
+                <span class="info-value">{{
+                  selectedProperty.resFacility || '엘리베이터, 주차장'
+                }}</span>
               </div>
             </div>
           </div>
@@ -769,8 +850,15 @@ onMounted(() => {
               </div>
               <div class="price-info">
                 <div class="current-price">
-                  <span class="price-label">현재 매매 시세</span>
-                  <span class="price-value">{{ generatePropertyInfo(selectedProperty) }}</span>
+                  <span class="price-label"
+                    >현재 {{ selectedProperty.resType || '매매' }} 시세</span
+                  >
+                  <span class="price-value">
+                    {{
+                      selectedProperty.resAreaPriceList?.[0]?.resLowerAveragePrice ||
+                      generatePropertyInfo(selectedProperty)
+                    }}
+                  </span>
                 </div>
                 <div class="price-change">
                   <span class="change-label">전월 대비</span>
@@ -786,19 +874,27 @@ onMounted(() => {
             <div class="description-content">
               <div class="desc-item">
                 <h4 class="desc-title">한 줄 소개</h4>
-                <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
+                <p class="desc-text">
+                  {{ selectedProperty.infoOneline || '한 줄 소개가 없습니다.' }}
+                </p>
               </div>
               <div class="desc-item">
                 <h4 class="desc-title">매물 제목</h4>
-                <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
+                <p class="desc-text">
+                  {{ selectedProperty.title || '제목이 없습니다.' }}
+                </p>
               </div>
               <div class="desc-item">
                 <h4 class="desc-title">매물 설명</h4>
-                <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
+                <p class="desc-text">
+                  {{ selectedProperty.infoBuilding || '상세 설명이 없습니다.' }}
+                </p>
               </div>
               <div class="desc-item">
                 <h4 class="desc-title">매물 사진</h4>
-                <p class="desc-text">사진이 없습니다.</p>
+                <p class="desc-text">
+                  {{ selectedProperty.imageUrl ? '사진이 있습니다.' : '사진이 없습니다.' }}
+                </p>
               </div>
             </div>
           </div>
@@ -809,11 +905,13 @@ onMounted(() => {
             <div class="agent-info">
               <div class="agent-item">
                 <span class="agent-label">담당자 이름</span>
-                <span class="agent-value">김철수</span>
+                <span class="agent-value">{{ selectedProperty.contactName || '김철수' }}</span>
               </div>
               <div class="agent-item">
                 <span class="agent-label">연락처</span>
-                <span class="agent-value">010-1234-5678</span>
+                <span class="agent-value">{{
+                  selectedProperty.contactPhone || selectedProperty.resTelNo || '010-1234-5678'
+                }}</span>
               </div>
             </div>
           </div>
@@ -828,58 +926,32 @@ onMounted(() => {
               <button class="more-btn" @click="goToReviewList">→</button>
             </div>
             <div class="review-list">
-              <div class="review-item">
+              <div
+                v-if="selectedProperty.review && selectedProperty.review.length > 0"
+                v-for="review in selectedProperty.review.slice(0, 3)"
+                :key="review.reviewId"
+                class="review-item"
+              >
                 <div class="review-header-info">
-                  <span class="reviewer-name">김**</span>
+                  <span class="reviewer-name">{{ review.reviewerNickname }}</span>
                   <div class="star-rating">
-                    <span class="star filled">★</span>
-                    <span class="star filled">★</span>
-                    <span class="star filled">★</span>
-                    <span class="star filled">★</span>
-                    <span class="star">★</span>
+                    <span
+                      v-for="i in 5"
+                      :key="i"
+                      class="star"
+                      :class="{ filled: i <= parseFloat(review.rank) }"
+                      >★</span
+                    >
                   </div>
                 </div>
-                <p class="review-text">교통이 편리하고 주변 상권이 잘 발달되어 있어요.</p>
+                <p class="review-text">{{ review.content }}</p>
                 <div class="review-footer">
                   <span class="helpful-count">도움됨 12</span>
-                  <span class="review-date">2024-11-15</span>
+                  <span class="review-date">{{ review.createdAt }}</span>
                 </div>
               </div>
-
-              <div class="review-item">
-                <div class="review-header-info">
-                  <span class="reviewer-name">이**</span>
-                  <div class="star-rating">
-                    <span class="star filled">★</span>
-                    <span class="star filled">★</span>
-                    <span class="star filled">★</span>
-                    <span class="star filled">★</span>
-                    <span class="star filled">★</span>
-                  </div>
-                </div>
-                <p class="review-text">신축이라 시설이 깔끔하고 좋아요.</p>
-                <div class="review-footer">
-                  <span class="helpful-count">도움됨 8</span>
-                  <span class="review-date">2024-10-28</span>
-                </div>
-              </div>
-
-              <div class="review-item">
-                <div class="review-header-info">
-                  <span class="reviewer-name">박**</span>
-                  <div class="star-rating">
-                    <span class="star filled">★</span>
-                    <span class="star filled">★</span>
-                    <span class="star filled">★</span>
-                    <span class="star">★</span>
-                    <span class="star">★</span>
-                  </div>
-                </div>
-                <p class="review-text">위치는 좋지만 관리비가 조금 비싼 편이에요.</p>
-                <div class="review-footer">
-                  <span class="helpful-count">도움됨 5</span>
-                  <span class="review-date">2024-10-10</span>
-                </div>
+              <div v-else class="review-item">
+                <p class="review-text">아직 리뷰가 없습니다.</p>
               </div>
             </div>
           </div>
@@ -1370,6 +1442,14 @@ onMounted(() => {
 
 .action-btn:hover {
   background: #e9ecef;
+}
+
+.action-btn.bookmarked {
+  color: #e74c3c;
+}
+
+.action-btn.notified {
+  color: #f39c12;
 }
 
 .detail-section {
