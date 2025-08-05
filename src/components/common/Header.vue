@@ -306,7 +306,7 @@ const handleNavigation = (route) => {
       router.push('/map')
       break
     case 'chat':
-      router.push('/chat')
+      router.push('/chat/list')
       break
     case 'notification':
       router.push('/notification')
