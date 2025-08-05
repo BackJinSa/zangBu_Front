@@ -13,4 +13,8 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  //sockjs-client 오류 해결하느라 추가
+  define: {
+    global: 'globalThis', // Node.js의 global을 브라우저 globalThis로 매핑
+  },
 })

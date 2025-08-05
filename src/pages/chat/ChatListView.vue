@@ -1,7 +1,6 @@
 <template>
-  <div class="w-full max-w-screen-xl mx-auto px-8 md:px-12 xl:px-16">
+  <div class="w-full max-w-screen-xl mx-auto">
     <div class="flex flex-col min-h-screen bg-[var(--bg-1)] py-6 px-4 md:px-6 xl:px-8">
-      <!-- 헤더 -->
       <div class="flex items-center gap-3 text-lg mb-5">
         <button @click="router.back()" class="text-[var(--text-1)] hover:text-[var(--brand-1)]">
           <i class="fas fa-arrow-left"></i>
@@ -66,7 +65,9 @@
                     </div>
                   </div>
                   <div class="text-xs text-[var(--text-1)] mt-0.5">
-                    🏠 {{ room.buildingName }} | 💰 전세 {{ room.price }}억
+                    <i class="fa-solid fa-house fa-lg"></i>
+                    {{ room.buildingName }} | <i class="fa-solid fa-sack-dollar"></i> 전세
+                    {{ room.price }}억
                   </div>
                 </div>
                 <span class="text-xs text-[var(--text-1)]">{{ room.lastMessageTime }}</span>
@@ -415,11 +416,3 @@ const goToChatRoom = (roomId) => {
   router.push(`/chat/room/${roomId}`)
 }
 </script>
-<style scoped>
-.page-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-</style>
