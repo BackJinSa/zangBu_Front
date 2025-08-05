@@ -1,12 +1,18 @@
-<!-- NotificationCardMeta.vue -->
+<!-- /src/components/notification/NotificationCardMeta.vue -->
 <template>
-  <div class="mt-2 text-sm text-gray-500 flex items-center gap-2">
-    <span>{{ time }}</span>
-    <NotificationBadge v-if="tag" :text="tag" :type="type" />
+  <div class="text-xs text-gray-400 mt-1 flex items-center gap-2">
+    <div>{{ timestamp }}</div>
+    <div v-if="price" class="text-gray-500">| {{ price }}원</div>
+    <NotificationBadge v-if="tag" :tag="tag" />
   </div>
 </template>
 
 <script setup>
 import NotificationBadge from './NotificationBadge.vue'
-defineProps({ time: String, tag: String, type: String })
+
+const props = defineProps({
+  timestamp: String,
+  price: [String, Number],
+  tag: String,
+})
 </script>
