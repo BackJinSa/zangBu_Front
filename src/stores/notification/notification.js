@@ -12,24 +12,29 @@ import {
 } from '@/api/notification/notification'
 
 export const useNotificationStore = defineStore('notification', () => {
+  // ------------------------
   // 상태 정의
+  // ------------------------
   const notifications = ref([])
   const loading = ref(false)
   const currentPage = ref(1)
   const pageSize = ref(10)
   const activeFilter = ref('all')
 
-  // 더미 알림 로드
+  // ------------------------
+  // 알림 더미 데이터 (테스트용)
+  // ------------------------
   const loadDummyNotifications = () => {
     loading.value = true
     setTimeout(() => {
       const types = ['BUILDING', 'TRADE', 'REVIEW']
       const saleTypes = ['전세', '매매']
 
-      notifications.value = Array.from({ length: 1000 }, (_, i) => {
+      notifications.value = Array.from({ length: 10 }, (_, i) => {
         const type = types[i % 3]
         const saleType = saleTypes[i % 2]
-        const price = (Math.random() * 10 + 1).toFixed(1) // 예: 3.5억
+        const price = (Math.random() * 10 + 1).toFixed(1)
+
         return {
           id: i + 1,
           type,
@@ -47,22 +52,50 @@ export const useNotificationStore = defineStore('notification', () => {
     }, 300)
   }
 
-  // ⬇실제 API 연동 예시
+  // ------------------------
+  // FCM 알림 수신 시 store에 추가
+  // ------------------------
+  const addNotificationFromFCM = (payload) => {
+    const newNotification = {
+      id: Date.now(), // FCM은 고유 ID가 없기 때문에 임시로 사용
+      type: payload.data?.type || 'BUILDING',
+      title: payload.notification?.title || '새로운 알림',
+      message: payload.notification?.body || '새로운 알림이 도착했습니다.',
+      createdAt: new Date().toISOString().split('T')[0],
+      isRead: false,
+      saleType: payload.data?.saleType || '매매',
+      price: payload.data?.price || '0.0',
+      buildingId: payload.data?.buildingId || 1,
+    }
+
+    notifications.value.unshift(newNotification)
+  }
+
+  // ------------------------
+  // 실제 API 연동 (비동기)
+  // ------------------------
   /*
-  const getNotifications = async () => {
+  const loadNotificationsFromApi = async () => {
     loading.value = true
     try {
-      const res = await axios.get('/api/notifications')
-      notifications.value = res.data
-    } catch (err) {
-      console.error('알림 불러오기 실패:', err)
+      const res = await getNotificationsApi()
+      notifications.value = res.data // ← 실제 백엔드 포맷 맞게 수정 필요
+    } catch (e) {
+      console.error('알림 불러오기 실패:', e)
     } finally {
       loading.value = false
     }
   }
   */
 
-  // 필터 옵션
+  // ------------------------
+  // 읽지 않은 알림 개수
+  // ------------------------
+  const unreadCount = computed(() => notifications.value.filter((n) => !n.isRead).length)
+
+  // ------------------------
+  // 필터 관련
+  // ------------------------
   const filters = [
     { label: '전체', key: 'all' },
     { label: '시세 변동', key: 'BUILDING' },
@@ -70,14 +103,8 @@ export const useNotificationStore = defineStore('notification', () => {
     { label: '리뷰', key: 'REVIEW' },
   ]
 
-  // 필터 카운트 계산
   const filterCountMap = computed(() => {
-    const map = {
-      all: 0,
-      BUILDING: 0,
-      TRADE: 0,
-      REVIEW: 0,
-    }
+    const map = { all: 0, BUILDING: 0, TRADE: 0, REVIEW: 0 }
 
     notifications.value.forEach((n) => {
       if (!n.isRead) {
@@ -90,14 +117,15 @@ export const useNotificationStore = defineStore('notification', () => {
 
     return map
   })
-  // 필터링된 알림 목록
+
   const filteredNotifications = computed(() => {
     if (activeFilter.value === 'all') return notifications.value
-    if (activeFilter.value === 'unread') return notifications.value.filter((n) => !n.isRead)
     return notifications.value.filter((n) => n.type === activeFilter.value)
   })
 
-  // 페이지네이션 계산
+  // ------------------------
+  // 페이지네이션
+  // ------------------------
   const totalPages = computed(() => Math.ceil(filteredNotifications.value.length / pageSize.value))
 
   const pagedNotifications = computed(() => {
@@ -105,37 +133,39 @@ export const useNotificationStore = defineStore('notification', () => {
     return filteredNotifications.value.slice(start, start + pageSize.value)
   })
 
-  // 필터 변경
+  const setNotificationPage = (page) => {
+    currentPage.value = page
+  }
+
   const setNotificationFilter = (key) => {
     activeFilter.value = key
     currentPage.value = 1
   }
 
-  // 페이지 변경
-  const setNotificationPage = (page) => {
-    currentPage.value = page
-  }
-
-  // 단일 알림 읽음 처리
+  // ------------------------
+  // 알림 처리 기능들
+  // ------------------------
   const markNotificationAsRead = (id) => {
     const target = notifications.value.find((n) => n.id === id)
     if (target) target.isRead = true
   }
 
-  // 알림 삭제
   const deleteNotification = (id) => {
     notifications.value = notifications.value.filter((n) => n.id !== id)
   }
 
-  // 전체 읽음 처리
   const markNotificationAllAsRead = () => {
-    notifications.value = notifications.value.map((n) => ({ ...n, isRead: true }))
+    notifications.value = notifications.value.map((n) => ({
+      ...n,
+      isRead: true,
+    }))
   }
 
   return {
     loading,
     filters,
-    filterCountMap, // 필터 카운트
+    unreadCount,
+    filterCountMap,
     notifications,
     filteredNotifications,
     pagedNotifications,
@@ -143,6 +173,7 @@ export const useNotificationStore = defineStore('notification', () => {
     totalPages,
     activeFilter,
 
+    addNotificationFromFCM,
     loadDummyNotifications,
     // getNotifications,
     setNotificationFilter,
