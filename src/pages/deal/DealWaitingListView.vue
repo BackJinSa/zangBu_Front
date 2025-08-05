@@ -3,9 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getDeals } from '@/api/deal/deal.js'
 import PropertyCardWaiting from '@/components/common/PropertyCardWaiting.vue'
-import Header from '@/components/common/Header.vue'
 import Button from '@/components/common/Button.vue'
-import Footer from '@/components/common/Footer.vue'
 
 const router = useRouter()
 
@@ -262,7 +260,13 @@ onMounted(() => {
 
       <!-- Deals List -->
       <div v-else class="deals-container">
-        <div class="deals-grid">
+        <div
+          class="deals-grid"
+          :class="{
+            'deals-grid-one': filteredDeals.length === 1,
+            'deals-grid-two': filteredDeals.length === 2,
+          }"
+        >
           <PropertyCardWaiting
             v-for="deal in filteredDeals"
             :key="deal.id"
@@ -282,7 +286,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  align-items: center;
+  align-items: flex-start;
 }
 
 /* Main Content */
@@ -298,7 +302,7 @@ onMounted(() => {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
 }
 
 /* Section Title */
@@ -345,7 +349,7 @@ onMounted(() => {
 .deals-container {
   width: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   max-width: 100%;
   align-self: stretch;
 }
@@ -353,11 +357,26 @@ onMounted(() => {
 .deals-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-  gap: 2rem;
+  gap: 1.5rem;
   width: 100%;
   max-width: 75rem;
-  justify-items: center;
+  justify-items: start;
   transition: all 0.3s ease;
+}
+
+.deals-grid-one {
+  grid-template-columns: 1fr;
+  justify-items: start;
+}
+
+.deals-grid-two {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 640px) {
+  .deals-grid-two {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Card transition effects */
