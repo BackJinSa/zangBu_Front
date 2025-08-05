@@ -77,6 +77,12 @@ const router = createRouter({
       component: MapView,
     },
     {
+      path: '/map/apt/:buildingId',
+      name: 'map-detail',
+      component: MapView,
+      props: true,
+    },
+    {
       path: '/map/test',
       name: 'map-test',
       component: MapTestView,

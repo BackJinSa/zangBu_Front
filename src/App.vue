@@ -6,9 +6,9 @@ import Footer from './components/common/Footer.vue'
 
 const route = useRoute()
 
-// /map 경로에서는 footer를 숨김
+// /map 경로와 그 하위 경로에서는 footer를 숨김
 const showFooter = computed(() => {
-  return route.path !== '/map'
+  return !route.path.startsWith('/map')
 })
 </script>
 
