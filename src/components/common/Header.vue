@@ -272,7 +272,26 @@ import { useRouter } from 'vue-router'
 import Sidebar from './Sidebar.vue'
 import { useNotificationStore } from '@/stores/notification/notification'
 
+import { onMounted } from 'vue'
+import { listenForegroundMessage } from '@/utils/fcm'
+
+// 알림 스토어 인스턴스 가져오기
 const store = useNotificationStore()
+
+// 메인페이지 관련 로직
+
+onMounted(() => {
+  // 스토어에서 더미데이터 가져옴 -> ☆나중에 실제 API로 대체 예정☆
+  store.loadDummyNotifications()
+  /**
+   * fcm.js의 listenForegroundMessage() 호출
+   * -> 즉, 이 시점부터는 앱이 켜져있는 동안 FCM이
+   *    보내는 모든 알림을 수신함.
+   * 알림 수신되면 내부의 onMessage()가 호출됨
+   */
+  listenForegroundMessage()
+})
+
 const router = useRouter()
 
 // Reactive data
