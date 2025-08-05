@@ -723,14 +723,14 @@ onMounted(() => {
               :title="selectedProperty.isBookmarked ? '찜하기 취소' : '찜하기'"
               :class="{ bookmarked: selectedProperty.isBookmarked }"
             >
-              {{ selectedProperty.isBookmarked ? '❤️' : '🤍' }}
+              <i :class="selectedProperty.isBookmarked ? 'fas fa-heart' : 'far fa-heart'"></i>
             </button>
             <button
               class="action-btn"
               :title="selectedProperty.isNotification ? '알림 해제' : '알림 설정'"
               :class="{ notified: selectedProperty.isNotification }"
             >
-              {{ selectedProperty.isNotification ? '🔔' : '🔕' }}
+              <i :class="selectedProperty.isNotification ? 'fas fa-bell' : 'far fa-bell'"></i>
             </button>
           </div>
         </div>
@@ -1440,6 +1440,11 @@ onMounted(() => {
   padding: 8px;
   border-radius: 4px;
   transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
 }
 
 .action-btn:hover {
