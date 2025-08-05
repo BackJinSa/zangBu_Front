@@ -210,14 +210,16 @@ const router = createRouter({
 
     // 리뷰 관련 라우트
     {
-      path: '/review',
+      path: '/review/:buildingId',
       name: 'review',
       component: ReviewView,
+      props: true,
     },
     {
-      path: '/review/write',
+      path: '/review/write/:buildingId',
       name: 'review-write',
       component: ReviewWriteView,
+      props: true,
     },
 
     // 알림 관련 라우트
