@@ -1,8 +1,8 @@
 import './assets/main.css'
+import '@fortawesome/fontawesome-free/css/all.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import VueAwesomePaginate from 'vue-awesome-paginate'
 
 import App from './App.vue'
 import router from './router'

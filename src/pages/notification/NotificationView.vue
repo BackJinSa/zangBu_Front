@@ -1,9 +1,6 @@
 // NotificationView.vue
 <template>
   <div class="min-h-screen bg-white">
-    <!-- 헤더 -->
-    <Header />
-
     <!-- 알림 헤더 -->
     <div class="bg-white px-4 py-4 flex items-center justify-between border-b border-gray-100">
       <div class="flex items-center gap-3">
@@ -63,28 +60,55 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import Header from '@/components/common/Header.vue'
 import NotificationFilter from '@/components/notification/NotificationFilter.vue'
 import NotificationList from '@/components/notification/NotificationList.vue'
 import NotificationEmpty from '@/components/notification/NotificationEmpty.vue'
 import NotificationPagination from '@/components/notification/NotificationPagination.vue'
 import NotificationActionBar from '@/components/notification/NotificationActionBar.vue'
 import { useNotificationStore } from '@/stores/notification/notification'
+import { requestFcmToken } from '@/utils/fcm'
+import { listenForegroundMessage } from '@/utils/fcm'
 
+// 알림 스토어 인스턴스 가져오기
 const store = useNotificationStore()
 
+/**
+ * onMounted()는 페이지 로딩시 최초 실행되는 함수
+ */
 onMounted(() => {
+  /**
+   * fcm.js의 listenForegroundMessage() 호출
+   * -> 즉, 이 시점부터는 앱이 켜져있는 동안 FCM이
+   *    보내는 모든 알림을 수신함.
+   * 알림 수신되면 내부의 onMessage()가 호출됨
+   */
+  listenForegroundMessage()
+
+  // 스토어에서 더미데이터 가져옴 -> ☆나중에 실제 API로 대체 예정☆
   store.loadDummyNotifications()
+
+  // 브라우저 알림 권한 요청
+  console.log('현재 알림 권한 상태: ', Notification.permission)
+
+  // 디바이스 토큰을 발급 받고 서버에 등록하는 함수
+  // -> ☆ 추후 삭제하고 로그인 로직에 추가할예정 ☆
+  requestFcmToken()
 })
 
 const goBack = () => {
   history.back()
 }
 
+// 알림 카드에서 발생한 사용자 액션(읽음 처리 또는 삭제)을 처리하는 함수
 const handleNotificationAction = ({ type, id }) => {
+  // 읽음 처리 요청인 경우
   if (type === 'markRead') {
+    // 알림 ID에 해당하는 항목을 읽음 상태로 변경
     store.markNotificationAsRead(id)
-  } else if (type === 'delete') {
+  }
+  // 삭제 요청인 경우
+  else if (type === 'delete') {
+    // 알림 ID에 해당하는 항목을 스토어에서 제거
     store.deleteNotification(id)
   }
 }
