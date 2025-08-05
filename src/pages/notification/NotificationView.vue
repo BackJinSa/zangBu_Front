@@ -67,7 +67,6 @@ import NotificationPagination from '@/components/notification/NotificationPagina
 import NotificationActionBar from '@/components/notification/NotificationActionBar.vue'
 import { useNotificationStore } from '@/stores/notification/notification'
 import { requestFcmToken } from '@/utils/fcm'
-import { listenForegroundMessage } from '@/utils/fcm'
 
 // 알림 스토어 인스턴스 가져오기
 const store = useNotificationStore()
@@ -76,16 +75,10 @@ const store = useNotificationStore()
  * onMounted()는 페이지 로딩시 최초 실행되는 함수
  */
 onMounted(() => {
-  /**
-   * fcm.js의 listenForegroundMessage() 호출
-   * -> 즉, 이 시점부터는 앱이 켜져있는 동안 FCM이
-   *    보내는 모든 알림을 수신함.
-   * 알림 수신되면 내부의 onMessage()가 호출됨
-   */
-  listenForegroundMessage()
-
   // 스토어에서 더미데이터 가져옴 -> ☆나중에 실제 API로 대체 예정☆
-  store.loadDummyNotifications()
+  if (store.notifications.length === 0) {
+    store.loadDummyNotifications()
+  }
 
   // 브라우저 알림 권한 요청
   console.log('현재 알림 권한 상태: ', Notification.permission)
