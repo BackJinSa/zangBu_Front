@@ -1,9 +1,6 @@
 // NotificationView.vue
 <template>
   <div class="min-h-screen bg-white">
-    <!-- 헤더 -->
-    <Header />
-
     <!-- 알림 헤더 -->
     <div class="bg-white px-4 py-4 flex items-center justify-between border-b border-gray-100">
       <div class="flex items-center gap-3">
@@ -70,11 +67,15 @@ import NotificationEmpty from '@/components/notification/NotificationEmpty.vue'
 import NotificationPagination from '@/components/notification/NotificationPagination.vue'
 import NotificationActionBar from '@/components/notification/NotificationActionBar.vue'
 import { useNotificationStore } from '@/stores/notification/notification'
+import { requestFcmToken } from '@/utils/fcm'
 
 const store = useNotificationStore()
 
 onMounted(() => {
   store.loadDummyNotifications()
+  // 여기 나중에 제거
+  console.log('현재 알림 권한 상태: ', Notification.permission)
+  requestFcmToken()
 })
 
 const goBack = () => {

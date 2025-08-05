@@ -4,6 +4,13 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 // import axios from 'axios' // ⬅실제 API 연동 시 주석 해제
 
+import {
+  getNotificationsApi,
+  markNotificationAsReadApi,
+  markAllNotificationsAsReadApi,
+  deleteNotificationApi,
+} from '@/api/notification/notification'
+
 export const useNotificationStore = defineStore('notification', () => {
   // 상태 정의
   const notifications = ref([])
