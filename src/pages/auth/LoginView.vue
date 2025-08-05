@@ -1,10 +1,31 @@
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-function goToHome() {
-  router.push('/')
+// 상태 관리
+const email = ref('')
+const password = ref('')
+const errorMessage = ref('')
+
+// 더미 유저 데이터
+const dummyUsers = [
+  { email: 'test1@example.com', password: 'test1234' },
+  { email: 'hello@zangbu.com', password: 'zangbu2025' },
+  { email: 'admin@zangbu.com', password: 'admin123' },
+]
+
+// 로그인 처리
+function login() {
+  const user = dummyUsers.find((u) => u.email === email.value && u.password === password.value)
+
+  if (user) {
+    errorMessage.value = ''
+    router.push('/')
+  } else {
+    errorMessage.value = '이메일 또는 비밀번호가 올바르지 않습니다.'
+  }
 }
 </script>
 
@@ -31,24 +52,36 @@ function goToHome() {
           <!-- 이메일 입력 -->
           <div class="input-group">
             <label class="input-label">이메일</label>
-            <input type="email" placeholder="이메일을 입력하세요" class="input-field" />
+            <input
+              type="email"
+              placeholder="이메일을 입력하세요"
+              class="input-field"
+              v-model="email"
+            />
           </div>
           <!-- 비밀번호 입력 -->
           <div class="input-group">
             <label class="input-label">비밀번호</label>
             <div class="relative">
-              <input type="password" placeholder="비밀번호를 입력하세요" class="input-field" />
+              <input
+                type="password"
+                placeholder="비밀번호를 입력하세요"
+                class="input-field"
+                v-model="password"
+              />
               <span class="absolute inset-y-0 right-3 flex items-center text-gray-400">
-                <!-- 눈 아이콘 자리 -->
                 <i class="lucide-eye w-5 h-5"></i>
               </span>
             </div>
           </div>
+
+          <!-- 오류 메시지 -->
+          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
         </div>
 
         <!-- 로그인 버튼 -->
         <div class="button-container">
-          <button class="login-button" @click="goToHome">로그인</button>
+          <button class="login-button" @click="login">로그인</button>
         </div>
 
         <!-- 링크 영역 -->
@@ -74,87 +107,88 @@ function goToHome() {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--bg-2); /* 공용 컬러 사용 */
+  background-color: var(--bg-2);
   padding: 2rem;
 }
 
 .login-content {
   width: 100%;
-  max-width: 64rem; /* Tailwind의 max-w-sm */
-  padding: 2rem; /* Tailwind의 px-8 */
+  max-width: 64rem;
+  padding: 2rem;
 }
 
 .logo-container {
   display: flex;
-  justify-content: flex-start; /* 로고를 왼쪽으로 정렬 */
+  justify-content: flex-start;
   margin-left: -5%;
-  margin-bottom: 2rem; /* Tailwind의 mb-8 */
+  margin-bottom: 2rem;
 }
 
 .logo-image {
-  max-width: 35%; /* Tailwind의 w-1/2 */
+  max-width: 35%;
 }
 
 .input-container {
-  margin-bottom: 6rem; /* 이메일/비밀번호 입력란과 로그인 버튼 사이 간격 */
+  margin-bottom: 6rem;
 }
 
 .input-group {
-  margin-bottom: 1rem; /* Tailwind의 mb-4 */
+  margin-bottom: 1rem;
 }
 
 .input-label {
   display: block;
-  font-size: 0.875rem; /* Tailwind의 text-sm */
-  font-weight: 500; /* Tailwind의 font-medium */
-  color: var(--text-1); /* 공용 텍스트 컬러 사용 */
-  margin-bottom: 0.25rem; /* Tailwind의 mb-1 */
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-1);
+  margin-bottom: 0.25rem;
 }
 
 .input-field {
   width: 100%;
-  padding: 0.5rem 1rem; /* Tailwind의 px-4 py-2 */
+  padding: 0.5rem 1rem;
   border: 1px solid var(--brand-3);
-  border-radius: 0.375rem; /* Tailwind의 rounded-md */
+  border-radius: 0.375rem;
   outline: none;
-  transition: border-color 0.3s; /* 포커스 시 부드러운 전환 효과 */
+  transition: border-color 0.3s;
 }
 
 .input-field:focus {
   border-color: var(--brand-3);
   box-shadow: 0 0 0 2px rgba(104, 166, 60, 0.2);
 }
+
 .button-container {
-  margin-bottom: 1rem; /* Tailwind의 mb-4 */
+  margin-bottom: 1rem;
 }
 
 .login-button {
   width: 100%;
-  background-color: var(--brand-4); /* 공용 브랜드 컬러 사용 */
-  color: var(--text-3); /* 공용 텍스트 컬러 사용 */
+  background-color: var(--brand-4);
+  color: var(--text-3);
   padding: 0.5rem 0;
-  border: none; /* 버튼의 테두리 제거 */
-  border-radius: 0.375rem; /* Tailwind의 rounded-md */
+  border: none;
+  border-radius: 0.375rem;
   transition: background-color 0.3s;
 }
 
 .login-button:hover {
-  background-color: var(--brand-3); /* 공용 브랜드 컬러 사용 */
+  background-color: var(--brand-3);
 }
 
 .link-container {
   display: flex;
-  justify-content: center; /* 가운데 정렬 */
-  align-items: center; /* 수직 정렬 */
-  font-size: 0.875rem; /* Tailwind의 text-sm */
-  color: var(--brand-3); /* 공용 텍스트 컬러 사용 */
-  margin-bottom: 0.5rem; /* Tailwind의 mb-2 */
+  justify-content: center;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--brand-3);
+  margin-bottom: 0.5rem;
 }
 
 .link {
   text-decoration: none;
   color: var(--brand-3);
-  margin: 0 0.5rem; /* 링크 간 간격 추가 */
+  margin: 0 0.5rem;
 }
 
 .link:hover {
@@ -162,22 +196,30 @@ function goToHome() {
 }
 
 .separator {
-  color: var(--brand-3); /* 공용 텍스트 컬러 사용 */
-  margin: 0 0.5rem; /* 구분자 양쪽 간격 추가 */
+  color: var(--brand-3);
+  margin: 0 0.5rem;
 }
 
 .signup-container {
   text-align: center;
-  font-size: 0.875rem; /* Tailwind의 text-sm */
-  color: var(--brand-3); /* 공용 텍스트 컬러 사용 */
+  font-size: 0.875rem;
+  color: var(--brand-3);
 }
 
 .signup-link {
-  color: var(--brand-3); /* 공용 브랜드 컬러 사용 */
+  color: var(--brand-3);
   text-decoration: none;
 }
 
 .signup-link:hover {
   text-decoration: underline;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.875rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+  text-align: left;
 }
 </style>
