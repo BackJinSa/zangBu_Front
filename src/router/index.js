@@ -10,6 +10,8 @@ import LoginView from '@/pages/auth/LoginView.vue'
 import SignupView from '@/pages/auth/SignupView.vue'
 import FindIdView from '@/pages/auth/FindIdView.vue'
 import FindPasswordView from '@/pages/auth/FindPasswordView.vue'
+import VerifyIdentity from '@/pages/auth/VerifyIdentity.vue'
+import EnterAddress from '@/pages/auth/EnterAddress.vue'
 
 // 사용자 관련 페이지
 import MyPageView from '@/pages/user/MyPageView.vue'
@@ -95,9 +97,28 @@ const router = createRouter({
       component: LoginView,
     },
     {
+      path: '/auth/verify',
+      name: 'verify-identity',
+      component: VerifyIdentity
+    },
+    {
+      path: '/auth/enter-address',
+      name: 'enter-addtess',
+      component: EnterAddress,
+    },
+    {
       path: '/auth/signup',
       name: 'signup',
       component: SignupView,
+      //서버 연결
+      // beforeEnter: (to, from, next) => {
+      //   const verified = sessionStorage.getItem('verified') === 'true'
+      //   if (verified) {
+      //     next()
+      //   } else {
+      //     next('/auth/verify')
+      //   }
+      // }
     },
     {
       path: '/auth/find-id',
