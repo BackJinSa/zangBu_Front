@@ -1281,13 +1281,15 @@ onMounted(() => {
   width: 420px;
   background: white;
   padding: 0;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+
+  position: relative;
   z-index: 1000;
+
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .detail-header {
