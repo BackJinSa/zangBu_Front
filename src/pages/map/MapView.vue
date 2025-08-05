@@ -658,7 +658,7 @@ onMounted(() => {
 
       <!-- 매물 상세 보기 사이드바 (왼쪽에 표시) -->
       <div class="detail-sidebar-left" v-if="showDetail && selectedProperty">
-        <!-- 헤더 -->
+        <!-- 헤더 (고정) -->
         <div class="detail-header">
           <button class="back-btn" @click="closePropertyDetail">
             <span class="back-icon">←</span>
@@ -670,219 +670,222 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- 매물 정보 섹션 -->
-        <div class="detail-section">
-          <h3 class="section-title">
-            <span class="section-icon">🏠</span>
-            매물 정보
-          </h3>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="info-label">등록자 유형</span>
-              <span class="info-value">집주인</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">매매 종류</span>
-              <span class="info-value">{{ selectedProperty.saleType }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">부동산 종류</span>
-              <span class="info-value">{{ selectedProperty.propertyType }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">면적</span>
-              <span class="info-value">84.5㎡</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">도로명 주소</span>
-              <span class="info-value">{{ selectedProperty.address }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">층수</span>
-              <span class="info-value">지하 3층 ~ 지상 25층</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">상세 주소</span>
-              <span class="info-value">101동 1001호</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">난방</span>
-              <span class="info-value">지역난방</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">준공일자</span>
-              <span class="info-value">2019년 12월</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">세대수</span>
-              <span class="info-value">1200세대</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">관리비</span>
-              <span class="info-value">월 15만원 (관리비)</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">주차</span>
-              <span class="info-value">세대당 1.2대</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">입주 가능 날짜</span>
-              <span class="info-value">즉시 입주 가능</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 시세 그래프 섹션 -->
-        <div class="detail-section">
-          <h3 class="section-title">
-            <span class="section-icon">📈</span>
-            시세 그래프
-          </h3>
-          <div class="graph-controls">
-            <select class="graph-select">
-              <option>매매</option>
-            </select>
-            <select class="graph-select">
-              <option>전월세</option>
-            </select>
-            <select class="graph-select">
-              <option>32평</option>
-            </select>
-            <select class="graph-select">
-              <option>최근 3년</option>
-            </select>
-          </div>
-          <div class="graph-placeholder">
-            <div class="graph-area">
-              <div class="graph-line"></div>
-              <div class="graph-labels">
-                <span>01</span>
-                <span>03</span>
-                <span>06</span>
-                <span>09</span>
-                <span>12</span>
-                <span>15</span>
-                <span>18</span>
-              </div>
-            </div>
-            <div class="price-info">
-              <div class="current-price">
-                <span class="price-label">현재 매매 시세</span>
-                <span class="price-value">{{ generatePropertyInfo(selectedProperty) }}</span>
-              </div>
-              <div class="price-change">
-                <span class="change-label">전월 대비</span>
-                <span class="change-value positive">+0.4억</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 매물 설명 섹션 -->
-        <div class="detail-section">
-          <h3 class="section-title">매물 설명</h3>
-          <div class="description-content">
-            <div class="desc-item">
-              <h4 class="desc-title">한 줄 소개</h4>
-              <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
-            </div>
-            <div class="desc-item">
-              <h4 class="desc-title">매물 제목</h4>
-              <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
-            </div>
-            <div class="desc-item">
-              <h4 class="desc-title">매물 설명</h4>
-              <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
-            </div>
-            <div class="desc-item">
-              <h4 class="desc-title">매물 사진</h4>
-              <p class="desc-text">사진이 없습니다.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- 담당자 정보 섹션 -->
-        <div class="detail-section">
-          <h3 class="section-title agent-title">담당자 정보</h3>
-          <div class="agent-info">
-            <div class="agent-item">
-              <span class="agent-label">담당자 이름</span>
-              <span class="agent-value">김철수</span>
-            </div>
-            <div class="agent-item">
-              <span class="agent-label">연락처</span>
-              <span class="agent-value">010-1234-5678</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 거주자 리뷰 섹션 -->
-        <div class="detail-section">
-          <div class="review-header">
+        <!-- 스크롤 가능한 콘텐츠 영역 -->
+        <div class="detail-content">
+          <!-- 매물 정보 섹션 -->
+          <div class="detail-section">
             <h3 class="section-title">
-              <span class="star-icon">☆</span>
-              거주자 리뷰
+              <span class="section-icon">🏠</span>
+              매물 정보
             </h3>
-            <button class="more-btn" @click="goToReviewList">→</button>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">등록자 유형</span>
+                <span class="info-value">집주인</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">매매 종류</span>
+                <span class="info-value">{{ selectedProperty.saleType }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">부동산 종류</span>
+                <span class="info-value">{{ selectedProperty.propertyType }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">면적</span>
+                <span class="info-value">84.5㎡</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">도로명 주소</span>
+                <span class="info-value">{{ selectedProperty.address }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">층수</span>
+                <span class="info-value">지하 3층 ~ 지상 25층</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">상세 주소</span>
+                <span class="info-value">101동 1001호</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">난방</span>
+                <span class="info-value">지역난방</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">준공일자</span>
+                <span class="info-value">2019년 12월</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">세대수</span>
+                <span class="info-value">1200세대</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">관리비</span>
+                <span class="info-value">월 15만원 (관리비)</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">주차</span>
+                <span class="info-value">세대당 1.2대</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">입주 가능 날짜</span>
+                <span class="info-value">즉시 입주 가능</span>
+              </div>
+            </div>
           </div>
-          <div class="review-list">
-            <div class="review-item">
-              <div class="review-header-info">
-                <span class="reviewer-name">김**</span>
-                <div class="star-rating">
-                  <span class="star filled">★</span>
-                  <span class="star filled">★</span>
-                  <span class="star filled">★</span>
-                  <span class="star filled">★</span>
-                  <span class="star">★</span>
+
+          <!-- 시세 그래프 섹션 -->
+          <div class="detail-section">
+            <h3 class="section-title">
+              <span class="section-icon">📈</span>
+              시세 그래프
+            </h3>
+            <div class="graph-controls">
+              <select class="graph-select">
+                <option>매매</option>
+              </select>
+              <select class="graph-select">
+                <option>전월세</option>
+              </select>
+              <select class="graph-select">
+                <option>32평</option>
+              </select>
+              <select class="graph-select">
+                <option>최근 3년</option>
+              </select>
+            </div>
+            <div class="graph-placeholder">
+              <div class="graph-area">
+                <div class="graph-line"></div>
+                <div class="graph-labels">
+                  <span>01</span>
+                  <span>03</span>
+                  <span>06</span>
+                  <span>09</span>
+                  <span>12</span>
+                  <span>15</span>
+                  <span>18</span>
                 </div>
               </div>
-              <p class="review-text">교통이 편리하고 주변 상권이 잘 발달되어 있어요.</p>
-              <div class="review-footer">
-                <span class="helpful-count">도움됨 12</span>
-                <span class="review-date">2024-11-15</span>
+              <div class="price-info">
+                <div class="current-price">
+                  <span class="price-label">현재 매매 시세</span>
+                  <span class="price-value">{{ generatePropertyInfo(selectedProperty) }}</span>
+                </div>
+                <div class="price-change">
+                  <span class="change-label">전월 대비</span>
+                  <span class="change-value positive">+0.4억</span>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div class="review-item">
-              <div class="review-header-info">
-                <span class="reviewer-name">이**</span>
-                <div class="star-rating">
-                  <span class="star filled">★</span>
-                  <span class="star filled">★</span>
-                  <span class="star filled">★</span>
-                  <span class="star filled">★</span>
-                  <span class="star filled">★</span>
-                </div>
+          <!-- 매물 설명 섹션 -->
+          <div class="detail-section">
+            <h3 class="section-title">매물 설명</h3>
+            <div class="description-content">
+              <div class="desc-item">
+                <h4 class="desc-title">한 줄 소개</h4>
+                <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
               </div>
-              <p class="review-text">신축이라 시설이 깔끔하고 좋아요.</p>
-              <div class="review-footer">
-                <span class="helpful-count">도움됨 8</span>
-                <span class="review-date">2024-10-28</span>
+              <div class="desc-item">
+                <h4 class="desc-title">매물 제목</h4>
+                <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
+              </div>
+              <div class="desc-item">
+                <h4 class="desc-title">매물 설명</h4>
+                <p class="desc-text">강남 중심부에 위치한 넓고 쾌적한 아파트</p>
+              </div>
+              <div class="desc-item">
+                <h4 class="desc-title">매물 사진</h4>
+                <p class="desc-text">사진이 없습니다.</p>
               </div>
             </div>
+          </div>
 
-            <div class="review-item">
-              <div class="review-header-info">
-                <span class="reviewer-name">박**</span>
-                <div class="star-rating">
-                  <span class="star filled">★</span>
-                  <span class="star filled">★</span>
-                  <span class="star filled">★</span>
-                  <span class="star">★</span>
-                  <span class="star">★</span>
+          <!-- 담당자 정보 섹션 -->
+          <div class="detail-section">
+            <h3 class="section-title agent-title">담당자 정보</h3>
+            <div class="agent-info">
+              <div class="agent-item">
+                <span class="agent-label">담당자 이름</span>
+                <span class="agent-value">김철수</span>
+              </div>
+              <div class="agent-item">
+                <span class="agent-label">연락처</span>
+                <span class="agent-value">010-1234-5678</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 거주자 리뷰 섹션 -->
+          <div class="detail-section">
+            <div class="review-header">
+              <h3 class="section-title">
+                <span class="star-icon">☆</span>
+                거주자 리뷰
+              </h3>
+              <button class="more-btn" @click="goToReviewList">→</button>
+            </div>
+            <div class="review-list">
+              <div class="review-item">
+                <div class="review-header-info">
+                  <span class="reviewer-name">김**</span>
+                  <div class="star-rating">
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                    <span class="star">★</span>
+                  </div>
+                </div>
+                <p class="review-text">교통이 편리하고 주변 상권이 잘 발달되어 있어요.</p>
+                <div class="review-footer">
+                  <span class="helpful-count">도움됨 12</span>
+                  <span class="review-date">2024-11-15</span>
                 </div>
               </div>
-              <p class="review-text">위치는 좋지만 관리비가 조금 비싼 편이에요.</p>
-              <div class="review-footer">
-                <span class="helpful-count">도움됨 5</span>
-                <span class="review-date">2024-10-10</span>
+
+              <div class="review-item">
+                <div class="review-header-info">
+                  <span class="reviewer-name">이**</span>
+                  <div class="star-rating">
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                  </div>
+                </div>
+                <p class="review-text">신축이라 시설이 깔끔하고 좋아요.</p>
+                <div class="review-footer">
+                  <span class="helpful-count">도움됨 8</span>
+                  <span class="review-date">2024-10-28</span>
+                </div>
+              </div>
+
+              <div class="review-item">
+                <div class="review-header-info">
+                  <span class="reviewer-name">박**</span>
+                  <div class="star-rating">
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                  </div>
+                </div>
+                <p class="review-text">위치는 좋지만 관리비가 조금 비싼 편이에요.</p>
+                <div class="review-footer">
+                  <span class="helpful-count">도움됨 5</span>
+                  <span class="review-date">2024-10-10</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 액션 버튼 섹션 -->
+        <!-- 액션 버튼 섹션 (고정) -->
         <div class="action-buttons-section">
           <div class="action-buttons">
             <div class="download-buttons-row">
@@ -934,7 +937,7 @@ onMounted(() => {
 <style scoped>
 .map-container {
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - 97px); /* 헤더 높이만큼 뺀 높이 */
   display: flex;
   flex-direction: column;
   background: #f5f5f5;
@@ -989,6 +992,7 @@ onMounted(() => {
   padding: 20px;
   overflow-y: auto;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  height: calc(100vh - 97px); /* 헤더 높이만큼 뺀 높이 */
 }
 
 .filter-section {
@@ -1281,13 +1285,40 @@ onMounted(() => {
   width: 420px;
   background: white;
   padding: 0;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+
+  position: relative;
   z-index: 1000;
+
+  height: calc(100vh - 97px); /* 헤더 높이만큼 뺀 높이 */
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+/* detail-content 스크롤바 스타일링 */
+.detail-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.detail-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.detail-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.detail-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .detail-header {
@@ -1296,6 +1327,7 @@ onMounted(() => {
   padding: 20px;
   border-bottom: 1px solid #e0e0e0;
   background: #f8f9fa;
+  flex-shrink: 0;
 }
 
 .back-btn {
@@ -1638,6 +1670,7 @@ onMounted(() => {
   padding: 20px;
   background: #f8f9fa;
   border-top: 1px solid #e0e0e0;
+  flex-shrink: 0;
 }
 
 .action-buttons {
@@ -1717,6 +1750,7 @@ onMounted(() => {
 
   .detail-sidebar-left {
     width: 100%;
+    height: calc(100vh - 97px); /* 헤더 높이만큼 뺀 높이 */
     position: relative;
     z-index: 1000;
   }
@@ -1732,7 +1766,7 @@ onMounted(() => {
   }
 
   .map-area {
-    height: 400px;
+    height: calc(100vh - 400px); /* 헤더 + 사이드바 높이만큼 뺀 높이 */
   }
 }
 
