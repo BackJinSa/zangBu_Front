@@ -1,7 +1,31 @@
 <script setup>
 import { ref } from 'vue'
 
+// 상태
 const showResult = ref(false)
+const name = ref('')
+const phone = ref('')
+const foundId = ref('')
+
+// 더미 유저 데이터
+const dummyUsers = [
+  { name: '홍길동', phone: '010-1234-5678', id: 'gildong123' },
+  { name: '김영희', phone: '010-1111-2222', id: 'younghee88' },
+  { name: '이철수', phone: '010-3333-4444', id: 'chulsoo99' },
+]
+
+//아이디 찾기 로직
+function findId() {
+  const user = dummyUsers.find((u) => u.name === name.value && u.phone === phone.value)
+
+  if (user) {
+    foundId.value = user.id
+  } else {
+    foundId.value = '' // 아이디가 없으면 빈 문자열
+  }
+
+  showResult.value = true
+}
 </script>
 
 <template>
@@ -15,17 +39,17 @@ const showResult = ref(false)
         <!-- 이름 입력 -->
         <div class="form-group">
           <label class="label">이름</label>
-          <input type="text" class="input" placeholder="이름을 입력하세요" />
+          <input type="text" class="input" v-model="name" placeholder="이름을 입력하세요" />
         </div>
 
         <!-- 휴대폰 번호 입력 -->
         <div class="form-group">
           <label class="label">휴대폰 번호</label>
-          <input type="tel" class="input" placeholder="예: 010-1234-5678" />
+          <input type="tel" class="input" v-model="phone" placeholder="예: 010-1234-5678" />
         </div>
 
         <!-- 아이디 찾기 버튼 -->
-        <button class="btn-primary" @click="showResult = true">아이디 찾기</button>
+        <button class="btn-primary" @click="findId">아이디 찾기</button>
         <!-- 찾기 버튼 누르고 + 인증 되면 보이게 -->
 
         <!-- 하단 링크 -->
@@ -36,20 +60,42 @@ const showResult = ref(false)
 
       <!-- 아이디 찾기 결과 -->
       <div v-else class="result-box">
-        <h2 class="title">아이디를 찾았습니다!</h2>
-        <p class="desc">회원님의 아이디는 아래와 같습니다.</p>
+        <h2 class="title">
+          {{ foundId ? '아이디를 찾았습니다!' : '아이디를 찾지 못했습니다.' }}
+        </h2>
 
-        <div class="found-id">id_example</div>
+        <p class="desc">
+          {{
+            foundId
+              ? '회원님의 아이디는 아래와 같습니다.'
+              : '입력하신 정보와 일치하는 아이디가 존재하지 않습니다.'
+          }}
+        </p>
 
-        <router-link to="/auth/login" class="btn-primary inline-block text-center no-underline">
-          로그인하기
-        </router-link>
-        <router-link
-          to="/auth/find-password"
-          class="btn-outline inline-block text-center no-underline"
-        >
-          비밀번호 찾기
-        </router-link>
+        <!-- 아이디가 있을 경우 -->
+        <template v-if="foundId">
+          <div class="found-id">{{ foundId }}</div>
+
+          <router-link
+            to="/auth/login"
+            class="btn-primary inline-block text-center no-underline mt-2"
+          >
+            로그인하기
+          </router-link>
+          <router-link
+            to="/auth/find-password"
+            class="btn-outline inline-block text-center no-underline"
+          >
+            비밀번호 찾기
+          </router-link>
+        </template>
+
+        <!-- 아이디가 없을 경우 -->
+        <template v-else>
+          <router-link to="/auth/signup" class="btn-primary inline-block text-center no-underline">
+            회원가입하기
+          </router-link>
+        </template>
       </div>
     </div>
   </div>
