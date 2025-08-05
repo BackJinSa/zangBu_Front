@@ -1,4 +1,4 @@
-<!-- /src/components/notification/NotificationCardHeader.vue -->
+// NotificationCardHeader.vue
 <template>
   <div class="text-sm">
     <div class="font-semibold flex items-center gap-2">
