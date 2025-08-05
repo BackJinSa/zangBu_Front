@@ -44,3 +44,13 @@ export const getDealHistory = (params) => {
 export const rateDeal = (dealId, rating) => {
   return api.post(`/deals/${dealId}/rating`, rating)
 }
+
+// 거래전 안내 정보 조회
+export const getDealNotice = (buildingId) => {
+  return api.get(`/deal/notice/${buildingId}`)
+}
+
+// 소비자 문서 다운로드 URL 조회
+export const getConsumerDocumentUrl = (dealId, type) => {
+  return api.get(`/deal/consumer/documents/${dealId}/${type}/download`)
+}
