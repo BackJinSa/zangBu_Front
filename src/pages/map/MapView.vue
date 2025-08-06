@@ -88,7 +88,7 @@ const displayMarkers = (mapData) => {
       content: `
         <div style="padding: 10px; min-width: 200px; position: relative;">
           <button
-            id="closeBtn_${property.building_name.replace(/\s+/g, '_')}"
+            id="closeBtn_${property.buildingName.replace(/\s+/g, '_')}"
             style="
               position: absolute;
               top: 5px;
@@ -108,7 +108,7 @@ const displayMarkers = (mapData) => {
             ×
           </button>
           <h4 style="margin: 0 0 5px 0; font-size: 14px; font-weight: bold; padding-right: 20px;">
-            ${property.building_name}
+            ${property.buildingName}
           </h4>
           <p style="margin: 0; font-size: 12px; color: #666;">
             ${property.address}
@@ -120,7 +120,7 @@ const displayMarkers = (mapData) => {
             ${generatePropertyInfo(property)}
           </p>
           <button
-            id="detailBtn_${property.building_name.replace(/\s+/g, '_')}"
+            id="detailBtn_${property.buildingName.replace(/\s+/g, '_')}"
             style="
               width: 100%;
               margin-top: 8px;
@@ -155,7 +155,7 @@ const displayMarkers = (mapData) => {
       // 닫기 버튼 이벤트 리스너 추가
       setTimeout(() => {
         const closeBtn = document.getElementById(
-          `closeBtn_${property.building_name.replace(/\s+/g, '_')}`
+          `closeBtn_${property.buildingName.replace(/\s+/g, '_')}`
         )
         if (closeBtn) {
           // 이벤트 리스너 제거 후 다시 추가
@@ -181,7 +181,7 @@ const displayMarkers = (mapData) => {
 
           // 상세 보기 버튼 이벤트 리스너 추가
           const detailBtn = document.getElementById(
-            `detailBtn_${property.building_name.replace(/\s+/g, '_')}`
+            `detailBtn_${property.buildingName.replace(/\s+/g, '_')}`
           )
           if (detailBtn) {
             const newDetailBtn = detailBtn.cloneNode(true)
@@ -231,7 +231,7 @@ const sampleProperties = [
   // 매매 매물들
   {
     address: '서울특별시 강남구 테헤란로 123',
-    building_name: '래미안파크 스위트',
+    buildingName: '래미안파크 스위트',
     buildingId: 1,
     saleType: '매매',
     propertyType: '아파트',
@@ -240,7 +240,7 @@ const sampleProperties = [
   },
   {
     address: '서울특별시 마포구 양화로 45',
-    building_name: '홍익타워',
+    buildingName: '홍익타워',
     buildingId: 2,
     saleType: '매매',
     propertyType: '오피스텔',
@@ -249,7 +249,7 @@ const sampleProperties = [
   },
   {
     address: '서울특별시 종로구 종로 1',
-    building_name: '종로타워',
+    buildingName: '종로타워',
     buildingId: 3,
     saleType: '매매',
     propertyType: '아파트',
@@ -260,7 +260,7 @@ const sampleProperties = [
   // 전세 매물들
   {
     address: '서울특별시 영등포구 여의대로 108',
-    building_name: '파크원타워',
+    buildingName: '파크원타워',
     buildingId: 4,
     saleType: '전세',
     propertyType: '아파트',
@@ -269,7 +269,7 @@ const sampleProperties = [
   },
   {
     address: '서울특별시 광진구 구의동',
-    building_name: '구의건내2 아파트',
+    buildingName: '구의건내2 아파트',
     buildingId: 5,
     saleType: '전세',
     propertyType: '아파트',
@@ -278,7 +278,7 @@ const sampleProperties = [
   },
   {
     address: '서울특별시 강남구 역삼동',
-    building_name: '역삼동 아파트',
+    buildingName: '역삼동 아파트',
     buildingId: 6,
     saleType: '전세',
     propertyType: '아파트',
@@ -289,7 +289,7 @@ const sampleProperties = [
   // 월세 매물들
   {
     address: '서울특별시 서초구 서초동',
-    building_name: '서초동 빌라',
+    buildingName: '서초동 빌라',
     buildingId: 7,
     saleType: '월세',
     propertyType: '빌라',
@@ -298,7 +298,7 @@ const sampleProperties = [
   },
   {
     address: '서울특별시 마포구 합정동',
-    building_name: '합정동 오피스텔',
+    buildingName: '합정동 오피스텔',
     buildingId: 8,
     saleType: '월세',
     propertyType: '오피스텔',
@@ -307,7 +307,7 @@ const sampleProperties = [
   },
   {
     address: '서울특별시 강남구 청담동',
-    building_name: '청담동 주택',
+    buildingName: '청담동 주택',
     buildingId: 9,
     saleType: '월세',
     propertyType: '주택',
@@ -318,7 +318,7 @@ const sampleProperties = [
   // 추가 매물들 (다양한 조합)
   {
     address: '서울특별시 송파구 잠실동',
-    building_name: '잠실 아파트',
+    buildingName: '잠실 아파트',
     buildingId: 10,
     saleType: '매매',
     propertyType: '아파트',
@@ -327,7 +327,7 @@ const sampleProperties = [
   },
   {
     address: '서울특별시 성동구 성수동',
-    building_name: '성수동 오피스텔',
+    buildingName: '성수동 오피스텔',
     buildingId: 11,
     saleType: '전세',
     propertyType: '오피스텔',
@@ -336,7 +336,7 @@ const sampleProperties = [
   },
   {
     address: '서울특별시 용산구 이태원동',
-    building_name: '이태원 빌라',
+    buildingName: '이태원 빌라',
     buildingId: 12,
     saleType: '월세',
     propertyType: '빌라',
@@ -347,7 +347,7 @@ const sampleProperties = [
 
 // 매물명을 buildingId로 매핑하는 함수
 const getBuildingIdByName = (buildingName) => {
-  const property = sampleProperties.find((p) => p.building_name === buildingName)
+  const property = sampleProperties.find((p) => p.buildingName === buildingName)
   const buildingId = property ? property.buildingId : null
 
   // 디버깅용 로그
@@ -510,11 +510,11 @@ const showPropertyDetail = (property) => {
     selectedProperty.value = property
     showDetail.value = true
     // URL 업데이트 - buildingId 사용
-    const buildingId = property.buildingId || getBuildingIdByName(property.building_name)
+    const buildingId = property.buildingId || getBuildingIdByName(property.buildingName)
     if (buildingId) {
       router.push(`/map/apt/${buildingId}`)
     } else {
-      console.warn('매물에 대한 buildingId를 찾을 수 없습니다:', property.building_name)
+      console.warn('매물에 대한 buildingId를 찾을 수 없습니다:', property.buildingName)
     }
   } catch (error) {
     console.error('매물 상세 보기 표시 실패:', error)
@@ -541,13 +541,13 @@ const goToChat = () => {
 // 리뷰 목록 페이지로 이동
 const goToReviewList = () => {
   if (selectedProperty.value) {
-    const buildingId = getBuildingIdByName(selectedProperty.value.building_name)
+    const buildingId = getBuildingIdByName(selectedProperty.value.buildingName)
     if (buildingId) {
       router.push(`/review/${buildingId}`)
     } else {
       console.warn(
         '매물에 대한 buildingId를 찾을 수 없습니다:',
-        selectedProperty.value.building_name
+        selectedProperty.value.buildingName
       )
     }
   }
@@ -754,7 +754,7 @@ onMounted(() => {
             <span class="back-icon">←</span>
           </button>
           <h2 class="detail-title">
-            {{ selectedProperty.resComplexName || selectedProperty.building_name }}
+            {{ selectedProperty.resComplexName || selectedProperty.buildingName }}
           </h2>
           <div class="header-actions">
             <button
