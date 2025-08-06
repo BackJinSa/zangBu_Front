@@ -6,8 +6,8 @@ import { useAuthStore } from '@/stores/auth/auth'
 let stompClient = null
 //현재 연결 상태
 let isConnected = false
-//현재 구독을 저장하는 변수(구독 해제 시 필요)
-let currentSubscription = null
+//현재 구독을 저장하는 변수
+let subscriptions = new Map()
 
 // STOMP 연결
 export function useStomp() {
@@ -36,21 +36,35 @@ export function useStomp() {
       },
     })
 
+    //실제 연결 시도
     stompClient.activate()
   }
 
-  //topic 구독
-  const subscribe = (destination, callback) => {
+  // 특정 방 구독
+  const subscribeRoom = (roomId, callback) => {
     if (!isConnected || !stompClient) return
-
-    if (currentSubscription) {
-      currentSubscription.unsubscribe()
-      currentSubscription = null
+    if (subscriptions.has(roomId)) {
+      // 이미 구독 중이면 해제 후 다시 구독
+      subscriptions.get(roomId).unsubscribe()
     }
-
-    currentSubscription = stompClient.subscribe(destination, (message) => {
-      callback(JSON.parse(message.body))
+    const sub = stompClient.subscribe(`/topic/chat/${roomId}`, (message) => {
+      callback(JSON.parse(message.body), roomId)
     })
+    subscriptions.set(roomId, sub)
+  }
+
+  // 특정 방 구독 해제
+  const unsubscribeRoom = (roomId) => {
+    if (subscriptions.has(roomId)) {
+      subscriptions.get(roomId).unsubscribe()
+      subscriptions.delete(roomId)
+    }
+  }
+
+  // 전체 구독 해제
+  const unsubscribeAll = () => {
+    subscriptions.forEach((sub) => sub.unsubscribe())
+    subscriptions.clear()
   }
 
   //STOMP 메시지 전송
@@ -64,6 +78,7 @@ export function useStomp() {
 
   //연결 종료
   const disconnect = () => {
+    unsubscribeAll()
     if (stompClient) {
       stompClient.deactivate()
       stompClient = null
@@ -73,7 +88,9 @@ export function useStomp() {
 
   return {
     connect,
-    subscribe,
+    subscribeRoom,
+    unsubscribeRoom,
+    unsubscribeAll,
     sendStompMessage,
     disconnect,
   }
