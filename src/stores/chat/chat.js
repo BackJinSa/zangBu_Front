@@ -63,6 +63,9 @@ export const useChatStore = defineStore('chat', () => {
   async function leaveChatRoom(roomId) {
     try {
       await axios.patch(`/chat/room/list/exit/${roomId}`)
+
+      unsubscribeRoom(roomId) // STOMP 구독 해제
+
       chatRooms.value = chatRooms.value.filter((r) => r.chatRoomId !== roomId)
     } catch (err) {
       console.error('채팅방 나가기 실패:', err)
