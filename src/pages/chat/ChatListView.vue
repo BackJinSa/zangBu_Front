@@ -1,7 +1,6 @@
 <template>
-  <div class="w-full max-w-screen-xl mx-auto px-8 md:px-12 xl:px-16">
+  <div class="w-full max-w-screen-xl mx-auto">
     <div class="flex flex-col min-h-screen bg-[var(--bg-1)] py-6 px-4 md:px-6 xl:px-8">
-      <!-- 헤더 -->
       <div class="flex items-center gap-3 text-lg mb-5">
         <button @click="router.back()" class="text-[var(--text-1)] hover:text-[var(--brand-1)]">
           <i class="fas fa-arrow-left"></i>
@@ -66,7 +65,9 @@
                     </div>
                   </div>
                   <div class="text-xs text-[var(--text-1)] mt-0.5">
-                    🏠 {{ room.buildingName }} | 💰 전세 {{ room.price }}억
+                    <i class="fa-solid fa-house fa-lg"></i>
+                    {{ room.buildingName }} | <i class="fa-solid fa-sack-dollar"></i> 전세
+                    {{ room.price }}억
                   </div>
                 </div>
                 <span class="text-xs text-[var(--text-1)]">{{ room.lastMessageTime }}</span>
@@ -83,27 +84,67 @@
           </div>
         </div>
 
-        <VueAwesomePaginate
-          :total-pages="totalPages"
-          :max-pages-shown="5"
-          :current-page="currentPage"
-          @page-click="changePage"
-          class="flex justify-center mt-6 gap-2"
-        />
+        <!-- 페이지네이션 -->
+        <div class="flex justify-center mt-6 gap-2">
+          <!-- 이전 버튼 -->
+          <button
+            @click="changePage(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="px-3 py-1 rounded border text-sm"
+            :class="
+              currentPage === 1
+                ? 'text-gray-400 border-gray-300 cursor-not-allowed'
+                : 'hover:bg-gray-100 border-gray-400'
+            "
+          >
+            <i class="fa-solid fa-angle-left"></i>
+          </button>
+
+          <!-- 페이지 번호 -->
+          <button
+            v-for="page in totalPages"
+            :key="page"
+            @click="changePage(page)"
+            class="px-3 py-1 rounded border text-sm"
+            :class="
+              page === currentPage
+                ? 'bg-[var(--brand-3)] text-white border-[var(--brand-3)]'
+                : 'border-gray-400 hover:bg-gray-100'
+            "
+          >
+            {{ page }}
+          </button>
+
+          <!-- 다음 버튼 -->
+          <button
+            @click="changePage(currentPage + 1)"
+            :disabled="currentPage === totalPages"
+            class="px-3 py-1 rounded border text-sm"
+            :class="
+              currentPage === totalPages
+                ? 'text-gray-400 border-gray-300 cursor-not-allowed'
+                : 'hover:bg-gray-100 border-gray-400'
+            "
+          >
+            <i class="fa-solid fa-angle-right"></i>
+          </button>
+        </div>
       </main>
     </div>
-    <Footer class="mt-12" />
   </div>
 </template>
 
 <script setup>
-import Footer from '@/components/common/Footer.vue'
-import 'vue-awesome-paginate/dist/style.css'
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue'
 import axios from 'axios'
+import { useChatStore } from '@/stores/chat/chat'
+import { useStomp } from '@/utils/useStomp'
 import { useRouter } from 'vue-router'
-import VueAwesomePaginate from 'vue-awesome-paginate'
+import { useAuthStore } from '@/stores/auth/auth'
 
+const chatStore = useChatStore()
+const { connect, subscribeRoom, unsubscribeAll, disconnect } = useStomp()
+const authStore = useAuthStore()
 const router = useRouter()
 const filterType = ref('ALL')
 
@@ -367,7 +408,7 @@ const updateTabs = () => {
   ]
 }
 
-//  탭 상태
+//  탭 상태, 카운트 업데이트
 const tabs = ref([
   { label: '전체', type: 'ALL', count: 0, unread: 0 },
   { label: '구매', type: 'BUY', count: 0, unread: 0 },
@@ -379,10 +420,6 @@ const currentPage = ref(1)
 const pageSize = 5
 const totalCount = ref(chatRooms.value.length)
 const totalPages = computed(() => Math.ceil(totalCount.value / pageSize))
-
-onMounted(() => {
-  console.log('총 페이지 수:', totalPages.value)
-})
 
 // 페이지네이션용 필터링된 채팅방 목록 계산
 const paginatedRooms = computed(() => {
@@ -406,20 +443,37 @@ const selectTab = (type) => {
   currentPage.value = 1
 }
 
+onMounted(() => {
+  // 페이지 로드 시 탭 카운트 갱신
+  updateTabs()
+
+  // STOMP 연결 후 모든 채팅방 구독
+  connect(() => {
+    chatRooms.value.forEach((room) => {
+      subscribeRoom(room.chatRoomId, (message, roomId) => {
+        // 해당 채팅방 정보 찾아서 업데이트
+        const targetRoom = chatRooms.value.find((r) => r.chatRoomId === roomId)
+        if (targetRoom) {
+          targetRoom.lastMessage = message.message
+          targetRoom.lastMessageTime = message.createdAt
+          // 내가 보낸 메시지가 아니면 unreadCount 증가
+          if (authStore.userId && message.senderId !== authStore.userId) {
+            targetRoom.unreadCount = (targetRoom.unreadCount || 0) + 1
+          }
+        }
+      })
+    })
+  })
+})
+
+onBeforeUnmount(() => {
+  disconnect()
+})
+
 // watch & 초기 실행
 watch(chatRooms, updateTabs, { immediate: true })
-
-// onMounted(fetchChatRooms) //백엔드 연결 후 주석 해제
 
 const goToChatRoom = (roomId) => {
   router.push(`/chat/room/${roomId}`)
 }
 </script>
-<style scoped>
-.page-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-</style>

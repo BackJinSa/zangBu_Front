@@ -1,3 +1,4 @@
+// NotificationCard.vue
 <template>
   <div
     class="flex items-start gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
@@ -55,7 +56,8 @@ const handleClick = () => {
   if (type === 'REVIEW') {
     router.push({ path: '/review', query: { buildingId } })
   } else {
-    router.push({ name: 'property-detail', params: { id: buildingId } })
+    // 수정 예정
+    // router.push({ name: 'register', params: { id: buildingId } })
   }
 }
 </script>

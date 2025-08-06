@@ -1,4 +1,4 @@
-<!-- /src/components/notification/NotificationCardMeta.vue -->
+//NotificationCardMeta.vue
 <template>
   <div class="text-xs text-gray-400 mt-1 flex items-center gap-2">
     <div>{{ timestamp }}</div>
