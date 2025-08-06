@@ -101,50 +101,46 @@
         </button>
       </footer>
     </div>
-    <Footer class="mt-12" />
   </div>
 </template>
 
 <script setup>
-import Footer from '@/components/common/Footer.vue'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useChatStore } from '@/stores/chat/chat'
 import { useStomp } from '@/utils/useStomp'
+import { useAuthStore } from '@/stores/auth/auth'
 
 const route = useRoute()
 const router = useRouter()
 const chatStore = useChatStore()
+const authStore = useAuthStore()
 const { markAsRead } = useChatStore()
-const { connect, subscribe, disconnect, sendStompMessage } = useStomp()
+const { connect, subscribeRoom, unsubscribeRoom, disconnect } = useStomp()
 const roomId = route.params.roomId // URL 파라미터로부터 채팅방 ID 가져오기
+const myUserId = authStore.userId
 
 onMounted(() => {
   // STOMP 연결
   connect(() => {
-    // 연결 성공 후 해당 채팅방 구독
-    subscribe(`/topic/chat/${roomId}`, (message) => {
-      // 서버에서 메시지를 받으면 store.messages에 추가
+    // 해당 채팅방 구독
+    subscribeRoom(roomId, (message, subscribedRoomId) => {
       chatStore.messages.push(message)
 
-      // 내가 보낸 게 아니면 읽음 처리
+      // 내가 보낸 메시지가 아니면 읽음 처리
       if (message.senderId !== myUserId) {
-        chatStore.markAsRead(roomId)
+        chatStore.markAsRead(subscribedRoomId)
       }
     })
+
     // 채팅방 입장 시 기존 안 읽은 메시지 읽음 처리
     chatStore.markAsRead(roomId)
   })
 
-  // 채팅방 기존 메시지 로드
-  chatStore.getChatMessages(roomId)
-})
-
-onMounted(() => {
-  // 채팅방 구독 시작
-  subscribeChatRoom(roomId)
-  //채팅방 입장 시 메시지들 읽음 처리
-  markAsRead(roomId)
+  // 기존 메시지 로드
+  chatStore.getChatMessages(roomId).then(() => {
+    messages.value = chatStore.messages
+  })
 })
 
 onUnmounted(() => {
@@ -160,6 +156,7 @@ const otherNickname = '구매자김씨' //대화 상대방 닉네임
 const buildingName = '강남 신축 빌라'
 const sellerType = '집주인' // or '세입자'
 
+// const messages = ref([])   //백엔드 연동 시 사용
 //임의 데이터
 const messages = ref([
   { text: '안녕하세요 매물에 관심 가져주셔서 감사합니다.', time: '오후 1:00', isMine: false },
