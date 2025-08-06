@@ -15,9 +15,9 @@
       </div>
 
       <!-- Main Content Section -->
-      <div class="flex-1 flex justify-between items-center ml-4 md:ml-6 lg:ml-8">
+      <div class="flex-1 flex justify-between items-center ml-4">
         <!-- Search Bar -->
-        <div class="flex-1 max-w-2xl mx-4 md:mx-6 lg:mx-8">
+        <div class="flex-1 max-w-2xl mx-4 md:mx-6">
           <div class="relative">
             <div class="flex items-center bg-zinc-100 rounded-lg px-3 py-2">
               <i class="fas fa-search text-neutral-600 text-base mr-2"></i>
@@ -141,9 +141,9 @@
     </div>
 
     <!-- Mobile Header -->
-    <div class="lg:hidden w-full bg-white px-4 py-3">
+    <div class="lg:hidden w-full bg-white px-4 py-4">
       <!-- Top Row: Logo, Search, User Profile, and Hamburger -->
-      <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center justify-between">
         <!-- Logo -->
         <div class="flex-shrink-0">
           <img
@@ -179,8 +179,8 @@
         </div>
 
         <!-- User Profile and Logout -->
-        <div class="flex items-center gap-1 sm:gap-2 mr-1 sm:mr-2">
-          <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 sm:gap-2 mr-1 sm:mr-2 h-10">
+          <div class="flex items-center gap-1 h-full">
             <div
               class="w-6 h-6 sm:w-7 sm:h-7 bg-brand-3 rounded-full flex items-center justify-center flex-shrink-0"
             >
@@ -205,11 +205,11 @@
           <!-- Notification Bell Icon -->
           <button
             @click="handleNavigation('notification')"
-            class="relative text-green-900 hover:text-brand-1 transition-colors"
+            class="relative text-green-900 hover:text-brand-1 transition-colors h-full flex items-center justify-center"
           >
             <!-- 종 아이콘 -->
             <svg
-              class="w-6 h-6 md:w-7 md:h-7"
+              class="w-5 h-5 sm:w-6 sm:h-6"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
@@ -232,7 +232,7 @@
           </button>
           <button
             @click="handleLogout"
-            class="text-brand-1 text-xs font-semibold font-inter border border-brand-2 rounded px-2 py-1 sm:px-3 sm:py-1.5 hover:bg-brand-2 hover:text-white transition-colors whitespace-nowrap flex-shrink-0"
+            class="hidden sm:inline-block text-brand-1 text-xs font-semibold font-inter border border-brand-2 rounded px-2 py-1 sm:px-3 sm:py-1.5 hover:bg-brand-2 hover:text-white transition-colors whitespace-nowrap flex-shrink-0 h-full flex items-center"
           >
             로그아웃
           </button>
@@ -241,7 +241,7 @@
         <!-- Hamburger Menu Button -->
         <button
           @click="toggleSidebar"
-          class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-green-900 hover:text-brand-1 transition-colors"
+          class="flex-shrink-0 w-10 h-10 flex items-center justify-center text-green-900 hover:text-brand-1 transition-colors"
         >
           <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -314,7 +314,7 @@ const handleLogout = () => {
 }
 
 const handleLogoClick = () => {
-  router.push('/main')
+  router.push('/')
 }
 
 const handleNavigation = (route) => {
@@ -334,7 +334,7 @@ const handleNavigation = (route) => {
       router.push('/deal/waitinglist')
       break
     case 'mypage':
-      router.push('/mypage')
+      router.push('/user/mypage')
       break
     default:
       console.log('알 수 없는 라우트:', route)
@@ -385,7 +385,6 @@ const clearSearch = () => {
 
 /* Search input focus effect */
 input:focus {
-  outline: 2px solid #68a63c;
-  outline-offset: 2px;
+  outline: none;
 }
 </style>
