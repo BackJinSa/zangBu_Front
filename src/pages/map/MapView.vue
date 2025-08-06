@@ -232,6 +232,7 @@ const sampleProperties = [
   {
     address: '서울특별시 강남구 테헤란로 123',
     building_name: '래미안파크 스위트',
+    buildingId: 1,
     saleType: '매매',
     propertyType: '아파트',
     price: 1500000000,
@@ -240,6 +241,7 @@ const sampleProperties = [
   {
     address: '서울특별시 마포구 양화로 45',
     building_name: '홍익타워',
+    buildingId: 2,
     saleType: '매매',
     propertyType: '오피스텔',
     price: 800000000,
@@ -248,6 +250,7 @@ const sampleProperties = [
   {
     address: '서울특별시 종로구 종로 1',
     building_name: '종로타워',
+    buildingId: 3,
     saleType: '매매',
     propertyType: '아파트',
     price: 1200000000,
@@ -258,6 +261,7 @@ const sampleProperties = [
   {
     address: '서울특별시 영등포구 여의대로 108',
     building_name: '파크원타워',
+    buildingId: 4,
     saleType: '전세',
     propertyType: '아파트',
     price: 0,
@@ -266,6 +270,7 @@ const sampleProperties = [
   {
     address: '서울특별시 광진구 구의동',
     building_name: '구의건내2 아파트',
+    buildingId: 5,
     saleType: '전세',
     propertyType: '아파트',
     price: 0,
@@ -274,6 +279,7 @@ const sampleProperties = [
   {
     address: '서울특별시 강남구 역삼동',
     building_name: '역삼동 아파트',
+    buildingId: 6,
     saleType: '전세',
     propertyType: '아파트',
     price: 0,
@@ -284,6 +290,7 @@ const sampleProperties = [
   {
     address: '서울특별시 서초구 서초동',
     building_name: '서초동 빌라',
+    buildingId: 7,
     saleType: '월세',
     propertyType: '빌라',
     price: 50000000,
@@ -292,6 +299,7 @@ const sampleProperties = [
   {
     address: '서울특별시 마포구 합정동',
     building_name: '합정동 오피스텔',
+    buildingId: 8,
     saleType: '월세',
     propertyType: '오피스텔',
     price: 80000000,
@@ -300,6 +308,7 @@ const sampleProperties = [
   {
     address: '서울특별시 강남구 청담동',
     building_name: '청담동 주택',
+    buildingId: 9,
     saleType: '월세',
     propertyType: '주택',
     price: 120000000,
@@ -310,6 +319,7 @@ const sampleProperties = [
   {
     address: '서울특별시 송파구 잠실동',
     building_name: '잠실 아파트',
+    buildingId: 10,
     saleType: '매매',
     propertyType: '아파트',
     price: 2000000000,
@@ -318,6 +328,7 @@ const sampleProperties = [
   {
     address: '서울특별시 성동구 성수동',
     building_name: '성수동 오피스텔',
+    buildingId: 11,
     saleType: '전세',
     propertyType: '오피스텔',
     price: 0,
@@ -326,12 +337,24 @@ const sampleProperties = [
   {
     address: '서울특별시 용산구 이태원동',
     building_name: '이태원 빌라',
+    buildingId: 12,
     saleType: '월세',
     propertyType: '빌라',
     price: 30000000,
     deposit: 15000000,
   },
 ]
+
+// 매물명을 buildingId로 매핑하는 함수
+const getBuildingIdByName = (buildingName) => {
+  const property = sampleProperties.find((p) => p.building_name === buildingName)
+  const buildingId = property ? property.buildingId : null
+
+  // 디버깅용 로그
+  console.log('매물명 매핑:', { buildingName, buildingId })
+
+  return buildingId
+}
 
 // 매물 데이터 로드
 const loadProperties = async () => {
@@ -486,10 +509,13 @@ const showPropertyDetail = (property) => {
   try {
     selectedProperty.value = property
     showDetail.value = true
-    // URL 업데이트
-    const buildingId =
-      property.buildingId || property.building_name?.replace(/\s+/g, '_') || 'unknown'
-    router.push(`/map/apt/${buildingId}`)
+    // URL 업데이트 - buildingId 사용
+    const buildingId = property.buildingId || getBuildingIdByName(property.building_name)
+    if (buildingId) {
+      router.push(`/map/apt/${buildingId}`)
+    } else {
+      console.warn('매물에 대한 buildingId를 찾을 수 없습니다:', property.building_name)
+    }
   } catch (error) {
     console.error('매물 상세 보기 표시 실패:', error)
   }
@@ -515,8 +541,15 @@ const goToChat = () => {
 // 리뷰 목록 페이지로 이동
 const goToReviewList = () => {
   if (selectedProperty.value) {
-    const buildingId = selectedProperty.value.building_name.replace(/\s+/g, '_')
-    router.push(`/review/list/${buildingId}?page=1&size=10`)
+    const buildingId = getBuildingIdByName(selectedProperty.value.building_name)
+    if (buildingId) {
+      router.push(`/review/${buildingId}`)
+    } else {
+      console.warn(
+        '매물에 대한 buildingId를 찾을 수 없습니다:',
+        selectedProperty.value.building_name
+      )
+    }
   }
 }
 
@@ -535,7 +568,13 @@ onMounted(() => {
   // buildingId가 있으면 매물 상세 정보 가져오기
   if (props.buildingId) {
     try {
-      fetchPropertyDetail(props.buildingId)
+      // buildingId로 매물 찾기
+      const property = sampleProperties.find((p) => p.buildingId === parseInt(props.buildingId))
+      if (property) {
+        showPropertyDetail(property)
+      } else {
+        console.warn('buildingId에 해당하는 매물을 찾을 수 없습니다:', props.buildingId)
+      }
     } catch (error) {
       console.error('매물 상세 정보 가져오기 실패:', error)
     }
