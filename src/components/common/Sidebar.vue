@@ -1,9 +1,9 @@
 <template>
   <aside
     :class="[
-      'fixed top-0 left-0 h-full bg-white shadow-lg transition-all duration-300 z-50',
+      'fixed top-0 right-0 h-full bg-white shadow-lg transition-all duration-300 z-50',
       'w-80 h-screen',
-      isOpen ? 'translate-x-0' : '-translate-x-full',
+      isOpen ? 'translate-x-0' : 'translate-x-full',
     ]"
   >
     <!-- 헤더 영역 -->
@@ -107,7 +107,6 @@ const typeAMenuItems = computed(() => {
     { id: 'map', label: '지도', action: 'navigate' },
     { id: 'chat', label: '채팅', action: 'navigate' },
     { id: 'trade', label: '거래', action: 'navigate' },
-    { id: 'notification', label: '알림', action: 'navigate' },
     { id: 'mypage', label: '마이페이지', action: 'navigate' },
   ]
 })
