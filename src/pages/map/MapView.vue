@@ -30,7 +30,7 @@ import {
   setPropertyNotification,
   cancelPropertyNotification,
 } from '@/api/property/property.js'
-import { checkMembershipStatus } from '@/api/payment/payment.js'
+import { useMembership } from '@/composables/useMembership'
 
 // Props 정의
 const props = defineProps({
@@ -673,10 +673,14 @@ const goToRegistryDownload = async () => {
     const buildingId = getBuildingIdByName(selectedProperty.value.buildingName)
     if (buildingId) {
       // 멤버십 검증
-      const isValid = await validateMembership()
-      if (isValid) {
-        router.push(`/deal/consumer/documents/${buildingId}/registry/download`)
-      }
+      const result = await validateMembership({
+        onSuccess: () => {
+          router.push(`/deal/consumer/documents/${buildingId}/registry/download`)
+        },
+        onFailure: (message) => {
+          console.warn('멤버십 검증 실패:', message)
+        },
+      })
     } else {
       console.warn(
         '매물에 대한 buildingId를 찾을 수 없습니다:',
@@ -692,10 +696,14 @@ const goToBuildingRegisterDownload = async () => {
     const buildingId = getBuildingIdByName(selectedProperty.value.buildingName)
     if (buildingId) {
       // 멤버십 검증
-      const isValid = await validateMembership()
-      if (isValid) {
-        router.push(`/deal/consumer/documents/${buildingId}/building-register/download`)
-      }
+      const result = await validateMembership({
+        onSuccess: () => {
+          router.push(`/deal/consumer/documents/${buildingId}/building-register/download`)
+        },
+        onFailure: (message) => {
+          console.warn('멤버십 검증 실패:', message)
+        },
+      })
     } else {
       console.warn(
         '매물에 대한 buildingId를 찾을 수 없습니다:',
@@ -705,49 +713,23 @@ const goToBuildingRegisterDownload = async () => {
   }
 }
 
-// 멤버십 검증 함수
-const validateMembership = async () => {
-  try {
-    // 로그인 상태 확인
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
-    if (!isLoggedIn) {
-      // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
-      router.push({
-        path: '/auth/login',
-        query: { redirect: window.location.pathname },
-      })
-      return false
-    }
-
-    // 멤버십 상태 확인
-    const membershipStatus = await checkMembershipStatus()
-
-    // 멤버십이 있고 기간이 만료되지 않았는지 확인
-    if (membershipStatus.hasMembership && !membershipStatus.isExpired) {
-      return true
-    }
-
-    // 멤버십이 없거나 만료된 경우 결제 페이지로 이동
-    router.push('/payment')
-    return false
-  } catch (error) {
-    console.error('멤버십 검증 실패:', error)
-    // 에러 발생 시 결제 페이지로 이동
-    router.push('/payment')
-    return false
-  }
-}
+// 멤버십 검증 Hook 사용
+const { validateMembership } = useMembership()
 
 // 분석 리포트 다운로드 페이지로 이동
 const goToAnalysisReportDownload = async () => {
   if (selectedProperty.value) {
     // 멤버십 검증
-    const isValid = await validateMembership()
-    if (isValid) {
-      // 분석 리포트는 reportId를 사용하므로 임시로 1을 사용
-      const reportId = 1
-      router.push(`/deal/consumer/report/${reportId}/download`)
-    }
+    const result = await validateMembership({
+      onSuccess: () => {
+        // 분석 리포트는 reportId를 사용하므로 임시로 1을 사용
+        const reportId = 1
+        router.push(`/deal/consumer/report/${reportId}/download`)
+      },
+      onFailure: (message) => {
+        console.warn('멤버십 검증 실패:', message)
+      },
+    })
   }
 }
 
