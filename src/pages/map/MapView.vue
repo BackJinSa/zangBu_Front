@@ -517,7 +517,7 @@ const resetFilters = async () => {
 
 // 집 내놓기 페이지로 이동
 const goToUpload = () => {
-  router.push('/building/upload')
+  router.push('/property/register')
 }
 
 // 매물 상세 정보 가져오기
