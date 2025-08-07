@@ -26,9 +26,9 @@
         </div>
 
         <!-- 우측 영역 (판매자, 구매자에 따라 다르게) -->
-        <div>
-          <!--<div v-if="isSeller"> -->
-          <div class="flex flex-col items-center text-sm">
+        <div class="flex items-center gap-5">
+          <!-- 판매자인 경우 거래 활성화 토글 -->
+          <div v-if="isSeller" class="flex flex-col items-center text-sm">
             <span class="mb-1">거래 활성화</span>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" v-model="isActive" class="sr-only peer" />
@@ -40,19 +40,37 @@
               ></div>
             </label>
           </div>
+
+          <!-- 구매자인 경우 거래 상태 -->
+          <span
+            v-else
+            class="text-xs font-medium px-2 py-1 rounded"
+            :class="{
+              'bg-blue-100 text-blue-600': status === '진행',
+              'bg-yellow-100 text-yellow-600': status === '중',
+              'bg-gray-100 text-gray-500': status === '완료',
+            }"
+          >
+            거래 {{ status }}
+          </span>
+
+          <!-- 나가기 버튼 -->
+          <Button variant="button9" class="px-2 py-1 text-xs h-auto" @click="showModal = true"
+            >나가기</Button
+          >
         </div>
-        <!-- <div v-else>
-        <span
-          class="text-xs font-medium px-2 py-1 rounded"
-          :class="{
-            'bg-blue-100 text-blue-600': status === '진행',
-            'bg-yellow-100 text-yellow-600': status === '중',
-            'bg-gray-100 text-gray-500': status === '완료',
-          }"
-        >
-          거래 {{ status }}
-        </span>
-      </div> -->
+
+        <!-- 팝업 -->
+        <PopupModal
+          :is-visible="showModal"
+          title="정말 채팅방을 나가시겠습니까?"
+          message="이 작업은 되돌릴 수 없습니다."
+          cancel-text="취소"
+          confirm-text="확인"
+          @cancel="handleCancel"
+          @confirm="handleConfirm"
+          @close="showModal = false"
+        />
       </header>
 
       <!-- 채팅 내용 -->
@@ -101,50 +119,71 @@
         </button>
       </footer>
     </div>
-    <Footer class="mt-12" />
   </div>
 </template>
 
 <script setup>
-import Footer from '@/components/common/Footer.vue'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useChatStore } from '@/stores/chat/chat'
 import { useStomp } from '@/utils/useStomp'
+import { useAuthStore } from '@/stores/auth/auth'
+
+import Button from '@/components/common/Button.vue'
+import PopupModal from '@/components/common/PopupModal.vue'
+
 
 const route = useRoute()
 const router = useRouter()
 const chatStore = useChatStore()
+const authStore = useAuthStore()
 const { markAsRead } = useChatStore()
-const { connect, subscribe, disconnect, sendStompMessage } = useStomp()
+const { connect, subscribeRoom, unsubscribeRoom, disconnect } = useStomp()
 const roomId = route.params.roomId // URL 파라미터로부터 채팅방 ID 가져오기
+const myUserId = authStore.userId
+
+//나가기 모달
+const showModal = ref(false)
+
+const handleCancel = () => {
+  //취소 클릭 시
+  console.log('취소됨')
+  showModal.value = false
+}
+
+const handleConfirm = async () => {
+  //나가기 클릭 시
+  console.log('확인됨')
+  try {
+    await chatStore.leaveChatRoom(roomId) // 채팅방 나가기 API 호출
+    showModal.value = false
+    router.push('/chat/list') // 채팅방 목록 페이지로 이동
+  } catch (err) {
+    console.error('채팅방 나가기 실패:', err)
+  }
+}
 
 onMounted(() => {
   // STOMP 연결
   connect(() => {
-    // 연결 성공 후 해당 채팅방 구독
-    subscribe(`/topic/chat/${roomId}`, (message) => {
-      // 서버에서 메시지를 받으면 store.messages에 추가
+    // 해당 채팅방 구독
+    subscribeRoom(roomId, (message, subscribedRoomId) => {
       chatStore.messages.push(message)
 
-      // 내가 보낸 게 아니면 읽음 처리
+      // 내가 보낸 메시지가 아니면 읽음 처리
       if (message.senderId !== myUserId) {
-        chatStore.markAsRead(roomId)
+        chatStore.markAsRead(subscribedRoomId)
       }
     })
+
     // 채팅방 입장 시 기존 안 읽은 메시지 읽음 처리
     chatStore.markAsRead(roomId)
   })
 
-  // 채팅방 기존 메시지 로드
-  chatStore.getChatMessages(roomId)
-})
-
-onMounted(() => {
-  // 채팅방 구독 시작
-  subscribeChatRoom(roomId)
-  //채팅방 입장 시 메시지들 읽음 처리
-  markAsRead(roomId)
+  // 기존 메시지 로드
+  chatStore.getChatMessages(roomId).then(() => {
+    messages.value = chatStore.messages
+  })
 })
 
 onUnmounted(() => {
@@ -160,6 +199,7 @@ const otherNickname = '구매자김씨' //대화 상대방 닉네임
 const buildingName = '강남 신축 빌라'
 const sellerType = '집주인' // or '세입자'
 
+// const messages = ref([])   //백엔드 연동 시 사용
 //임의 데이터
 const messages = ref([
   { text: '안녕하세요 매물에 관심 가져주셔서 감사합니다.', time: '오후 1:00', isMine: false },
