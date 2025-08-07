@@ -1,8 +1,10 @@
 <script setup>
 import Button from '@/components/common/Button.vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const handleSearchProperties = () => {
   console.log('매물 찾기 클릭')
@@ -11,6 +13,15 @@ const handleSearchProperties = () => {
 
 const handleUploadProperty = () => {
   console.log('매물 올리기 클릭')
+
+  // 로그인 상태 확인
+  if (!authStore.isAuthenticated) {
+    console.log('로그인이 필요합니다. 로그인 페이지로 이동합니다.')
+    router.push('/auth/login')
+    return
+  }
+
+  // 로그인된 사용자는 매물 등록 페이지로 이동
   router.push('/property/register')
 }
 </script>
