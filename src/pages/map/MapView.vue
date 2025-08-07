@@ -622,6 +622,18 @@ const toggleNotification = async () => {
 
 // 채팅 페이지로 이동
 const goToChat = () => {
+  // 로그인 상태 확인
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+  if (!isLoggedIn) {
+    // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
+    router.push({
+      path: '/auth/login',
+      query: { redirect: window.location.pathname },
+    })
+    return
+  }
+
+  // 로그인된 경우 채팅 페이지로 이동
   router.push('/chat/list')
 }
 
