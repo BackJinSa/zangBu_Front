@@ -2121,4 +2121,30 @@ onMounted(() => {
     width: 380px;
   }
 }
+
+/* Desktop enhancements */
+@media (min-width: 1280px) {
+  .sidebar {
+    width: 440px;
+  }
+
+  .detail-sidebar-left {
+    width: 440px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .sidebar {
+    width: 500px;
+  }
+
+  .detail-sidebar-left {
+    width: 500px;
+  }
+
+  .floating-btn {
+    width: 88px;
+    height: 88px;
+  }
+}
 </style>
