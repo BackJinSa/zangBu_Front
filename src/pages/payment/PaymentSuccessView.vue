@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { confirmPayment } from '@/api/payment/payment.js'
+import { confirmPayment, loadOrderContext, clearOrderContext } from '@/api/payment/payment.js'
 
 const router = useRouter()
 
@@ -36,13 +36,19 @@ const handleConfirmPayment = async () => {
   errorMessage.value = ''
 
   try {
+    const orderContext = loadOrderContext(paymentInfo.value.orderId) || {}
     await confirmPayment({
       paymentKey: paymentInfo.value.paymentKey,
       orderId: paymentInfo.value.orderId,
       amount: paymentInfo.value.amount,
+      productType: orderContext.productType,
+      productId: orderContext.productId,
+      price: orderContext.price,
+      orderName: orderContext.orderName,
     })
 
     confirmed.value = true
+    clearOrderContext(paymentInfo.value.orderId)
   } catch (error) {
     console.error('결제 승인 실패:', error)
 
