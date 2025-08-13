@@ -1,8 +1,22 @@
 import api from '../axios'
 
+// 백엔드 서버 연결 상태 확인
+export const checkServerHealth = () => {
+  return api.get('/health')
+}
+
 // 거래 전체 목록 조회
 export const getDeals = () => {
-  return api.get('/deal/waitinglist')
+  console.log('getDeals 함수 호출됨')
+  console.log('/deal/waitinglist 엔드포인트 호출')
+
+  // Postman에서 작동하는 방식과 동일하게 설정
+  return api.get('/deal/waitinglist', {
+    headers: {
+      'Content-Type': 'application/json',
+      // Postman에서 사용한 헤더와 동일하게 설정
+    },
+  })
 }
 
 // 거래 생성
