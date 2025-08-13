@@ -34,7 +34,7 @@
       <h3 class="property-title">{{ property.buildingName || '스카이빌' }}</h3>
 
       <div class="price-info">
-        <span class="price-text">{{ property.price || '₩750,000,000' }}</span>
+        <span class="price-text">{{ property.price || '750,000,000' }}</span>
       </div>
 
       <div class="location-info">
