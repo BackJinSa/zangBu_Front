@@ -102,7 +102,7 @@ const router = createRouter({
     {
       path: '/auth/verify',
       name: 'verify-identity',
-      component: VerifyIdentity
+      component: VerifyIdentity,
     },
     {
       path: '/auth/enter-address',
@@ -123,7 +123,7 @@ const router = createRouter({
         }
         sessionStorage.removeItem('verified')
         next()
-      }
+      },
     },
     {
       path: '/auth/find-id',
@@ -143,7 +143,7 @@ const router = createRouter({
         // 인증이 끝난 경우 verified 상태 초기화
         sessionStorage.removeItem('verified')
         next()
-      }
+      },
     },
 
     // 사용자 관련 라우트
@@ -345,6 +345,11 @@ const router = createRouter({
       name: 'sidebar-guide',
       component: SidebarGuideView,
     },
+    {
+      path: '/membership',
+      name: 'membership',
+      component: () => import('@/pages/membership/MembershipView.vue'),
+    },
   ],
 })
 
@@ -359,7 +364,7 @@ router.beforeEach((to, from, next) => {
       // 로그인되지 않은 경우 로그인 페이지로 리다이렉트 (원래 가려던 페이지 정보 포함)
       next({
         path: '/auth/login',
-        query: { redirect: to.fullPath }
+        query: { redirect: to.fullPath },
       })
       return
     }
