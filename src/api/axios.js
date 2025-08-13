@@ -30,7 +30,7 @@ const processQueue = (error, token = null) => {
 // 요청 인터셉터
 api.interceptors.request.use(
   (config) => {
-    console.log('🚀 API 요청 전송:', {
+    console.log('API 요청 전송:', {
       method: config.method?.toUpperCase(),
       url: config.url,
       fullURL: `${config.baseURL}${config.url}`,
@@ -41,16 +41,16 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-      console.log('🔑 토큰 추가됨:', token.substring(0, 20) + '...')
+      console.log('토큰 추가됨:', token.substring(0, 20) + '...')
     } else {
-      console.log('⚠️ 토큰 없음 - localStorage에서 token을 찾을 수 없음')
+      console.log('⚠토큰 없음 - localStorage에서 token을 찾을 수 없음')
     }
 
-    console.log('📤 최종 요청 헤더:', config.headers)
+    console.log('최종 요청 헤더:', config.headers)
     return config
   },
   (error) => {
-    console.error('❌ 요청 인터셉터 오류:', error)
+    console.error('요청 인터셉터 오류:', error)
     return Promise.reject(error)
   }
 )
@@ -58,7 +58,7 @@ api.interceptors.request.use(
 // 응답 인터셉터
 api.interceptors.response.use(
   (response) => {
-    console.log('✅ API 응답 성공:', {
+    console.log('API 응답 성공:', {
       status: response.status,
       statusText: response.statusText,
       url: response.config.url,
@@ -67,7 +67,7 @@ api.interceptors.response.use(
     return response
   },
   async (error) => {
-    console.error('❌ API 응답 오류:', {
+    console.error('API 응답 오류:', {
       status: error.response?.status,
       statusText: error.response?.statusText,
       url: error.config?.url,
