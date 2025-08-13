@@ -303,7 +303,7 @@ const router = useRouter()
 const route = useRoute()
 
 // Computed properties
-const userName = computed(() => authStore.user?.name || '')
+const userName = computed(() => authStore.user?.nickname || '')
 const userInitial = computed(() => (userName.value ? userName.value.charAt(0) : ''))
 
 // 메인페이지 관련 로직
@@ -336,13 +336,13 @@ const searchInputRef = ref(null)
 const isSidebarOpen = ref(false)
 const isSearchModalOpen = ref(false)
 
-// 로그인 상태 확인 (더미로 로그아웃 상태)
+// 로그인 상태 확인
 const isLoggedIn = computed(() => {
-  // 유저 스토어 구현이 덜 되어있으므로 하드코딩으로 로그아웃 상태
-  return false
-
-  // TODO: 유저 스토어 구현 완료 후 아래 주석 해제하여 사용
-  // return authStore.isAuthenticated
+  const authenticated = authStore.isAuthenticated
+  console.log('🔐 Header - 인증 상태:', authenticated)
+  console.log('👤 Header - 사용자:', authStore.user)
+  console.log('🎫 Header - 토큰:', authStore.accessToken)
+  return authenticated
 })
 
 // Sidebar menu items (로그인 상태에 따라 동적 생성)
