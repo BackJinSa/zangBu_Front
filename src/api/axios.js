@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // axios 인스턴스 생성
 const api = axios.create({
-  baseURL: 'https://api.zanbu.site',
+  baseURL: '/api', // 프론트엔드에서는 /api 경로 사용
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
