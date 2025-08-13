@@ -1,217 +1,336 @@
 <script setup>
+// Vue 3 Composition API 관련 import
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+
+// API 및 컴포넌트 import
 import { getDeals } from '@/api/deal/deal.js'
 import PropertyCardWaiting from '@/components/common/PropertyCardWaiting.vue'
 import Button from '@/components/common/Button.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import PopupModal from '@/components/common/PopupModal.vue'
 
+// 스토어 import
+import { useAuthStore } from '@/stores/auth/auth.js'
+
+// Vue Router 인스턴스 생성
 const router = useRouter()
 
-// Reactive data
-const deals = ref([])
-const loading = ref(false)
-const error = ref(null)
-const activeFilter = ref('buying') // 기본값을 '구매 중'으로 설정
+// 인증 스토어 사용
+const authStore = useAuthStore()
 
-// Dummy data for testing - 새로운 API 구조에 맞춤 (카멜케이스)
-const dummyDeals = [
-  {
-    buildingId: '1',
-    price: '750000000',
-    buildingName: '스카이빌',
-    houseType: '아파트',
-    saleType: '매매',
-    imageUrl: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&fit=crop',
-    address: '서울시 광진구 자양로 21길 16-26',
-    userStatus: '구매중',
-    createdAt: '2024-01-15',
-    dealStatus: 'BEFORE_OWNER',
-  },
-  {
-    buildingId: '2',
-    price: '520000000',
-    buildingName: '한강하이츠',
-    houseType: '오피스텔',
-    saleType: '전세',
-    imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop',
-    address: '서울시 마포구 합정동 123-45',
-    userStatus: '판매중',
-    createdAt: '2024-01-14',
-    dealStatus: 'BEFORE_OWNER',
-  },
-  {
-    buildingId: '3',
-    price: '980000000',
-    buildingName: '롯데캐슬',
-    houseType: '아파트',
-    saleType: '매매',
-    imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop',
-    address: '서울시 송파구 잠실로 222',
-    userStatus: '판매중',
-    createdAt: '2024-01-13',
-    dealStatus: 'MIDDLE_DEAL',
-  },
-  {
-    buildingId: '4',
-    price: '130000000',
-    buildingName: '행복한빌라',
-    houseType: '빌라',
-    saleType: '월세',
-    imageUrl: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=300&fit=crop',
-    address: '경기도 성남시 분당구 수내동 88-1',
-    userStatus: '구매중',
-    createdAt: '2024-01-12',
-    dealStatus: 'BEFORE_CONSUMER',
-  },
-  {
-    buildingId: '5',
-    price: '1200000000',
-    buildingName: '강남아이파크',
-    houseType: '아파트',
-    saleType: '매매',
-    imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop',
-    address: '서울시 강남구 테헤란로 123',
-    userStatus: '판매중',
-    createdAt: '2024-01-11',
-    dealStatus: 'BEFORE_OWNER',
-  },
-  {
-    buildingId: '6',
-    price: '850000000',
-    buildingName: '마포래미안',
-    houseType: '아파트',
-    saleType: '매매',
-    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop',
-    address: '서울시 마포구 월드컵로 123',
-    userStatus: '구매중',
-    createdAt: '2024-01-10',
-    dealStatus: 'BEFORE_CONSUMER',
-  },
-  {
-    buildingId: '7',
-    price: '650000000',
-    buildingName: '잠실엘스',
-    houseType: '아파트',
-    saleType: '전세',
-    imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop',
-    address: '서울시 송파구 잠실동 123',
-    userStatus: '판매중',
-    createdAt: '2024-01-09',
-    dealStatus: 'MIDDLE_DEAL',
-  },
-  {
-    buildingId: '8',
-    price: '450000000',
-    buildingName: '목동한강',
-    houseType: '오피스텔',
-    saleType: '월세',
-    imageUrl: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=300&fit=crop',
-    address: '서울시 양천구 목동 456',
-    userStatus: '구매중',
-    createdAt: '2024-01-08',
-    dealStatus: 'BEFORE_CONSUMER',
-  },
-  {
-    buildingId: '9',
-    price: '680000000',
-    buildingName: '강남타워',
-    houseType: '아파트',
-    saleType: '매매',
-    imageUrl: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&fit=crop',
-    address: '서울시 강남구 역삼동 123',
-    userStatus: '판매중',
-    createdAt: '2024-01-05',
-    dealStatus: 'CLOSE_DEAL',
-  },
-  {
-    buildingId: '10',
-    price: '320000000',
-    buildingName: '서초빌라',
-    houseType: '빌라',
-    saleType: '전세',
-    imageUrl: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=300&fit=crop',
-    address: '서울시 서초구 서초동 456',
-    userStatus: '구매중',
-    createdAt: '2024-01-03',
-    dealStatus: 'CLOSE_DEAL',
-  },
-]
+// ===== 반응형 데이터 정의 =====
+const deals = ref([]) // 거래 목록 데이터
+const loading = ref(false) // 로딩 상태
+const error = ref(null) // 에러 상태
+const activeFilter = ref('buying') // 활성화된 필터 (기본값: '구매 중')
 
-// Fetch deals from API (now using dummy data)
+// 로그인 필요 모달 상태
+const showLoginModal = ref(false)
+
+// ===== API에서 거래 목록 가져오기 =====
+// /deal/waitinglist 엔드포인트를 통해 실제 거래 데이터를 가져옴
 const fetchDeals = async () => {
-  loading.value = true
-  error.value = null
+  console.log('🎯 fetchDeals 함수 실행됨')
+  loading.value = true // 로딩 상태 활성화
+  error.value = null // 에러 상태 초기화
 
   try {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    console.log('=== fetchDeals 시작 ===')
+    console.log('인증 상태:', authStore.isAuthenticated)
+    console.log('토큰 유효성:', authStore.isTokenValid())
+    console.log('저장된 토큰:', localStorage.getItem('token'))
+    console.log('저장된 사용자:', localStorage.getItem('user'))
+    // JWT 토큰 확인 및 유효성 검사
+    if (!authStore.isAuthenticated || !authStore.isTokenValid()) {
+      console.log('인증 실패 - 토큰 유효성 검사 실패')
+      console.log('⚠️ reissue 기능이 아직 개발되지 않아 기존 토큰으로 시도')
 
-    // Use dummy data instead of API call
-    deals.value = dummyDeals
+      // TODO: reissue 기능 개발 완료 후 활성화
+      // 토큰 갱신 시도
+      /*
+      try {
+        console.log('🔄 토큰 갱신 시작...')
+        await authStore.refreshAccessToken()
+        console.log('✅ 토큰 갱신 성공')
+        
+        // 갱신된 토큰으로 다시 API 호출
+        console.log('🔄 갱신된 토큰으로 API 재호출')
+        const response = await getDeals()
+        console.log('📡 API 응답 전체:', response)
+        console.log('📊 API 응답 데이터:', response.data)
+        console.log('📋 API 응답 상태:', response.status)
+        console.log('🔧 API 응답 헤더:', response.headers)
 
-    // Uncomment below to use real API
-    // const response = await getDeals()
-    // deals.value = response.data?.deals || []
+        // API 응답 데이터 처리 - Postman 응답 구조에 맞게 처리
+        if (response.data && response.data.deals) {
+          // 페이지네이션된 응답 구조 처리 (Postman 응답과 동일)
+          deals.value = response.data.deals
+          console.log('✅ 페이지네이션 데이터 처리 성공:', {
+            pageNum: response.data.pageNum,
+            pageSize: response.data.pageSize,
+            total: response.data.total,
+            pages: response.data.pages,
+            dealsCount: response.data.deals.length,
+          })
+        } else if (response.data && Array.isArray(response.data)) {
+          // 배열 형태로 직접 응답하는 경우
+          deals.value = response.data
+          console.log('✅ 배열 데이터 처리 성공:', response.data.length)
+        } else if (response.data) {
+          // 단일 객체인 경우 배열로 변환
+          deals.value = [response.data]
+          console.log('✅ 단일 객체를 배열로 변환:', response.data)
+        } else {
+          // API 응답이 없는 경우 빈 배열로 설정
+          deals.value = []
+          console.log('⚠️ 응답 데이터 없음 - 빈 배열 설정')
+        }
 
-    // For now, using dummy data with proper dealStatusEnum values
-    deals.value = dummyDeals
+        console.log('🎯 최종 처리된 거래 목록:', deals.value)
+        console.log('📊 거래 목록 길이:', deals.value.length)
+
+        // 각 거래 데이터 상세 로깅
+        deals.value.forEach((deal, index) => {
+          console.log(`🏠 거래 ${index + 1}:`, {
+            buildingId: deal.buildingId,
+            buildingName: deal.buildingName,
+            price: deal.price,
+            userStatus: deal.userStatus,
+            dealStatus: deal.dealStatus,
+          })
+        })
+
+        return // 성공적으로 처리되었으므로 함수 종료
+      } catch (refreshError) {
+        console.error('❌ 토큰 갱신 실패:', refreshError)
+        // 토큰 갱신 실패 시 로그인 필요 팝업 표시
+        showLoginRequiredPopup()
+        return
+      }
+      */
+
+      // 일단 기존 토큰으로 API 호출 시도
+      console.log('🔄 기존 토큰으로 API 호출 시도')
+    }
+
+    // 실제 API 호출
+    console.log('🔍 API 호출 시작: /deal/waitinglist')
+    const response = await getDeals()
+    console.log('📡 API 응답 전체:', response)
+    console.log('📊 API 응답 데이터:', response.data)
+    console.log('📋 API 응답 상태:', response.status)
+    console.log('🔧 API 응답 헤더:', response.headers)
+
+    // API 응답 데이터 처리 - Postman 응답 구조에 맞게 처리
+    if (response.data && response.data.deals) {
+      // 페이지네이션된 응답 구조 처리 (Postman 응답과 동일)
+      deals.value = response.data.deals
+      console.log('✅ 페이지네이션 데이터 처리 성공:', {
+        pageNum: response.data.pageNum,
+        pageSize: response.data.pageSize,
+        total: response.data.total,
+        pages: response.data.pages,
+        dealsCount: response.data.deals.length,
+      })
+    } else if (response.data && Array.isArray(response.data)) {
+      // 배열 형태로 직접 응답하는 경우
+      deals.value = response.data
+      console.log('✅ 배열 데이터 처리 성공:', response.data.length)
+    } else if (response.data) {
+      // 단일 객체인 경우 배열로 변환
+      deals.value = [response.data]
+      console.log('✅ 단일 객체를 배열로 변환:', response.data)
+    } else {
+      // API 응답이 없는 경우 빈 배열로 설정
+      deals.value = []
+      console.log('⚠️ 응답 데이터 없음 - 빈 배열 설정')
+    }
+
+    console.log('🎯 최종 처리된 거래 목록:', deals.value)
+    console.log('📊 거래 목록 길이:', deals.value.length)
+
+    // 각 거래 데이터 상세 로깅
+    deals.value.forEach((deal, index) => {
+      console.log(`🏠 거래 ${index + 1}:`, {
+        buildingId: deal.buildingId,
+        buildingName: deal.buildingName,
+        price: deal.price,
+        userStatus: deal.userStatus,
+        dealStatus: deal.dealStatus,
+      })
+    })
   } catch (err) {
-    error.value = '거래 목록을 불러오는데 실패했습니다. 다시 시도해주세요.'
+    console.error('❌ API 호출 중 오류 발생 ===')
+    console.error('🚨 에러 객체:', err)
+    console.error('📡 에러 응답:', err.response)
+    console.error('🌐 에러 요청:', err.request)
+    console.error('💬 에러 메시지:', err.message)
+    console.error('🔢 에러 코드:', err.code)
+    console.error('📊 에러 상태:', err.response?.status)
+    console.error('📋 에러 데이터:', err.response?.data)
+
+    // 401 Unauthorized 에러인 경우 로그인 페이지로 이동
+    if (err.response?.status === 401) {
+      showLoginRequiredPopup()
+      return
+    }
+
+    // API 오류 발생 시 빈 배열로 설정
+    deals.value = []
+
+    // 에러 발생 시 사용자에게 친화적인 메시지 표시
+    if (err.response) {
+      // 서버 응답이 있는 경우
+      switch (err.response.status) {
+        case 401:
+          error.value = '인증이 필요합니다. 다시 로그인해주세요.'
+          showLoginRequiredPopup()
+          break
+        case 403:
+          error.value = '접근 권한이 없습니다. 로그인이 필요합니다.'
+          showLoginRequiredPopup()
+          break
+        case 404:
+          error.value = '거래 목록을 찾을 수 없습니다.'
+          break
+        case 500:
+          error.value = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          break
+        default:
+          error.value = `거래 목록을 불러오는데 실패했습니다. (${err.response.status})`
+      }
+    } else if (err.request) {
+      // 네트워크 오류
+      error.value = '백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.'
+    } else {
+      // 기타 오류
+      error.value = '거래 목록을 불러오는데 실패했습니다. 다시 시도해주세요.'
+    }
   } finally {
-    loading.value = false
+    loading.value = false // 로딩 상태 비활성화
   }
 }
 
-// Filter deals based on active filter
+// ===== 로그인 필요 팝업 표시 및 로그인 페이지 이동 =====
+const showLoginRequiredPopup = () => {
+  // 사용자에게 로그인이 필요하다는 팝업 표시
+  showLoginModal.value = true
+}
+
+// ===== 모달 이벤트 핸들러 =====
+const handleLoginConfirm = () => {
+  showLoginModal.value = false
+  router.push('/auth/login')
+}
+
+const handleLoginCancel = () => {
+  showLoginModal.value = false
+  router.push('/')
+}
+
+const handleLoginModalClose = () => {
+  showLoginModal.value = false
+}
+
+// ===== 필터링된 거래 목록 계산 =====
+// 활성화된 필터에 따라 거래 목록을 동적으로 필터링
 const filteredDeals = computed(() => {
   if (activeFilter.value === 'all') {
-    return deals.value
+    return deals.value // 전체 거래 목록 반환
   } else if (activeFilter.value === 'buying') {
-    return deals.value.filter((deal) => deal.userStatus === '구매중')
+    return deals.value.filter((deal) => deal.userStatus === '구매중') // 구매 중인 거래만 필터링
   } else if (activeFilter.value === 'selling') {
-    return deals.value.filter((deal) => deal.userStatus === '판매중')
+    return deals.value.filter((deal) => deal.userStatus === '판매중') // 판매 중인 거래만 필터링
   } else if (activeFilter.value === 'completed') {
-    return deals.value.filter((deal) => deal.dealStatus === 'CLOSE_DEAL')
+    // dealStatus가 CLOSE_DEAL인 경우만 완료된 거래로 간주
+    return deals.value.filter((deal) => deal.dealStatus === 'CLOSE_DEAL') // 완료된 거래만 필터링
   }
-  return deals.value
+  return deals.value // 기본값으로 전체 목록 반환
 })
 
-// Set active filter
+// ===== 필터 설정 함수 =====
+// 사용자가 선택한 필터를 활성화
 const setActiveFilter = (filter) => {
   activeFilter.value = filter
 }
 
-// Format deal data for PropertyCard component
+// ===== 거래 데이터 포맷팅 함수 =====
+// PropertyCard 컴포넌트에서 사용할 수 있도록 거래 데이터를 포맷팅
 const formatDealForPropertyCard = (deal) => {
   console.log('=== formatDealForPropertyCard ===')
   console.log('Original deal:', deal)
 
+  // API 응답 데이터를 PropertyCard 컴포넌트에 맞는 형태로 변환
   const formattedProperty = {
     buildingId: deal.buildingId,
     buildingName: deal.buildingName,
     address: deal.address,
-    imageUrl: deal.imageUrl || '/default-property.jpg',
-    price: deal.price,
+    imageUrl:
+      deal.imageUrl && deal.imageUrl !== 'https://example.com/img902.jpg'
+        ? deal.imageUrl
+        : '/default-property.jpg', // 예시 이미지 URL인 경우 기본 이미지 사용
+    price: deal.price || 0, // 가격이 0인 경우도 처리
     dealStatus: deal.userStatus,
-    createdAt: deal.createdAt,
-    saleType: deal.saleType,
-    houseType: deal.houseType,
-    // 거래 관련 추가 정보 (카멜케이스)
+    createdAt: new Date().toISOString().split('T')[0],
+    saleType: mapSaleType(deal.saleType),
+    houseType: mapPropertyType(deal.propertyType),
     dealId: deal.buildingId,
     userRole: deal.userStatus === '구매중' ? 'buyer' : 'seller',
-    // 새로운 dealStatus 필드 추가
     dealStatusEnum: deal.dealStatus,
+    dealStatusText: mapDealStatus(deal.dealStatus), // 한글 상태 텍스트 추가
+  }
+
+  // 가격이 0인 경우 "가격 협의"로 표시
+  if (deal.price === 0) {
+    formattedProperty.priceDisplay = '가격 협의'
   }
 
   console.log('Formatted property:', formattedProperty)
-  console.log('dealId:', formattedProperty.dealId)
-  console.log('userRole:', formattedProperty.userRole)
-
   return formattedProperty
 }
 
-// Handle deal detail
+// ===== API 응답 데이터 매핑 함수들 =====
+
+// 판매 유형 매핑 (API → 한글)
+const mapSaleType = (apiSaleType) => {
+  const saleTypeMap = {
+    TRADING: '매매',
+    CHARTER: '전세',
+    MONTHLY: '월세',
+    TRADING_CHARTER: '매매+전세',
+    TRADING_MONTHLY: '매매+월세',
+  }
+  return saleTypeMap[apiSaleType] || apiSaleType
+}
+
+// 주택 유형 매핑 (API → 한글)
+const mapPropertyType = (apiPropertyType) => {
+  const propertyTypeMap = {
+    APARTMENT: '아파트',
+    OFFICETEL: '오피스텔',
+    VILLA: '빌라',
+    HOUSE: '단독주택',
+    COMMERCIAL: '상가',
+    LAND: '토지',
+  }
+  return propertyTypeMap[apiPropertyType] || apiPropertyType
+}
+
+// 거래 상태 매핑 (API → 한글)
+const mapDealStatus = (apiDealStatus) => {
+  const dealStatusMap = {
+    BEFORE_OWNER: '소유자 확인 대기',
+    BEFORE_CONSUMER: '소비자 확인 대기',
+    MIDDLE_DEAL: '거래 진행 중',
+    CLOSE_DEAL: '거래 완료',
+    CANCEL_DEAL: '거래 취소',
+  }
+  return dealStatusMap[apiDealStatus] || apiDealStatus
+}
+
+// ===== 거래 상세 페이지 이동 처리 =====
+// PropertyCard에서 거래 상세 버튼 클릭 시 호출
 const handleDealDetail = (property) => {
   console.log('=== handleDealDetail Debug ===')
   console.log('Received property:', property)
@@ -220,17 +339,19 @@ const handleDealDetail = (property) => {
   console.log('buildingId:', property.buildingId)
 
   const dealId = property.dealId
+  // 사용자 역할에 따라 다른 라우트로 이동
   const targetRoute =
     property.userRole === 'seller' ? `/deal/seller/${dealId}` : `/deal/buyer/${dealId}`
 
   console.log('Target route:', targetRoute)
 
-  // 페이지 이동 전에 Header 아래로 스크롤
+  // 페이지 이동 전에 Header 아래로 스크롤 (사용자 경험 개선)
   window.scrollTo({
     top: 96, // Header 높이 (h-24 = 96px)
-    behavior: 'smooth',
+    behavior: 'smooth', // 부드러운 스크롤 애니메이션
   })
 
+  // 판매자인 경우 판매자 페이지로 이동
   if (property.userRole === 'seller') {
     router
       .push(`/deal/seller/${dealId}`)
@@ -238,7 +359,7 @@ const handleDealDetail = (property) => {
         console.log('Successfully navigated to seller page')
         // 페이지 이동 후에도 Header 아래로 스크롤
         window.scrollTo({
-          top: 96, // Header 높이 (h-24 = 96px)
+          top: 96,
           behavior: 'smooth',
         })
       })
@@ -246,13 +367,14 @@ const handleDealDetail = (property) => {
         console.error('Failed to navigate to seller page:', err)
       })
   } else {
+    // 구매자인 경우 구매자 페이지로 이동
     router
       .push(`/deal/buyer/${dealId}`)
       .then(() => {
         console.log('Successfully navigated to buyer page')
         // 페이지 이동 후에도 Header 아래로 스크롤
         window.scrollTo({
-          top: 96, // Header 높이 (h-24 = 96px)
+          top: 96,
           behavior: 'smooth',
         })
       })
@@ -262,7 +384,8 @@ const handleDealDetail = (property) => {
   }
 }
 
-// Handle view details for completed deals
+// ===== 완료된 거래 상세 보기 처리 =====
+// 완료된 거래의 상세 정보를 보기 위한 함수
 const handleViewDetails = (property) => {
   console.log('=== handleViewDetails Debug ===')
   console.log('Received property:', property)
@@ -273,7 +396,8 @@ const handleViewDetails = (property) => {
   router.push(`/deal/completed/${property.dealId}`)
 }
 
-// Handle review for completed deals
+// ===== 리뷰 작성 처리 =====
+// 완료된 거래에 대한 리뷰를 작성하기 위한 함수
 const handleReview = (property) => {
   console.log('=== handleReview Debug ===')
   console.log('Received property:', property)
@@ -284,23 +408,36 @@ const handleReview = (property) => {
   router.push(`/review/write/${property.dealId}`)
 }
 
-// Initialize component
+// ===== 컴포넌트 초기화 =====
+// 컴포넌트가 마운트될 때 거래 목록을 가져옴
 onMounted(() => {
+  console.log('🚀 DealWaitingListView 컴포넌트 마운트됨')
+  console.log('📊 초기 상태:', {
+    loading: loading.value,
+    error: error.value,
+    deals: deals.value.length,
+    isAuthenticated: authStore.isAuthenticated,
+    token: localStorage.getItem('token') ? '있음' : '없음',
+  })
+
+  // 거래 목록 가져오기
+  console.log('🔍 fetchDeals 함수 호출 시작')
   fetchDeals()
 })
 </script>
 
 <template>
   <div class="deal-waiting-list-view">
-    <!-- Main Content -->
+    <!-- 메인 콘텐츠 영역 -->
     <div class="main-content">
-      <!-- Section Title -->
+      <!-- 섹션 제목 -->
       <div class="section-title">
         <h1>거래 중인 매물</h1>
       </div>
 
-      <!-- Filter Tabs -->
+      <!-- 필터 탭 버튼들 -->
       <div class="filter-tabs">
+        <!-- 전체 거래 필터 -->
         <Button
           :variant="activeFilter === 'all' ? 'button1' : 'button10'"
           size="sm"
@@ -308,6 +445,7 @@ onMounted(() => {
         >
           전체
         </Button>
+        <!-- 구매 중인 거래 필터 -->
         <Button
           :variant="activeFilter === 'buying' ? 'button1' : 'button10'"
           size="sm"
@@ -315,6 +453,7 @@ onMounted(() => {
         >
           구매 중
         </Button>
+        <!-- 판매 중인 거래 필터 -->
         <Button
           :variant="activeFilter === 'selling' ? 'button1' : 'button10'"
           size="sm"
@@ -322,6 +461,7 @@ onMounted(() => {
         >
           판매 중
         </Button>
+        <!-- 완료된 거래 필터 -->
         <Button
           :variant="activeFilter === 'completed' ? 'button1' : 'button10'"
           size="sm"
@@ -331,32 +471,33 @@ onMounted(() => {
         </Button>
       </div>
 
-      <!-- Loading State -->
+      <!-- 로딩 상태 표시 -->
       <LoadingSpinner v-if="loading" text="거래 목록을 불러오는 중..." size="medium" />
 
-      <!-- Error State -->
+      <!-- 에러 상태 표시 -->
       <div v-else-if="error" class="error-container">
         <i class="fas fa-exclamation-triangle error-icon"></i>
         <p class="error-text">{{ error }}</p>
         <Button variant="button1" @click="fetchDeals" icon="fas fa-redo"> 다시 시도 </Button>
       </div>
 
-      <!-- Empty State -->
+      <!-- 빈 상태 표시 (거래가 없을 때) -->
       <div v-else-if="filteredDeals.length === 0" class="empty-container">
         <i class="fas fa-inbox empty-icon"></i>
         <h3 class="empty-title">거래 중인 매물이 없습니다</h3>
         <p class="empty-text">새로운 거래가 등록되면 여기에 표시됩니다.</p>
       </div>
 
-      <!-- Deals List -->
+      <!-- 거래 목록 표시 -->
       <div v-else class="deals-container">
         <div
           class="deals-grid"
           :class="{
-            'deals-grid-one': filteredDeals.length === 1,
-            'deals-grid-two': filteredDeals.length === 2,
+            'deals-grid-one': filteredDeals.length === 1, // 거래가 1개일 때 그리드 스타일
+            'deals-grid-two': filteredDeals.length === 2, // 거래가 2개일 때 그리드 스타일
           }"
         >
+          <!-- PropertyCardWaiting 컴포넌트를 사용하여 각 거래를 카드 형태로 표시 -->
           <PropertyCardWaiting
             v-for="deal in filteredDeals"
             :key="deal.buildingId"
@@ -368,28 +509,41 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- 로그인 필요 모달 -->
+    <PopupModal
+      v-if="showLoginModal"
+      title="로그인이 필요합니다"
+      message="거래 목록을 보려면 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?"
+      cancelText="취소"
+      confirmText="로그인하기"
+      @close="handleLoginModalClose"
+      @confirm="handleLoginConfirm"
+      @cancel="handleLoginCancel"
+    />
   </div>
 </template>
 
 <style scoped>
+/* ===== 거래 대기 목록 뷰 전체 스타일 ===== */
 .deal-waiting-list-view {
-  min-height: 100vh;
-  background: var(--bg-1);
+  min-height: 100vh; /* 최소 높이를 뷰포트 높이로 설정 */
+  background: var(--bg-1); /* 배경색 설정 */
   display: flex;
   flex-direction: column;
   width: 100%;
   align-items: flex-start;
 }
 
-/* Main Content */
+/* ===== 메인 콘텐츠 영역 스타일 ===== */
 .main-content {
-  flex: 1;
-  padding: 1.25rem;
-  max-width: 75rem;
-  margin: 0 auto;
+  flex: 1; /* 남은 공간을 모두 차지 */
+  padding: 1.25rem; /* 내부 여백 */
+  max-width: 75rem; /* 최대 너비 제한 */
+  margin: 0 auto; /* 가운데 정렬 */
   width: 100%;
-  min-height: calc(100vh - 12.5rem); /* Header + Footer 높이 고려 */
-  overflow-y: auto;
+  min-height: calc(100vh - 12.5rem); /* Header + Footer 높이를 고려한 최소 높이 */
+  overflow-y: auto; /* 세로 스크롤 허용 */
   background: var(--bg-1);
   box-sizing: border-box;
   display: flex;
@@ -397,7 +551,7 @@ onMounted(() => {
   align-items: flex-start;
 }
 
-/* Section Title */
+/* ===== 섹션 제목 스타일 ===== */
 .section-title {
   text-align: left;
   margin-bottom: 2rem;
@@ -408,36 +562,37 @@ onMounted(() => {
 }
 
 .section-title h1 {
-  color: #374151;
-  font-size: 1.75rem;
+  color: #374151; /* 제목 색상 */
+  font-size: 1.75rem; /* 제목 폰트 크기 */
   font-weight: bold;
   font-family: 'Roboto', sans-serif;
   margin: 0;
 }
 
-/* Filter Tabs */
+/* ===== 필터 탭 버튼 스타일 ===== */
 .filter-tabs {
   display: flex;
-  justify-content: flex-start;
-  gap: 0.75rem;
+  justify-content: flex-start; /* 왼쪽 정렬 */
+  gap: 0.75rem; /* 버튼 간 간격 */
   margin-bottom: 2.5rem;
   padding-left: 1.25rem;
   max-width: 100%;
   width: 100%;
   align-self: flex-start;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* 버튼이 많을 때 줄바꿈 */
 }
 
+/* 필터 탭 버튼 호버 효과 */
 .filter-tabs :deep(button) {
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  transition: all 0.2s ease; /* 부드러운 전환 효과 */
+  white-space: nowrap; /* 텍스트 줄바꿈 방지 */
 }
 
 .filter-tabs :deep(button:hover) {
-  transform: translateY(-1px);
+  transform: translateY(-1px); /* 호버 시 위로 살짝 이동 */
 }
 
-/* Deals Container */
+/* ===== 거래 목록 컨테이너 스타일 ===== */
 .deals-container {
   width: 100%;
   display: flex;
@@ -446,42 +601,46 @@ onMounted(() => {
   align-self: stretch;
 }
 
+/* 거래 그리드 레이아웃 */
 .deals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(25rem, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(25rem, 1fr)); /* 반응형 그리드 */
+  gap: 1.5rem; /* 그리드 간격 */
   width: 100%;
   max-width: 75rem;
   justify-items: start;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease; /* 부드러운 전환 효과 */
 }
 
+/* 거래가 1개일 때 그리드 스타일 */
 .deals-grid-one {
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr; /* 단일 컬럼 */
   justify-items: start;
 }
 
+/* 거래가 2개일 때 그리드 스타일 */
 .deals-grid-two {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 1fr); /* 2개 컬럼 */
 }
 
+/* 모바일에서 2개 거래일 때 단일 컬럼으로 변경 */
 @media (max-width: 640px) {
   .deals-grid-two {
     grid-template-columns: 1fr;
   }
 }
 
-/* Card transition effects */
+/* ===== 카드 전환 효과 ===== */
 .deals-grid :deep(.property-card-waiting) {
-  transition: all 0.3s ease;
+  transition: all 0.3s ease; /* 부드러운 전환 효과 */
 }
 
 .deals-grid :deep(.property-card-waiting:hover) {
-  transform: translateY(-4px);
-  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px); /* 호버 시 위로 이동 */
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.15); /* 호버 시 그림자 효과 */
 }
 
-/* Error State */
+/* ===== 에러 상태 스타일 ===== */
 .error-container {
   display: flex;
   flex-direction: column;
@@ -490,13 +649,13 @@ onMounted(() => {
   padding: 4rem 1.25rem;
   text-align: center;
   width: 100%;
-  min-height: 50vh;
+  min-height: 50vh; /* 최소 높이 설정 */
   margin: 2rem 0;
 }
 
 .error-icon {
   font-size: 3rem;
-  color: var(--status-2);
+  color: var(--status-2); /* 에러 아이콘 색상 */
   margin-bottom: 1rem;
 }
 
@@ -507,7 +666,7 @@ onMounted(() => {
   font-family: 'Roboto', sans-serif;
 }
 
-/* Empty State */
+/* ===== 빈 상태 스타일 ===== */
 .empty-container {
   display: flex;
   flex-direction: column;
@@ -516,7 +675,7 @@ onMounted(() => {
   padding: 4rem 1.25rem;
   text-align: center;
   width: 100%;
-  min-height: 50vh;
+  min-height: 50vh; /* 최소 높이 설정 */
   margin: 2rem 0;
 }
 
@@ -540,7 +699,7 @@ onMounted(() => {
   font-family: 'Roboto', sans-serif;
 }
 
-/* Mobile styles (768px 이하) */
+/* ===== 모바일 스타일 (768px 이하) ===== */
 @media (max-width: 48rem) {
   .main-content {
     padding: 1rem;
@@ -561,7 +720,7 @@ onMounted(() => {
   }
 
   .section-title h1 {
-    font-size: 1.5rem;
+    font-size: 1.5rem; /* 모바일에서 제목 크기 축소 */
   }
 
   .filter-tabs {
@@ -583,14 +742,14 @@ onMounted(() => {
   }
 
   .deals-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* 모바일에서 단일 컬럼 */
     gap: 1.25rem;
     justify-items: center;
     width: 100%;
     padding: 0 0.5rem;
   }
 
-  /* Custom button sizing for mobile */
+  /* 모바일용 버튼 크기 조정 */
   .filter-tabs :deep(button) {
     min-width: 3.75rem !important;
     height: 2rem !important;
@@ -622,7 +781,7 @@ onMounted(() => {
   }
 }
 
-/* Small Mobile styles (480px 이하) */
+/* ===== 작은 모바일 스타일 (480px 이하) ===== */
 @media (max-width: 30rem) {
   .main-content {
     padding: 0.75rem;
@@ -654,7 +813,7 @@ onMounted(() => {
   }
 }
 
-/* Tablet styles (769px - 1023px) */
+/* ===== 태블릿 스타일 (769px - 1023px) ===== */
 @media (min-width: 48.0625rem) and (max-width: 64rem) {
   .main-content {
     padding: 1.25rem;
@@ -675,7 +834,7 @@ onMounted(() => {
   }
 }
 
-/* Desktop styles (1024px 이상) */
+/* ===== 데스크톱 스타일 (1024px 이상) ===== */
 @media (min-width: 64rem) {
   .main-content {
     padding: 1.25rem;
@@ -710,7 +869,7 @@ onMounted(() => {
   }
 }
 
-/* Large Desktop styles (1440px 이상) */
+/* ===== 대형 데스크톱 스타일 (1440px 이상) ===== */
 @media (min-width: 90rem) {
   .main-content {
     padding: 1.5rem;
@@ -722,7 +881,7 @@ onMounted(() => {
   }
 }
 
-/* Extra Large Desktop styles (1920px 이상) */
+/* ===== 초대형 데스크톱 스타일 (1920px 이상) ===== */
 @media (min-width: 120rem) {
   .main-content {
     padding: 2rem;
