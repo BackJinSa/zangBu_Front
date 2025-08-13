@@ -31,145 +31,64 @@ const showLoginModal = ref(false)
 // ===== API에서 거래 목록 가져오기 =====
 // /deal/waitinglist 엔드포인트를 통해 실제 거래 데이터를 가져옴
 const fetchDeals = async () => {
-  console.log('🎯 fetchDeals 함수 실행됨')
   loading.value = true // 로딩 상태 활성화
   error.value = null // 에러 상태 초기화
 
   try {
-    console.log('=== fetchDeals 시작 ===')
-    console.log('인증 상태:', authStore.isAuthenticated)
-    console.log('토큰 유효성:', authStore.isTokenValid())
-    console.log('저장된 토큰:', localStorage.getItem('token'))
-    console.log('저장된 사용자:', localStorage.getItem('user'))
     // JWT 토큰 확인 및 유효성 검사
     if (!authStore.isAuthenticated || !authStore.isTokenValid()) {
-      console.log('인증 실패 - 토큰 유효성 검사 실패')
-      console.log('⚠️ reissue 기능이 아직 개발되지 않아 기존 토큰으로 시도')
-
       // TODO: reissue 기능 개발 완료 후 활성화
       // 토큰 갱신 시도
       /*
       try {
-        console.log('🔄 토큰 갱신 시작...')
         await authStore.refreshAccessToken()
-        console.log('✅ 토큰 갱신 성공')
         
         // 갱신된 토큰으로 다시 API 호출
-        console.log('🔄 갱신된 토큰으로 API 재호출')
         const response = await getDeals()
-        console.log('📡 API 응답 전체:', response)
-        console.log('📊 API 응답 데이터:', response.data)
-        console.log('📋 API 응답 상태:', response.status)
-        console.log('🔧 API 응답 헤더:', response.headers)
 
         // API 응답 데이터 처리 - Postman 응답 구조에 맞게 처리
         if (response.data && response.data.deals) {
           // 페이지네이션된 응답 구조 처리 (Postman 응답과 동일)
           deals.value = response.data.deals
-          console.log('✅ 페이지네이션 데이터 처리 성공:', {
-            pageNum: response.data.pageNum,
-            pageSize: response.data.pageSize,
-            total: response.data.total,
-            pages: response.data.pages,
-            dealsCount: response.data.deals.length,
-          })
         } else if (response.data && Array.isArray(response.data)) {
           // 배열 형태로 직접 응답하는 경우
           deals.value = response.data
-          console.log('✅ 배열 데이터 처리 성공:', response.data.length)
         } else if (response.data) {
           // 단일 객체인 경우 배열로 변환
           deals.value = [response.data]
-          console.log('✅ 단일 객체를 배열로 변환:', response.data)
         } else {
           // API 응답이 없는 경우 빈 배열로 설정
           deals.value = []
-          console.log('⚠️ 응답 데이터 없음 - 빈 배열 설정')
         }
-
-        console.log('🎯 최종 처리된 거래 목록:', deals.value)
-        console.log('📊 거래 목록 길이:', deals.value.length)
-
-        // 각 거래 데이터 상세 로깅
-        deals.value.forEach((deal, index) => {
-          console.log(`🏠 거래 ${index + 1}:`, {
-            buildingId: deal.buildingId,
-            buildingName: deal.buildingName,
-            price: deal.price,
-            userStatus: deal.userStatus,
-            dealStatus: deal.dealStatus,
-          })
-        })
 
         return // 성공적으로 처리되었으므로 함수 종료
       } catch (refreshError) {
-        console.error('❌ 토큰 갱신 실패:', refreshError)
         // 토큰 갱신 실패 시 로그인 필요 팝업 표시
         showLoginRequiredPopup()
         return
       }
       */
-
       // 일단 기존 토큰으로 API 호출 시도
-      console.log('🔄 기존 토큰으로 API 호출 시도')
     }
 
     // 실제 API 호출
-    console.log('🔍 API 호출 시작: /deal/waitinglist')
     const response = await getDeals()
-    console.log('📡 API 응답 전체:', response)
-    console.log('📊 API 응답 데이터:', response.data)
-    console.log('📋 API 응답 상태:', response.status)
-    console.log('🔧 API 응답 헤더:', response.headers)
 
     // API 응답 데이터 처리 - Postman 응답 구조에 맞게 처리
     if (response.data && response.data.deals) {
       // 페이지네이션된 응답 구조 처리 (Postman 응답과 동일)
       deals.value = response.data.deals
-      console.log('✅ 페이지네이션 데이터 처리 성공:', {
-        pageNum: response.data.pageNum,
-        pageSize: response.data.pageSize,
-        total: response.data.total,
-        pages: response.data.pages,
-        dealsCount: response.data.deals.length,
-      })
     } else if (response.data && Array.isArray(response.data)) {
       // 배열 형태로 직접 응답하는 경우
       deals.value = response.data
-      console.log('✅ 배열 데이터 처리 성공:', response.data.length)
     } else if (response.data) {
       // 단일 객체인 경우 배열로 변환
       deals.value = [response.data]
-      console.log('✅ 단일 객체를 배열로 변환:', response.data)
     } else {
       // API 응답이 없는 경우 빈 배열로 설정
       deals.value = []
-      console.log('⚠️ 응답 데이터 없음 - 빈 배열 설정')
     }
-
-    console.log('🎯 최종 처리된 거래 목록:', deals.value)
-    console.log('📊 거래 목록 길이:', deals.value.length)
-
-    // 각 거래 데이터 상세 로깅
-    deals.value.forEach((deal, index) => {
-      console.log(`🏠 거래 ${index + 1}:`, {
-        buildingId: deal.buildingId,
-        buildingName: deal.buildingName,
-        price: deal.price,
-        userStatus: deal.userStatus,
-        dealStatus: deal.dealStatus,
-      })
-    })
   } catch (err) {
-    console.error('❌ API 호출 중 오류 발생 ===')
-    console.error('🚨 에러 객체:', err)
-    console.error('📡 에러 응답:', err.response)
-    console.error('🌐 에러 요청:', err.request)
-    console.error('💬 에러 메시지:', err.message)
-    console.error('🔢 에러 코드:', err.code)
-    console.error('📊 에러 상태:', err.response?.status)
-    console.error('📋 에러 데이터:', err.response?.data)
-
     // 401 Unauthorized 에러인 경우 로그인 페이지로 이동
     if (err.response?.status === 401) {
       showLoginRequiredPopup()
@@ -258,9 +177,6 @@ const setActiveFilter = (filter) => {
 // ===== 거래 데이터 포맷팅 함수 =====
 // PropertyCard 컴포넌트에서 사용할 수 있도록 거래 데이터를 포맷팅
 const formatDealForPropertyCard = (deal) => {
-  console.log('=== formatDealForPropertyCard ===')
-  console.log('Original deal:', deal)
-
   // API 응답 데이터를 PropertyCard 컴포넌트에 맞는 형태로 변환
   const formattedProperty = {
     buildingId: deal.buildingId,
@@ -286,7 +202,6 @@ const formatDealForPropertyCard = (deal) => {
     formattedProperty.priceDisplay = '가격 협의'
   }
 
-  console.log('Formatted property:', formattedProperty)
   return formattedProperty
 }
 
@@ -332,18 +247,10 @@ const mapDealStatus = (apiDealStatus) => {
 // ===== 거래 상세 페이지 이동 처리 =====
 // PropertyCard에서 거래 상세 버튼 클릭 시 호출
 const handleDealDetail = (property) => {
-  console.log('=== handleDealDetail Debug ===')
-  console.log('Received property:', property)
-  console.log('dealId:', property.dealId)
-  console.log('userRole:', property.userRole)
-  console.log('buildingId:', property.buildingId)
-
   const dealId = property.dealId
   // 사용자 역할에 따라 다른 라우트로 이동
   const targetRoute =
     property.userRole === 'seller' ? `/deal/seller/${dealId}` : `/deal/buyer/${dealId}`
-
-  console.log('Target route:', targetRoute)
 
   // 페이지 이동 전에 Header 아래로 스크롤 (사용자 경험 개선)
   window.scrollTo({
@@ -356,7 +263,6 @@ const handleDealDetail = (property) => {
     router
       .push(`/deal/seller/${dealId}`)
       .then(() => {
-        console.log('Successfully navigated to seller page')
         // 페이지 이동 후에도 Header 아래로 스크롤
         window.scrollTo({
           top: 96,
@@ -371,7 +277,6 @@ const handleDealDetail = (property) => {
     router
       .push(`/deal/buyer/${dealId}`)
       .then(() => {
-        console.log('Successfully navigated to buyer page')
         // 페이지 이동 후에도 Header 아래로 스크롤
         window.scrollTo({
           top: 96,
@@ -387,11 +292,6 @@ const handleDealDetail = (property) => {
 // ===== 완료된 거래 상세 보기 처리 =====
 // 완료된 거래의 상세 정보를 보기 위한 함수
 const handleViewDetails = (property) => {
-  console.log('=== handleViewDetails Debug ===')
-  console.log('Received property:', property)
-  console.log('dealId:', property.dealId)
-  console.log('buildingId:', property.buildingId)
-
   // 거래 내역 페이지로 이동 (예: 거래 완료 상세 페이지)
   router.push(`/deal/completed/${property.dealId}`)
 }
@@ -399,11 +299,6 @@ const handleViewDetails = (property) => {
 // ===== 리뷰 작성 처리 =====
 // 완료된 거래에 대한 리뷰를 작성하기 위한 함수
 const handleReview = (property) => {
-  console.log('=== handleReview Debug ===')
-  console.log('Received property:', property)
-  console.log('dealId:', property.dealId)
-  console.log('buildingId:', property.buildingId)
-
   // 리뷰 작성 페이지로 이동
   router.push(`/review/write/${property.dealId}`)
 }
@@ -411,17 +306,7 @@ const handleReview = (property) => {
 // ===== 컴포넌트 초기화 =====
 // 컴포넌트가 마운트될 때 거래 목록을 가져옴
 onMounted(() => {
-  console.log('🚀 DealWaitingListView 컴포넌트 마운트됨')
-  console.log('📊 초기 상태:', {
-    loading: loading.value,
-    error: error.value,
-    deals: deals.value.length,
-    isAuthenticated: authStore.isAuthenticated,
-    token: localStorage.getItem('token') ? '있음' : '없음',
-  })
-
   // 거래 목록 가져오기
-  console.log('🔍 fetchDeals 함수 호출 시작')
   fetchDeals()
 })
 </script>
@@ -430,82 +315,162 @@ onMounted(() => {
   <div class="deal-waiting-list-view">
     <!-- 메인 콘텐츠 영역 -->
     <div class="main-content">
-      <!-- 섹션 제목 -->
-      <div class="section-title">
-        <h1>거래 중인 매물</h1>
+      <!-- 데스크탑 레이아웃 -->
+      <div class="desktop-layout">
+        <!-- 중앙 제목 -->
+        <div class="centered-title">
+          <h1>거래 중인 매물</h1>
+        </div>
+
+        <!-- 사이드바와 메인 콘텐츠 영역 -->
+        <div class="content-layout">
+          <!-- 왼쪽 사이드바 -->
+          <div class="sidebar">
+            <!-- 필터 탭 버튼들 -->
+            <div class="filter-tabs">
+              <!-- 전체 거래 필터 -->
+              <button
+                :class="['filter-btn', activeFilter === 'all' ? 'button1' : 'button10']"
+                @click="setActiveFilter('all')"
+              >
+                전체
+              </button>
+              <!-- 구매 중인 거래 필터 -->
+              <button
+                :class="['filter-btn', activeFilter === 'buying' ? 'button1' : 'button10']"
+                @click="setActiveFilter('buying')"
+              >
+                구매 중
+              </button>
+              <!-- 판매 중인 거래 필터 -->
+              <button
+                :class="['filter-btn', activeFilter === 'selling' ? 'button1' : 'button10']"
+                @click="setActiveFilter('selling')"
+              >
+                판매 중
+              </button>
+              <!-- 완료된 거래 필터 -->
+              <button
+                :class="['filter-btn', activeFilter === 'completed' ? 'button1' : 'button10']"
+                @click="setActiveFilter('completed')"
+              >
+                거래 완료
+              </button>
+            </div>
+          </div>
+
+          <!-- 오른쪽 메인 콘텐츠 -->
+          <div class="main-content-area">
+            <!-- 로딩 상태 표시 -->
+            <LoadingSpinner v-if="loading" text="거래 목록을 불러오는 중..." size="medium" />
+
+            <!-- 에러 상태 표시 -->
+            <div v-else-if="error" class="error-container">
+              <i class="fas fa-exclamation-triangle error-icon"></i>
+              <p class="error-text">{{ error }}</p>
+              <Button variant="button1" @click="fetchDeals" icon="fas fa-redo"> 다시 시도 </Button>
+            </div>
+
+            <!-- 빈 상태 표시 (거래가 없을 때) -->
+            <div v-else-if="filteredDeals.length === 0" class="empty-container">
+              <i class="fas fa-inbox empty-icon"></i>
+              <h3 class="empty-title">거래 중인 매물이 없습니다</h3>
+              <p class="empty-text">새로운 거래가 등록되면 여기에 표시됩니다.</p>
+            </div>
+
+            <!-- 거래 목록 표시 -->
+            <div v-else class="deals-container">
+              <div class="deals-grid">
+                <!-- PropertyCardWaiting 컴포넌트를 사용하여 각 거래를 카드 형태로 표시 -->
+                <PropertyCardWaiting
+                  v-for="deal in filteredDeals"
+                  :key="deal.dealId"
+                  :property="formatDealForPropertyCard(deal)"
+                  @edit="handleDealDetail"
+                  @viewDetails="handleViewDetails"
+                  @review="handleReview"
+                />
+
+                <!-- 매물이 1개일 때 빈 카드 공간 추가 -->
+                <div v-if="filteredDeals.length === 1" class="empty-card-space"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- 필터 탭 버튼들 -->
-      <div class="filter-tabs">
-        <!-- 전체 거래 필터 -->
-        <Button
-          :variant="activeFilter === 'all' ? 'button1' : 'button10'"
-          size="sm"
-          @click="setActiveFilter('all')"
-        >
-          전체
-        </Button>
-        <!-- 구매 중인 거래 필터 -->
-        <Button
-          :variant="activeFilter === 'buying' ? 'button1' : 'button10'"
-          size="sm"
-          @click="setActiveFilter('buying')"
-        >
-          구매 중
-        </Button>
-        <!-- 판매 중인 거래 필터 -->
-        <Button
-          :variant="activeFilter === 'selling' ? 'button1' : 'button10'"
-          size="sm"
-          @click="setActiveFilter('selling')"
-        >
-          판매 중
-        </Button>
-        <!-- 완료된 거래 필터 -->
-        <Button
-          :variant="activeFilter === 'completed' ? 'button1' : 'button10'"
-          size="sm"
-          @click="setActiveFilter('completed')"
-        >
-          거래 완료
-        </Button>
-      </div>
+      <!-- 모바일 레이아웃 -->
+      <div class="mobile-layout">
+        <!-- 섹션 제목 -->
+        <div class="section-title">
+          <h1>거래 중인 매물</h1>
+        </div>
 
-      <!-- 로딩 상태 표시 -->
-      <LoadingSpinner v-if="loading" text="거래 목록을 불러오는 중..." size="medium" />
+        <!-- 필터 탭 버튼들 -->
+        <div class="filter-tabs">
+          <!-- 전체 거래 필터 -->
+          <button
+            :class="['filter-btn', activeFilter === 'all' ? 'button1' : 'button10']"
+            @click="setActiveFilter('all')"
+          >
+            전체
+          </button>
+          <!-- 구매 중인 거래 필터 -->
+          <button
+            :class="['filter-btn', activeFilter === 'buying' ? 'button1' : 'button10']"
+            @click="setActiveFilter('buying')"
+          >
+            구매 중
+          </button>
+          <!-- 판매 중인 거래 필터 -->
+          <button
+            :class="['filter-btn', activeFilter === 'selling' ? 'button1' : 'button10']"
+            @click="setActiveFilter('selling')"
+          >
+            판매 중
+          </button>
+          <!-- 완료된 거래 필터 -->
+          <button
+            :class="['filter-btn', activeFilter === 'completed' ? 'button1' : 'button10']"
+            @click="setActiveFilter('completed')"
+          >
+            거래 완료
+          </button>
+        </div>
 
-      <!-- 에러 상태 표시 -->
-      <div v-else-if="error" class="error-container">
-        <i class="fas fa-exclamation-triangle error-icon"></i>
-        <p class="error-text">{{ error }}</p>
-        <Button variant="button1" @click="fetchDeals" icon="fas fa-redo"> 다시 시도 </Button>
-      </div>
+        <!-- 로딩 상태 표시 -->
+        <LoadingSpinner v-if="loading" text="거래 목록을 불러오는 중..." size="medium" />
 
-      <!-- 빈 상태 표시 (거래가 없을 때) -->
-      <div v-else-if="filteredDeals.length === 0" class="empty-container">
-        <i class="fas fa-inbox empty-icon"></i>
-        <h3 class="empty-title">거래 중인 매물이 없습니다</h3>
-        <p class="empty-text">새로운 거래가 등록되면 여기에 표시됩니다.</p>
-      </div>
+        <!-- 에러 상태 표시 -->
+        <div v-else-if="error" class="error-container">
+          <i class="fas fa-exclamation-triangle error-icon"></i>
+          <p class="error-text">{{ error }}</p>
+          <Button variant="button1" @click="fetchDeals" icon="fas fa-redo"> 다시 시도 </Button>
+        </div>
 
-      <!-- 거래 목록 표시 -->
-      <div v-else class="deals-container">
-        <div
-          class="deals-grid"
-          :class="{
-            'deals-grid-one': filteredDeals.length === 1, // 거래가 1개일 때 그리드 스타일
-            'deals-grid-two': filteredDeals.length === 2, // 거래가 2개일 때 그리드 스타일
-          }"
-        >
-          <!-- PropertyCardWaiting 컴포넌트를 사용하여 각 거래를 카드 형태로 표시 -->
-          <PropertyCardWaiting
-            v-for="deal in filteredDeals"
-            :key="deal.buildingId"
-            :property="formatDealForPropertyCard(deal)"
-            @edit="handleDealDetail"
-            @viewDetails="handleViewDetails"
-            @review="handleReview"
-          />
+        <!-- 빈 상태 표시 (거래가 없을 때) -->
+        <div v-else-if="filteredDeals.length === 0" class="empty-container">
+          <i class="fas fa-inbox empty-icon"></i>
+          <h3 class="empty-title">거래 중인 매물이 없습니다</h3>
+          <p class="empty-text">새로운 거래가 등록되면 여기에 표시됩니다.</p>
+        </div>
+
+        <!-- 거래 목록 표시 -->
+        <div v-else class="deals-container">
+          <div class="deals-grid">
+            <!-- PropertyCardWaiting 컴포넌트를 사용하여 각 거래를 카드 형태로 표시 -->
+            <PropertyCardWaiting
+              v-for="deal in filteredDeals"
+              :key="deal.dealId"
+              :property="formatDealForPropertyCard(deal)"
+              @edit="handleDealDetail"
+              @viewDetails="handleViewDetails"
+              @review="handleReview"
+            />
+
+            <!-- 매물이 1개일 때 빈 카드 공간 추가 -->
+            <div v-if="filteredDeals.length === 1" class="empty-card-space"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -527,117 +492,245 @@ onMounted(() => {
 <style scoped>
 /* ===== 거래 대기 목록 뷰 전체 스타일 ===== */
 .deal-waiting-list-view {
-  min-height: 100vh; /* 최소 높이를 뷰포트 높이로 설정 */
-  background: var(--bg-1); /* 배경색 설정 */
+  min-height: 100vh;
+  background: white;
   display: flex;
   flex-direction: column;
   width: 100%;
-  align-items: flex-start;
 }
 
 /* ===== 메인 콘텐츠 영역 스타일 ===== */
 .main-content {
-  flex: 1; /* 남은 공간을 모두 차지 */
-  padding: 1.25rem; /* 내부 여백 */
-  max-width: 75rem; /* 최대 너비 제한 */
-  margin: 0 auto; /* 가운데 정렬 */
+  flex: 1;
+  padding: 1.25rem;
+  max-width: 75rem;
+  margin: 0 auto;
   width: 100%;
-  min-height: calc(100vh - 12.5rem); /* Header + Footer 높이를 고려한 최소 높이 */
-  overflow-y: auto; /* 세로 스크롤 허용 */
-  background: var(--bg-1);
+  min-height: calc(100vh - 12.5rem);
+  background: white;
   box-sizing: border-box;
+}
+
+/* ===== 데스크탑 레이아웃 ===== */
+.desktop-layout {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: 2rem;
+  width: 100%;
+}
+
+/* ===== 중앙 제목 스타일 ===== */
+.centered-title {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 4rem 2rem;
+  background: transparent;
+  border-radius: 1rem;
+  border: none;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.centered-title h1 {
+  color: #1f2937;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.025em;
+  position: relative;
+  display: inline-block;
+}
+
+.centered-title h1::after {
+  content: '';
+  position: absolute;
+  bottom: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5rem;
+  height: 4px;
+  background: #059669;
+  border-radius: 2px;
+}
+
+/* ===== 콘텐츠 레이아웃 ===== */
+.content-layout {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+}
+
+/* ===== 사이드바 스타일 ===== */
+.sidebar {
+  flex: 0 0 280px;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+}
+
+/* ===== 메인 콘텐츠 영역 ===== */
+.main-content-area {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===== 모바일 레이아웃 ===== */
+.mobile-layout {
+  display: none;
 }
 
 /* ===== 섹션 제목 스타일 ===== */
 .section-title {
-  text-align: left;
   margin-bottom: 2rem;
-  padding-left: 1.25rem;
-  max-width: 100%;
-  width: 100%;
-  align-self: flex-start;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border-left: none;
+  position: relative;
+  box-shadow: none;
 }
 
 .section-title h1 {
-  color: #374151; /* 제목 색상 */
-  font-size: 1.75rem; /* 제목 폰트 크기 */
-  font-weight: bold;
-  font-family: 'Roboto', sans-serif;
+  color: #1f2937;
+  font-size: 2rem;
+  font-weight: 700;
   margin: 0;
+  letter-spacing: -0.025em;
+  position: relative;
+  display: block;
+}
+
+.section-title h1::before {
+  content: none;
+}
+
+.section-title h1::after {
+  content: '';
+  position: absolute;
+  bottom: -0.75rem;
+  left: 0;
+  width: 3rem;
+  height: 2px;
+  background: #059669;
+  border-radius: 1px;
 }
 
 /* ===== 필터 탭 버튼 스타일 ===== */
 .filter-tabs {
   display: flex;
-  justify-content: flex-start; /* 왼쪽 정렬 */
-  gap: 0.75rem; /* 버튼 간 간격 */
-  margin-bottom: 2.5rem;
-  padding-left: 1.25rem;
-  max-width: 100%;
-  width: 100%;
-  align-self: flex-start;
-  flex-wrap: wrap; /* 버튼이 많을 때 줄바꿈 */
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
 }
 
-/* 필터 탭 버튼 호버 효과 */
-.filter-tabs :deep(button) {
-  transition: all 0.2s ease; /* 부드러운 전환 효과 */
-  white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+.filter-tabs .filter-btn {
+  width: auto;
+  min-width: 80px;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  height: auto;
+  min-height: auto;
+  background: white;
+  border: none;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  color: #374151;
+  font-weight: 600;
+  flex-shrink: 0;
+  text-align: left;
+  justify-content: flex-start;
+  box-shadow: none;
+  transform: none;
 }
 
-.filter-tabs :deep(button:hover) {
-  transform: translateY(-1px); /* 호버 시 위로 살짝 이동 */
+.filter-tabs .filter-btn:hover {
+  background: #f0fdf4;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);
+  transform: translateY(-1px);
+}
+
+.filter-tabs .filter-btn:active {
+  transform: translateY(0);
+}
+
+.filter-tabs .filter-btn.button1 {
+  background: #059669;
+  color: white;
+  border-color: #059669;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+  font-weight: 600;
+  position: relative;
+}
+
+.filter-tabs .filter-btn.button1::after {
+  content: none;
+}
+
+.filter-tabs .filter-btn.button1:hover {
+  background: #047857;
+  border-color: #047857;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+  color: white;
+}
+
+.filter-tabs .filter-btn.button10 {
+  background: white;
+  color: #1f2937;
+  border-color: #e2e8f0;
+  font-weight: 500;
+}
+
+.filter-tabs .filter-btn.button10:hover {
+  background: #f0fdf4;
+  border-color: #059669;
+  color: #059669;
 }
 
 /* ===== 거래 목록 컨테이너 스타일 ===== */
 .deals-container {
   width: 100%;
-  display: flex;
-  justify-content: flex-start;
-  max-width: 100%;
-  align-self: stretch;
+  max-width: 75rem;
+  box-sizing: border-box;
 }
 
 /* 거래 그리드 레이아웃 */
 .deals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(25rem, 1fr)); /* 반응형 그리드 */
-  gap: 1.5rem; /* 그리드 간격 */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
   width: 100%;
-  max-width: 75rem;
-  justify-items: start;
-  transition: all 0.3s ease; /* 부드러운 전환 효과 */
+  justify-items: center;
+  max-width: 100%;
 }
 
-/* 거래가 1개일 때 그리드 스타일 */
-.deals-grid-one {
-  grid-template-columns: 1fr; /* 단일 컬럼 */
-  justify-items: start;
-}
-
-/* 거래가 2개일 때 그리드 스타일 */
-.deals-grid-two {
-  grid-template-columns: repeat(2, 1fr); /* 2개 컬럼 */
-}
-
-/* 모바일에서 2개 거래일 때 단일 컬럼으로 변경 */
-@media (max-width: 640px) {
-  .deals-grid-two {
-    grid-template-columns: 1fr;
-  }
+/* 빈 카드 공간 (매물이 1개일 때) */
+.empty-card-space {
+  width: 100%;
+  height: 0;
+  visibility: hidden;
 }
 
 /* ===== 카드 전환 효과 ===== */
 .deals-grid :deep(.property-card-waiting) {
-  transition: all 0.3s ease; /* 부드러운 전환 효과 */
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 100%;
 }
 
 .deals-grid :deep(.property-card-waiting:hover) {
-  transform: translateY(-4px); /* 호버 시 위로 이동 */
-  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.15); /* 호버 시 그림자 효과 */
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 /* ===== 에러 상태 스타일 ===== */
@@ -649,21 +742,20 @@ onMounted(() => {
   padding: 4rem 1.25rem;
   text-align: center;
   width: 100%;
-  min-height: 50vh; /* 최소 높이 설정 */
+  min-height: 50vh;
   margin: 2rem 0;
 }
 
 .error-icon {
   font-size: 3rem;
-  color: var(--status-2); /* 에러 아이콘 색상 */
+  color: #ef4444;
   margin-bottom: 1rem;
 }
 
 .error-text {
-  color: var(--text-2);
+  color: #6b7280;
   font-size: 1rem;
   margin-bottom: 1.25rem;
-  font-family: 'Roboto', sans-serif;
 }
 
 /* ===== 빈 상태 스타일 ===== */
@@ -675,86 +767,324 @@ onMounted(() => {
   padding: 4rem 1.25rem;
   text-align: center;
   width: 100%;
-  min-height: 50vh; /* 최소 높이 설정 */
+  min-height: 50vh;
   margin: 2rem 0;
 }
 
 .empty-icon {
   font-size: 4rem;
-  color: var(--text-1);
+  color: #9ca3af;
   margin-bottom: 1rem;
 }
 
 .empty-title {
-  color: var(--text-2);
+  color: #6b7280;
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  font-family: 'Roboto', sans-serif;
 }
 
 .empty-text {
-  color: var(--text-1);
+  color: #9ca3af;
   font-size: 0.875rem;
-  font-family: 'Roboto', sans-serif;
 }
 
-/* ===== 모바일 스타일 (768px 이하) ===== */
-@media (max-width: 48rem) {
-  .main-content {
-    padding: 1rem;
-    min-height: calc(100vh - 11.25rem);
-    margin: 0 auto;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    align-items: center;
+/* ===== 반응형 스타일 ===== */
+
+/* 데스크탑 (1024px 이상) */
+@media (min-width: 64rem) {
+  .desktop-layout {
+    display: flex;
   }
 
-  .section-title {
-    padding-left: 0;
-    margin-bottom: 1.5rem;
-    text-align: left;
-    align-self: flex-start;
-    width: 100%;
-  }
-
-  .section-title h1 {
-    font-size: 1.5rem; /* 모바일에서 제목 크기 축소 */
-  }
-
-  .filter-tabs {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    padding-left: 0;
-    flex-wrap: wrap;
-    margin-bottom: 2rem;
-    justify-content: flex-start;
-    align-self: flex-start;
-    width: 100%;
-  }
-
-  .deals-container {
-    width: 100%;
-    padding: 0;
-    align-self: stretch;
+  .mobile-layout {
+    display: none;
   }
 
   .deals-grid {
-    grid-template-columns: 1fr; /* 모바일에서 단일 컬럼 */
-    gap: 1.25rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
     justify-items: center;
-    width: 100%;
-    padding: 0 0.5rem;
   }
 
-  /* 모바일용 버튼 크기 조정 */
-  .filter-tabs :deep(button) {
-    min-width: 3.75rem !important;
-    height: 2rem !important;
-    padding: 0.25rem 0.5rem !important;
-    font-size: 0.75rem !important;
+  .sidebar .filter-tabs .filter-btn {
+    width: 100%;
+    min-width: 280px;
+  }
+}
+
+/* 태블릿 및 작은 데스크탑 (1024px 미만) */
+@media (max-width: 63.9375rem) {
+  .main-content {
+    padding: 1rem;
+    min-height: calc(100vh - 11.25rem);
+  }
+
+  .desktop-layout {
+    display: none;
+  }
+
+  .mobile-layout {
+    display: block;
+  }
+
+  .section-title {
+    margin-bottom: 2rem;
+    padding: 3rem 1.5rem;
+    background: transparent;
+    border-radius: 1rem;
+    border: none;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .section-title h1 {
+    font-size: 1.75rem;
+    color: #1f2937;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.025em;
+    position: relative;
+    display: inline-block;
+  }
+
+  .section-title h1::after {
+    content: '';
+    position: absolute;
+    bottom: -1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3rem;
+    height: 2px;
+    background: #059669;
+    border-radius: 1px;
+  }
+
+  .filter-tabs {
+    display: flex;
+    flex-direction: row;
+    gap: 0.375rem;
+    margin-bottom: 1.75rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+  }
+
+  .filter-tabs .filter-btn {
+    flex: 1;
+    min-width: auto;
+    padding: 0.625rem 0.375rem;
+    font-size: 0.8125rem;
+    height: auto;
+    min-height: auto;
+    background: white;
+    border: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    color: #1f2937;
+    font-weight: 600;
+    flex-shrink: 0;
+    text-align: center;
+    justify-content: center;
+    box-shadow: none;
+    transform: none;
+    cursor: pointer;
+  }
+
+  .filter-tabs .filter-btn.button1 {
+    background: #059669;
+    color: white;
+    border: none;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+    font-weight: 600;
+  }
+
+  .filter-tabs .filter-btn.button10 {
+    background: white;
+    color: #1f2937;
+    border: none;
+    font-weight: 500;
+  }
+
+  .deals-container {
+    max-width: 100%;
+  }
+
+  .deals-grid {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: none;
+    grid-template-rows: none;
+    grid-auto-flow: unset;
+  }
+
+  .deals-grid > * {
+    display: block;
+    width: 100%;
+    margin-bottom: 1.25rem;
+    grid-column: unset;
+    grid-row: unset;
+  }
+
+  .deals-grid > *:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* 모바일 (480px 이하) */
+@media (max-width: 30rem) {
+  .main-content {
+    padding: 0.75rem;
+  }
+
+  .desktop-layout {
+    display: none;
+  }
+
+  .mobile-layout {
+    display: block;
+  }
+
+  .section-title {
+    margin-bottom: 1.5rem;
+    padding: 2.5rem 1rem;
+    background: transparent;
+    border-radius: 0.75rem;
+    border: none;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .section-title h1 {
+    font-size: 1.5rem;
+    color: #1f2937;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.025em;
+    position: relative;
+    display: inline-block;
+  }
+
+  .section-title h1::after {
+    content: '';
+    position: absolute;
+    bottom: -0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2.5rem;
+    height: 2px;
+    background: #059669;
+    border-radius: 1px;
+  }
+
+  .filter-tabs {
+    margin-bottom: 1.75rem;
+    gap: 0.375rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    max-width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .filter-tabs button {
+    width: auto;
+    min-width: 60px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    height: auto;
+    min-height: 2.25rem;
+    background: white;
+    border: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    color: #1f2937;
+    font-weight: 500;
+    flex-shrink: 0;
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  .filter-tabs button:hover {
+    background: #f0fdf4;
+    box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .filter-tabs button:active {
+    transform: translateY(0);
+  }
+
+  .filter-tabs button.button1 {
+    background: #059669;
+    color: white;
+    border: none;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+    font-weight: 600;
+    position: relative;
+  }
+
+  .filter-tabs button.button1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #059669;
+  }
+
+  .filter-tabs button.button1:hover {
+    background: #047857;
+    border: none;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+    color: white;
+  }
+
+  .filter-tabs button.button10 {
+    background: white;
+    color: #1f2937;
+    border: none;
+    font-weight: 500;
+  }
+
+  .filter-tabs button.button10:hover {
+    background: #f0fdf4;
+    border-color: #059669;
+    color: #059669;
+  }
+
+  .deals-container {
+    max-width: 100%;
+  }
+
+  .deals-grid {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: none;
+    grid-template-rows: none;
+    grid-auto-flow: unset;
+  }
+
+  .deals-grid > * {
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+    grid-column: unset;
+    grid-row: unset;
+  }
+
+  .deals-grid > *:last-child {
+    margin-bottom: 0;
   }
 
   .error-container,
@@ -781,116 +1111,51 @@ onMounted(() => {
   }
 }
 
-/* ===== 작은 모바일 스타일 (480px 이하) ===== */
-@media (max-width: 30rem) {
-  .main-content {
-    padding: 0.75rem;
-  }
-
-  .section-title {
-    margin-bottom: 1.25rem;
-  }
-
-  .section-title h1 {
-    font-size: 1.375rem;
-  }
-
-  .filter-tabs {
-    gap: 0.375rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .deals-grid {
-    gap: 1rem;
-    padding: 0 0.25rem;
-  }
-
-  .filter-tabs :deep(button) {
-    min-width: 3.25rem !important;
-    height: 1.875rem !important;
-    padding: 0.25rem 0.375rem !important;
-    font-size: 0.6875rem !important;
-  }
+/* ===== 사이드바 필터 탭 스타일 ===== */
+.sidebar .filter-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
 }
 
-/* ===== 태블릿 스타일 (769px - 1023px) ===== */
-@media (min-width: 48.0625rem) and (max-width: 64rem) {
-  .main-content {
-    padding: 1.25rem;
-    min-height: calc(100vh - 12.5rem);
-  }
-
-  .deals-grid {
-    grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
-    gap: 1.5rem;
-    max-width: 100%;
-  }
-
-  .filter-tabs :deep(button) {
-    min-width: 4.375rem !important;
-    height: 2.25rem !important;
-    padding: 0.375rem 0.75rem !important;
-    font-size: 0.8125rem !important;
-  }
+.sidebar .filter-tabs .filter-btn {
+  width: 100%;
+  min-width: 280px;
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  height: auto;
+  min-height: auto;
+  background: white;
+  border: none;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  color: #1f2937;
+  font-weight: 600;
+  flex-shrink: 0;
+  text-align: left;
+  justify-content: flex-start;
+  box-shadow: none;
+  transform: none;
+  cursor: pointer;
 }
 
-/* ===== 데스크톱 스타일 (1024px 이상) ===== */
-@media (min-width: 64rem) {
-  .main-content {
-    padding: 1.25rem;
-    min-height: calc(100vh - 12.5rem);
-  }
-
-  .section-title {
-    padding-left: 1.25rem;
-    margin-bottom: 2rem;
-  }
-
-  .section-title h1 {
-    font-size: 1.75rem;
-  }
-
-  .filter-tabs {
-    padding-left: 1.25rem;
-    margin-bottom: 2.5rem;
-  }
-
-  .deals-grid {
-    grid-template-columns: repeat(auto-fit, minmax(25rem, 1fr));
-    gap: 2rem;
-    justify-items: center;
-  }
-
-  .filter-tabs :deep(button) {
-    min-width: 5rem !important;
-    height: 2.5rem !important;
-    padding: 0.5rem 1rem !important;
-    font-size: 0.875rem !important;
-  }
+.sidebar .filter-tabs .filter-btn.button1 {
+  background: #059669;
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+  font-weight: 600;
 }
 
-/* ===== 대형 데스크톱 스타일 (1440px 이상) ===== */
-@media (min-width: 90rem) {
-  .main-content {
-    padding: 1.5rem;
-  }
-
-  .deals-grid {
-    grid-template-columns: repeat(auto-fit, minmax(26.875rem, 1fr));
-    gap: 2.25rem;
-  }
-}
-
-/* ===== 초대형 데스크톱 스타일 (1920px 이상) ===== */
-@media (min-width: 120rem) {
-  .main-content {
-    padding: 2rem;
-    max-width: 85rem;
-  }
-
-  .deals-grid {
-    grid-template-columns: repeat(auto-fit, minmax(28.75rem, 1fr));
-    gap: 2.5rem;
-  }
+.sidebar .filter-tabs .filter-btn.button10 {
+  background: white;
+  color: #1f2937;
+  border: none;
+  font-weight: 500;
 }
 </style>
