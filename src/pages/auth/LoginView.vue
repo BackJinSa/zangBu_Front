@@ -1,41 +1,83 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth/auth'
+import { login as loginApi } from '@/api/auth/auth'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 
 // 상태 관리
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
 const showPassword = ref(false)
-
-// 더미 유저 데이터
-const dummyUsers = [
-  { email: 'test1@example.com', password: 'test1234' },
-  { email: 'hello@zangbu.com', password: 'zangbu2025' },
-  { email: 'admin@zangbu.com', password: 'admin123' },
-]
+const isLoading = ref(false)
 
 // 로그인 처리
-function login() {
-  const user = dummyUsers.find(
-    (u) => u.email === email.value.trim() && u.password === password.value
-  )
+async function login() {
+  if (!email.value.trim() || !password.value.trim()) {
+    errorMessage.value = '이메일과 비밀번호를 모두 입력해주세요.'
+    return
+  }
 
-  if (user) {
+  try {
+    isLoading.value = true
     errorMessage.value = ''
 
-    // localStorage에 로그인 상태 저장 (auth.js 수정 없이)
-    localStorage.setItem('isLoggedIn', 'true')
-    localStorage.setItem('userEmail', user.email)
+    const response = await loginApi({
+      email: email.value.trim(),
+      password: password.value,
+    })
+
+    // 응답에서 토큰과 사용자 정보 추출
+    const { accessToken, refreshToken, role, nickname } = response.data
+
+    // 인증 스토어에 로그인 정보 설정
+    authStore.setTokens({ accessToken, refreshToken })
+    authStore.setUser({ nickname, role, email: email.value.trim() })
 
     // 로그인 성공 후 원래 가려던 페이지로 리다이렉트
     const redirectPath = route.query.redirect || '/'
     router.push(redirectPath)
-  } else {
-    errorMessage.value = '이메일 또는 비밀번호가 올바르지 않습니다.'
+  } catch (error) {
+    if (error.response?.status === 401) {
+      errorMessage.value = '이메일 또는 비밀번호가 올바르지 않습니다.'
+    } else if (error.response?.status === 400) {
+      errorMessage.value = '입력 정보를 확인해주세요.'
+    } else if (error.response?.status === 500) {
+      errorMessage.value = '서버 내부 오류가 발생했습니다. 다시 시도해주세요.'
+    } else if (error.code === 'ECONNREFUSED') {
+      errorMessage.value = '서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.'
+    } else {
+      errorMessage.value = '로그인 중 오류가 발생했습니다. 다시 시도해주세요.'
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// API 테스트 함수
+async function testApi() {
+  console.log('API 테스트 시작...')
+  try {
+    const response = await fetch('http://localhost:8080/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: 'test@example.com',
+        password: 'test1234',
+      }),
+    })
+
+    console.log('Fetch 응답 상태:', response.status)
+    const data = await response.text()
+    console.log('Fetch 응답 데이터:', data)
+  } catch (error) {
+    console.error('Fetch 에러:', error)
   }
 }
 </script>
@@ -68,6 +110,7 @@ function login() {
               placeholder="이메일을 입력하세요"
               class="input-field"
               v-model="email"
+              :disabled="isLoading"
             />
           </div>
           <!-- 비밀번호 -->
@@ -80,6 +123,7 @@ function login() {
                 placeholder="비밀번호를 입력하세요 (최소 8자)"
                 class="input-field pr-10"
                 @keyup.enter="login"
+                :disabled="isLoading"
               />
               <span
                 class="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-400"
@@ -96,7 +140,10 @@ function login() {
 
         <!-- 로그인 버튼 -->
         <div class="button-container">
-          <button class="login-button" @click="login">로그인</button>
+          <button class="login-button" @click="login" :disabled="isLoading">
+            <span v-if="isLoading">로그인 중...</span>
+            <span v-else>로그인</span>
+          </button>
         </div>
 
         <!-- 링크 영역 -->
@@ -189,6 +236,15 @@ function login() {
 
 .login-button:hover {
   background-color: var(--brand-3);
+}
+
+.login-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.login-button:disabled:hover {
+  background-color: #ccc;
 }
 
 .link-container {

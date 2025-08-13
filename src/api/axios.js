@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // axios 인스턴스 생성
 const api = axios.create({
-  baseURL: 'https://api.zanbu.site',
+  baseURL: '/api', // Vite proxy 사용
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -12,6 +12,11 @@ const api = axios.create({
 // 요청 인터셉터
 api.interceptors.request.use(
   (config) => {
+    // 로그인 요청에는 Authorization 헤더를 추가하지 않음
+    if (config.url === '/auth/login') {
+      return config
+    }
+
     // 토큰이 있으면 헤더에 추가
     const token = localStorage.getItem('token')
     if (token) {
@@ -30,8 +35,8 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
-    // 401 에러 시 로그아웃 처리
-    if (error.response?.status === 401) {
+    // 401 에러 시 로그아웃 처리 (로그인 페이지에서는 제외)
+    if (error.response?.status === 401 && window.location.pathname !== '/auth/login') {
       localStorage.removeItem('token')
       // 로그인 페이지로 리다이렉트
       window.location.href = '/auth/login'

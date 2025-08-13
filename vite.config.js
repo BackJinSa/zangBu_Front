@@ -17,4 +17,14 @@ export default defineConfig({
   define: {
     global: 'globalThis', // Node.js의 global을 브라우저 globalThis로 매핑
   },
+  // 개발 서버 설정
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 })
