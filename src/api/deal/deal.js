@@ -7,8 +7,8 @@ export const checkServerHealth = () => {
 
 // 거래 전체 목록 조회
 export const getDeals = () => {
-  console.log('🔍 getDeals 함수 호출됨')
-  console.log('📡 /deal/waitinglist 엔드포인트 호출')
+  console.log('getDeals 함수 호출됨')
+  console.log('/deal/waitinglist 엔드포인트 호출')
 
   // Postman에서 작동하는 방식과 동일하게 설정
   return api.get('/deal/waitinglist', {
