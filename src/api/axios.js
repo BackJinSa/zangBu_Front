@@ -30,12 +30,12 @@ const processQueue = (error, token = null) => {
 // 요청 인터셉터
 api.interceptors.request.use(
   (config) => {
-    console.log('API 요청 전송:', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      fullURL: `${config.baseURL}${config.url}`,
-      headers: config.headers,
-    })
+    console.log('=== API 요청 전송 ===')
+    console.log('메서드:', config.method?.toUpperCase())
+    console.log('URL:', config.url)
+    console.log('전체 URL:', `${config.baseURL}${config.url}`)
+    console.log('요청 헤더:', config.headers)
+    console.log('요청 데이터:', config.data)
 
     // 토큰이 있으면 헤더에 추가
     const token = localStorage.getItem('token')
@@ -46,7 +46,9 @@ api.interceptors.request.use(
       console.log('⚠토큰 없음 - localStorage에서 token을 찾을 수 없음')
     }
 
+    // CORS 관련 헤더 확인
     console.log('최종 요청 헤더:', config.headers)
+    console.log('=== 요청 전송 완료 ===')
     return config
   },
   (error) => {
