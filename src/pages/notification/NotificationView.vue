@@ -43,6 +43,7 @@
       v-if="!store.loading && store.totalElements > 0"
       :notifications="store.notifications"
       :loading="store.loading"
+      @open="openNotification"
       @notification-action="handleNotificationAction"
     />
 
@@ -99,5 +100,20 @@ function goBack() {
 function handleNotificationAction({ type, id }) {
   if (type === 'markRead') store.markNotificationAsRead(id)
   else if (type === 'delete') store.deleteNotification(id)
+}
+
+/**
+ * 알림 클릭 시 타입별로 라우팅
+ */
+const openNotification = (n) => {
+  if (n.type === 'REVIEW') {
+    router.push(`/review/${n.id}`)
+  } else if (n.type === 'TRADE') {
+    router.push(`/building/${n.id}`)
+  } else if (n.type === 'BUILDING') {
+    router.push(`/building/${n.id}`)
+  } else {
+    console.warn('Unknown notification type:', n.type)
+  }
 }
 </script>

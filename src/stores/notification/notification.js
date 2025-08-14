@@ -49,9 +49,9 @@ export const useNotificationStore = defineStore('notification', () => {
       notifications.value = res.items
       totalElements.value = res.totalElements
       totalPages.value = res.totalPages
-      currentPage.value = res.pageNumber // ✅ 1-based 그대로
+      currentPage.value = res.pageNumber // 1-based 그대로
       pageSize.value = res.pageSize
-      counts.value = { ...res.filterCounts } // ✅ 서버 카운트 반영
+      counts.value = { ...res.filterCounts } // 서버 카운트 반영
     } catch (e) {
       console.error('[notification] load failed:', e)
       error.value = e?.response?.data?.message || e.message || '알림 불러오기 실패'

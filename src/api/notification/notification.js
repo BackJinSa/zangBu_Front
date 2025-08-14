@@ -25,6 +25,10 @@ export async function getNotificationsApi({ page = 1, size = 10, type = 'ALL' } 
     address: n.address,
     priceLabel: n.priceLabel,
     rank: n.rank,
+    // 라우팅용 참조 ID들
+    buildingId: n.buildingId ?? n.propertyId ?? null,
+    reviewId: n.reviewId ?? null,
+    tradeId: n.tradeId ?? null,
   }))
 
   return {
