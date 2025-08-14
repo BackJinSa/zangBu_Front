@@ -1,7 +1,6 @@
-// NotificationView.vue
 <template>
   <div class="min-h-screen bg-white">
-    <!-- 알림 헤더 -->
+    <!-- 헤더 -->
     <div class="bg-white px-4 py-4 flex items-center justify-between border-b border-gray-100">
       <div class="flex items-center gap-3">
         <button class="p-1 text-gray-600" @click="goBack">
@@ -27,27 +26,31 @@
               />
             </svg>
           </div>
-          <h1 class="text-xl font-semibold">알림</h1>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-semibold">알림</h1>
+            <span class="text-sm text-gray-500">총 {{ store.totalElements }}개</span>
+          </div>
         </div>
       </div>
       <NotificationActionBar @mark-all-read="store.markNotificationAllAsRead" />
     </div>
 
     <!-- 필터 탭 -->
-    <NotificationFilter
-      :currentFilter="store.activeFilter"
-      :filterCounts="store.filterCountMap"
-      @update-filter="store.setNotificationFilter"
-    />
+    <NotificationFilter />
 
     <!-- 알림 목록 -->
     <NotificationList
-      :notifications="store.pagedNotifications"
+      v-if="!store.loading && store.totalElements > 0"
+      :notifications="store.notifications"
       :loading="store.loading"
       @notification-action="handleNotificationAction"
     />
-    <!-- 알림 없을 때 -->
-    <NotificationEmpty v-if="store.pagedNotifications.length === 0" />
+
+    <!-- 비어있음 -->
+    <NotificationEmpty v-else-if="!store.loading" />
+
+    <!-- 로딩 -->
+    <div v-else class="py-10 text-center text-gray-500">불러오는 중…</div>
 
     <!-- 페이지네이션 -->
     <NotificationPagination
@@ -66,43 +69,35 @@ import NotificationEmpty from '@/components/notification/NotificationEmpty.vue'
 import NotificationPagination from '@/components/notification/NotificationPagination.vue'
 import NotificationActionBar from '@/components/notification/NotificationActionBar.vue'
 import { useNotificationStore } from '@/stores/notification/notification'
-import { requestFcmToken } from '@/utils/fcm'
+import { listenForegroundMessage, requestFcmToken } from '@/utils/fcm'
 
-// 알림 스토어 인스턴스 가져오기
 const store = useNotificationStore()
 
-/**
- * onMounted()는 페이지 로딩시 최초 실행되는 함수
- */
-onMounted(() => {
-  // 스토어에서 더미데이터 가져옴 -> ☆나중에 실제 API로 대체 예정☆
-  if (store.notifications.length === 0) {
-    store.loadDummyNotifications()
+onMounted(async () => {
+  // 1) 백엔드에서 1페이지 로드
+  await store.loadNotifications()
+
+  // 2) (선택) FCM 토큰 발급
+  try {
+    await requestFcmToken()
+  } catch (e) {
+    console.warn('[FCM] token fail:', e)
   }
 
-  // 브라우저 알림 권한 요청
-  console.log('현재 알림 권한 상태: ', Notification.permission)
-
-  // 디바이스 토큰을 발급 받고 서버에 등록하는 함수
-  // -> ☆ 추후 삭제하고 로그인 로직에 추가할예정 ☆
-  requestFcmToken()
+  // 3) 포그라운드 메시지 수신 → 스토어 반영
+  listenForegroundMessage?.((payload) => {
+    store.addNotificationFromFCM(payload)
+    // 정확 싱크가 필요하면:
+    // store.loadNotifications()
+  })
 })
 
-const goBack = () => {
+function goBack() {
   history.back()
 }
 
-// 알림 카드에서 발생한 사용자 액션(읽음 처리 또는 삭제)을 처리하는 함수
-const handleNotificationAction = ({ type, id }) => {
-  // 읽음 처리 요청인 경우
-  if (type === 'markRead') {
-    // 알림 ID에 해당하는 항목을 읽음 상태로 변경
-    store.markNotificationAsRead(id)
-  }
-  // 삭제 요청인 경우
-  else if (type === 'delete') {
-    // 알림 ID에 해당하는 항목을 스토어에서 제거
-    store.deleteNotification(id)
-  }
+function handleNotificationAction({ type, id }) {
+  if (type === 'markRead') store.markNotificationAsRead(id)
+  else if (type === 'delete') store.deleteNotification(id)
 }
 </script>
