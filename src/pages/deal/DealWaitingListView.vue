@@ -13,6 +13,9 @@ import PopupModal from '@/components/common/PopupModal.vue'
 // 스토어 import
 import { useAuthStore } from '@/stores/auth/auth.js'
 
+// 상수 import
+import { DEAL_STATUS } from '@/utils/constants'
+
 // Vue Router 인스턴스 생성
 const router = useRouter()
 
@@ -155,46 +158,88 @@ const handleLoginModalClose = () => {
 // ===== 필터링된 거래 목록 계산 =====
 // 활성화된 필터에 따라 거래 목록을 동적으로 필터링
 const filteredDeals = computed(() => {
+  console.log('=== 필터링 시작 ===')
+  console.log('활성 필터:', activeFilter.value)
+  console.log('전체 거래 수:', deals.value.length)
+  console.log('원본 거래 데이터:', deals.value)
+
+  let filtered = []
+
   if (activeFilter.value === 'all') {
-    return deals.value // 전체 거래 목록 반환
+    filtered = deals.value
+    console.log('전체 필터 적용 - 결과:', filtered.length)
   } else if (activeFilter.value === 'buying') {
-    return deals.value.filter((deal) => deal.userStatus === '구매중') // 구매 중인 거래만 필터링
+    // 구매자 관점에서 볼 수 있는 거래들
+    filtered = deals.value.filter((deal) => {
+      const isBuying = deal.userStatus === '구매중'
+      console.log(`거래 ${deal.dealId}: userStatus=${deal.userStatus}, isBuying=${isBuying}`)
+      return isBuying
+    })
+    console.log('구매중 필터 적용 - 결과:', filtered.length)
   } else if (activeFilter.value === 'selling') {
-    return deals.value.filter((deal) => deal.userStatus === '판매중') // 판매 중인 거래만 필터링
+    // 판매자 관점에서 볼 수 있는 거래들
+    filtered = deals.value.filter((deal) => {
+      const isSelling = deal.userStatus === '판매중'
+      console.log(`거래 ${deal.dealId}: userStatus=${deal.userStatus}, isSelling=${isSelling}`)
+      return isSelling
+    })
+    console.log('판매중 필터 적용 - 결과:', filtered.length)
   } else if (activeFilter.value === 'completed') {
-    // dealStatus가 CLOSE_DEAL인 경우만 완료된 거래로 간주
-    return deals.value.filter((deal) => deal.dealStatus === 'CLOSE_DEAL') // 완료된 거래만 필터링
+    // 거래 완료된 거래들
+    filtered = deals.value.filter((deal) => {
+      const isCompleted = deal.dealStatus === DEAL_STATUS.CLOSE_DEAL
+      console.log(`거래 ${deal.dealId}: dealStatus=${deal.dealStatus}, isCompleted=${isCompleted}`)
+      return isCompleted
+    })
+    console.log('완료 필터 적용 - 결과:', filtered.length)
+  } else {
+    filtered = deals.value
+    console.log('기본값 - 결과:', filtered.length)
   }
-  return deals.value // 기본값으로 전체 목록 반환
+
+  console.log('필터링된 거래:', filtered)
+  console.log('=== 필터링 완료 ===')
+
+  return filtered
 })
 
 // ===== 필터 설정 함수 =====
 // 사용자가 선택한 필터를 활성화
 const setActiveFilter = (filter) => {
+  console.log('=== 필터 변경 ===')
+  console.log('이전 필터:', activeFilter.value)
+  console.log('새 필터:', filter)
+
   activeFilter.value = filter
+
+  console.log('필터 변경 완료:', activeFilter.value)
+  console.log('=== 필터 변경 완료 ===')
 }
 
 // ===== 거래 데이터 포맷팅 함수 =====
 // PropertyCard 컴포넌트에서 사용할 수 있도록 거래 데이터를 포맷팅
 const formatDealForPropertyCard = (deal) => {
+  // 현재 로그인한 사용자 정보 가져오기
+  const currentUser = authStore.user
+
   // API 응답 데이터를 PropertyCard 컴포넌트에 맞는 형태로 변환
   const formattedProperty = {
-    buildingId: deal.buildingId,
-    buildingName: deal.buildingName,
-    address: deal.address,
+    dealId: deal.dealId, // API: dealId: 1203
+    buildingId: deal.buildingId, // API: buildingId: 902
+    buildingName: deal.buildingName, // API: buildingName: "테스트 오피스텔 902호"
+    address: deal.address, // API: address: "서울 강남구 역삼동 1-1"
     imageUrl:
       deal.imageUrl && deal.imageUrl !== 'https://example.com/img902.jpg'
         ? deal.imageUrl
-        : '/default-property.jpg', // 예시 이미지 URL인 경우 기본 이미지 사용
-    price: deal.price || 0, // 가격이 0인 경우도 처리
-    dealStatus: deal.userStatus,
-    createdAt: new Date().toISOString().split('T')[0],
-    saleType: mapSaleType(deal.saleType),
-    houseType: mapPropertyType(deal.propertyType),
-    dealId: deal.buildingId,
-    userRole: deal.userStatus === '구매중' ? 'buyer' : 'seller',
-    dealStatusEnum: deal.dealStatus,
-    dealStatusText: mapDealStatus(deal.dealStatus), // 한글 상태 텍스트 추가
+        : '/default-property.jpg', // API: imageUrl: "https://example.com/img902.jpg"
+    price: deal.price || 0, // API: price: 350000000
+    dealStatus: deal.dealStatus, // API: dealStatus: "BEFORE_CONSUMER"
+    createdAt: deal.createdAt || new Date().toISOString().split('T')[0], // API에 createdAt이 없으면 현재 날짜
+    saleType: mapSaleType(deal.saleType), // API: saleType: "TRADING" → "매매"
+    houseType: mapPropertyType(deal.propertyType), // API: propertyType: "OFFICETEL" → "오피스텔"
+    userRole: determineUserRole(deal, currentUser), // 사용자 역할 결정
+    dealStatusEnum: deal.dealStatus, // API: dealStatus: "BEFORE_CONSUMER"
+    dealStatusText: mapDealStatus(deal.dealStatus), // "BEFORE_CONSUMER" → "구매자 확인 대기"
   }
 
   // 가격이 0인 경우 "가격 협의"로 표시
@@ -203,6 +248,37 @@ const formatDealForPropertyCard = (deal) => {
   }
 
   return formattedProperty
+}
+
+// 사용자 역할 결정 함수
+const determineUserRole = (deal, currentUser) => {
+  console.log('=== 사용자 역할 결정 ===')
+  console.log('거래 데이터:', deal)
+  console.log('현재 사용자:', currentUser)
+
+  // API 응답에 판매자/구매자 ID가 있는 경우
+  if (deal.sellerId && deal.buyerId) {
+    if (currentUser && deal.sellerId === currentUser.id) {
+      console.log('판매자로 판단됨')
+      return 'seller'
+    } else if (currentUser && deal.buyerId === currentUser.id) {
+      console.log('구매자로 판단됨')
+      return 'buyer'
+    }
+  }
+
+  // API 응답에 ownerId가 있는 경우
+  if (deal.ownerId) {
+    if (currentUser && deal.ownerId === currentUser.id) {
+      console.log('소유자(판매자)로 판단됨')
+      return 'seller'
+    }
+  }
+
+  // 기본값: userStatus로 판단 (임시)
+  const defaultRole = deal.userStatus === '구매중' ? 'buyer' : 'seller'
+  console.log(`기본값 사용: ${defaultRole}`)
+  return defaultRole
 }
 
 // ===== API 응답 데이터 매핑 함수들 =====
@@ -247,46 +323,65 @@ const mapDealStatus = (apiDealStatus) => {
 // ===== 거래 상세 페이지 이동 처리 =====
 // PropertyCard에서 거래 상세 버튼 클릭 시 호출
 const handleDealDetail = (property) => {
+  console.log('=== 거래 이어가기 버튼 클릭 ===')
+  console.log('거래 정보:', property)
+
   const dealId = property.dealId
-  // 사용자 역할에 따라 다른 라우트로 이동
-  const targetRoute =
-    property.userRole === 'seller' ? `/deal/seller/${dealId}` : `/deal/buyer/${dealId}`
+  const dealStatus = property.dealStatusEnum
+  const userRole = property.userRole
 
-  // 페이지 이동 전에 Header 아래로 스크롤 (사용자 경험 개선)
-  window.scrollTo({
-    top: 96, // Header 높이 (h-24 = 96px)
-    behavior: 'smooth', // 부드러운 스크롤 애니메이션
-  })
+  console.log('dealId:', dealId)
+  console.log('dealStatus:', dealStatus)
+  console.log('userRole:', userRole)
 
-  // 판매자인 경우 판매자 페이지로 이동
-  if (property.userRole === 'seller') {
-    router
-      .push(`/deal/seller/${dealId}`)
-      .then(() => {
-        // 페이지 이동 후에도 Header 아래로 스크롤
-        window.scrollTo({
-          top: 96,
-          behavior: 'smooth',
-        })
-      })
-      .catch((err) => {
-        console.error('Failed to navigate to seller page:', err)
-      })
+  // dealStatus와 사용자 역할에 따른 분기 처리
+  if (dealStatus === DEAL_STATUS.BEFORE_TRANSACTION) {
+    // 채팅방 이동
+    console.log('BEFORE_TRANSACTION -> 채팅방 이동')
+    router.push(`/chat/room?dealId=${dealId}`)
+  } else if (dealStatus === DEAL_STATUS.BEFORE_OWNER) {
+    if (userRole === 'seller') {
+      // 판매자 거래 수락 페이지 이동
+      console.log('BEFORE_OWNER + seller -> 판매자 거래 수락 페이지')
+      router.push(`/deal/seller/${dealId}`)
+    } else {
+      // 구매자: 판매자 거래 수락 대기
+      console.log('BEFORE_OWNER + consumer -> 판매자 거래 수락 대기')
+      router.push(`/deal/buyer/${dealId}`)
+    }
+  } else if (dealStatus === DEAL_STATUS.BEFORE_CONSUMER) {
+    if (userRole === 'seller') {
+      // 판매자: 구매자 거래 수락 대기
+      console.log('BEFORE_CONSUMER + seller -> 구매자 거래 수락 대기')
+      router.push(`/deal/seller/${dealId}`)
+    } else {
+      // 구매자 거래 수락 페이지 이동
+      console.log('BEFORE_CONSUMER + consumer -> 구매자 거래 수락 페이지')
+      router.push(`/deal/buyer/${dealId}`)
+    }
+  } else if (dealStatus === DEAL_STATUS.MIDDLE_DEAL) {
+    // 채팅방 이동
+    console.log('MIDDLE_DEAL -> 채팅방 이동')
+    router.push(`/chat/room?dealId=${dealId}`)
+  } else if (dealStatus === DEAL_STATUS.CLOSE_DEAL) {
+    // 거래 이력 보기
+    console.log('CLOSE_DEAL -> 거래 이력 보기')
+    router.push(`/deal/completed/${dealId}`)
   } else {
-    // 구매자인 경우 구매자 페이지로 이동
-    router
-      .push(`/deal/buyer/${dealId}`)
-      .then(() => {
-        // 페이지 이동 후에도 Header 아래로 스크롤
-        window.scrollTo({
-          top: 96,
-          behavior: 'smooth',
-        })
-      })
-      .catch((err) => {
-        console.error('Failed to navigate to buyer page:', err)
-      })
+    // 기본값: 사용자 역할에 따라 거래 페이지 이동
+    console.log('기본값 -> 사용자 역할에 따라 거래 페이지 이동')
+    if (userRole === 'seller') {
+      router.push(`/deal/seller/${dealId}`)
+    } else {
+      router.push(`/deal/buyer/${dealId}`)
+    }
   }
+
+  // 페이지 이동 후 스크롤 초기화
+  window.scrollTo({
+    top: 96,
+    behavior: 'smooth',
+  })
 }
 
 // ===== 완료된 거래 상세 보기 처리 =====
