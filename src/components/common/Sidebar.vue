@@ -5,7 +5,7 @@
     :class="[
       'bg-white shadow-lg',
       // 데스크탑에서는 absolute로 헤더 아래에 오버레이, 모바일에서는 오른쪽에서 슬라이드
-      'lg:absolute lg:top-24 lg:right-0 lg:w-full lg:h-auto lg:z-50 lg:shadow-xl lg:border lg:border-gray-200 lg:rounded-lg',
+      'lg:absolute lg:top-24 lg:right-0 lg:w-full lg:h-auto lg:z-50 lg:shadow-xl lg:border lg:border-gray-200',
       'fixed top-0 right-0 w-80 h-screen z-50',
       // 데스크탑에서는 애니메이션 없음, 모바일에서는 transition 적용
       'lg:transition-none transition-all duration-300',
