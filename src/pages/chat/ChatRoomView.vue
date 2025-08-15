@@ -113,11 +113,13 @@
           v-model="newMessage"
           @keyup.enter="sendMessage"
           type="text"
-          placeholder="메시지를 입력하세요..."
+          :placeholder="getPlaceholder"
+          :disabled="isInputDisabled"
           class="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none"
         />
         <button
           @click="sendMessage"
+          :disabled="isInputDisabled"
           class="w-10 h-10 flex items-center justify-center bg-[var(--brand-3)] text-white rounded-lg hover:bg-[var(--brand-2)]"
         >
           <i class="fas fa-paper-plane text-base"></i>
@@ -145,7 +147,7 @@ const authStore = useAuthStore()
 const { connect, subscribeRoom, unsubscribeRoom, disconnect, connected } = useStomp()
 const roomId = computed(() => String(route.params.roomId || ''))
 //const myUserId = computed(() => authStore.userId || authStore.memberId || '')
-const myUserId = '1a2b3c4d-1111-2222-3333-444455556666'
+const myUserId = '0j1k2l3m-1111-2222-3333-444455556675'
 
 //나가기 모달
 const showModal = ref(false)
@@ -158,8 +160,9 @@ const status = ref('중') // 거래 상태 (구매자용)
 const otherNickname = ref('') //대화 상대방 닉네임
 const buildingName = ref('')
 const sellerType = ref('') // or '세입자'
+const sellerVisible = ref(1) // 1: 보임, 0: 나감
+const consumerVisible = ref(1) // 1: 보임, 0: 나감
 
-//////////////////////////
 function mapSellerType(raw) {
   const v = String(raw || '').toUpperCase()
   if (v === 'OWNER') return '집주인'
@@ -185,6 +188,9 @@ async function fetchRoomMeta() {
 
     //const myId = myUserId.value
     const myId = myUserId
+
+    sellerVisible.value = Number(r.sellerVisible ?? 1)
+    consumerVisible.value = Number(r.consumerVisible ?? 1)
 
     // 내가 판매자인지 계산
     const iAmSeller = !!myId && !!r.sellerId && myId === r.sellerId
@@ -214,7 +220,24 @@ async function fetchRoomMeta() {
     console.error('방 메타 로딩 실패:', e)
   }
 }
-/////////////////////
+
+const getPlaceholder = computed(() => {
+  if (isSeller.value && consumerVisible.value === 0) {
+    return '구매자가 채팅방을 나갔습니다.'
+  }
+  if (!isSeller.value && sellerVisible.value === 0) {
+    return '판매자가 채팅방을 나갔습니다.'
+  }
+  return '메시지를 입력하세요...'
+})
+
+const isInputDisabled = computed(() => {
+  // 상대방이 나간 경우에만 입력 막기
+  return (
+    (isSeller.value && consumerVisible.value === 0) ||
+    (!isSeller.value && sellerVisible.value === 0)
+  )
+})
 
 const messages = computed(() => chatStore.messages)
 
@@ -269,10 +292,10 @@ function subscribeCurrentRoom() {
   if (!connected.value || !roomId.value) return
   subscribeRoom(roomId.value, (message /*, subscribedRoomId */) => {
     // 수신 즉시 스토어에 누적
-    chatStore.messages.push(message)
+    const normalized = chatStore.pushIncoming(message)
     // 내가 보낸 게 아니면 읽음 처리
     //if (message?.senderId && message.senderId !== myUserId.value) {
-    if (message?.senderId && message.senderId !== myUserId) {
+    if (normalized?.senderId && String(normalized.senderId) !== String(myUserId)) {
       chatStore.markAsRead()
     }
   })
@@ -329,6 +352,10 @@ onUnmounted(() => {
 
 const newMessage = ref('')
 const sendMessage = async () => {
+  if (isInputDisabled.value) {
+    alert(getPlaceholder.value) // 선택: 안내 메시지
+    return
+  }
   const text = newMessage.value.trim()
   if (!text) return
   await chatStore.sendMessage(text) // 스토어가 publish & 로컬 목록 반영

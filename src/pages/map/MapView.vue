@@ -31,6 +31,7 @@ import {
   cancelPropertyNotification,
 } from '@/api/property/property.js'
 import { useMembership } from '@/composables/useMembership'
+import { useChatStore } from '@/stores/chat/chat'
 
 // Props 정의
 const props = defineProps({
@@ -44,6 +45,7 @@ const props = defineProps({
 const mapStore = useMapStore()
 const router = useRouter()
 const route = useRoute()
+const chatStore = useChatStore()
 
 // 상세 보기 상태
 const showDetail = ref(false)
@@ -621,7 +623,7 @@ const toggleNotification = async () => {
 }
 
 // 채팅 페이지로 이동
-const goToChat = () => {
+const goToChat = async () => {
   // 로그인 상태 확인
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
   if (!isLoggedIn) {
@@ -633,8 +635,19 @@ const goToChat = () => {
     return
   }
 
-  // 로그인된 경우 채팅 페이지로 이동
-  router.push('/chat/list')
+  // 로그인된 경우 채팅방 생성 후 채팅방으로 이동
+  try {
+    const chatRoom = await chatStore.createChatRoom(props.buildingId)
+
+    if (!chatRoom || !chatRoom.chatRoomId) {
+      throw new Error('채팅방을 찾을 수 없습니다.')
+    }
+
+    router.push({ name: 'chat-room', params: { roomId: chatRoom.chatRoomId } })
+  } catch (err) {
+    console.error('채팅방 생성 실패:', err)
+    alert('채팅방 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+  }
 }
 
 // 리뷰 목록 페이지로 이동
