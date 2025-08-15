@@ -34,6 +34,11 @@ export const updateDealStatus = (dealId, status) => {
   return api.put(`/deals/${dealId}/status`, { status })
 }
 
+// 거래 상태 변경 (새로운 엔드포인트)
+export const changeDealStatus = (dealData) => {
+  return api.patch('/deal/status', dealData)
+}
+
 // 거래 취소
 export const cancelDeal = (dealId, reason) => {
   return api.put(`/deals/${dealId}/cancel`, { reason })
@@ -60,8 +65,8 @@ export const rateDeal = (dealId, rating) => {
 }
 
 // 거래전 안내 정보 조회
-export const getDealNotice = (buildingId) => {
-  return api.get(`/deal/notice/${buildingId}`)
+export const getDealNotice = (dealId) => {
+  return api.get(`/deal/notice/${dealId}`)
 }
 
 // 소비자 문서 다운로드 URL 조회
