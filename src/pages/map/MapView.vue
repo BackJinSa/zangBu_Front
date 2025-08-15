@@ -2079,6 +2079,38 @@ onMounted(() => {
   font-size: 14px;
 }
 
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 380px;
+  }
+
+  .detail-sidebar-left {
+    width: 380px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 350px;
+  }
+
+  .detail-sidebar-left {
+    width: 350px;
+  }
+
+  .filter-options {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .filter-button {
+    min-width: 60px;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+}
+
 @media (max-width: 768px) {
   .main-content {
     flex-direction: column;
@@ -2087,14 +2119,23 @@ onMounted(() => {
   .sidebar {
     width: 100%;
     height: auto;
-    max-height: 300px;
+    max-height: 400px;
+    order: 2;
   }
 
   .detail-sidebar-left {
     width: 100%;
-    height: calc(100vh - 97px); /* 헤더 높이만큼 뺀 높이 */
+    height: auto;
+    max-height: 60vh;
+    order: 2;
     position: relative;
     z-index: 1000;
+  }
+
+  .map-area {
+    order: 1;
+    height: 50vh;
+    min-height: 300px;
   }
 
   .filter-options {
@@ -2105,20 +2146,132 @@ onMounted(() => {
   .filter-button {
     flex: none;
     min-width: 80px;
+    margin-bottom: 4px;
   }
 
-  .map-area {
-    height: calc(100vh - 400px); /* 헤더 + 사이드바 높이만큼 뺀 높이 */
+  .price-inputs {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .price-input-container {
+    margin-bottom: 4px;
+  }
+
+  .map-controls {
+    top: 10px;
+    right: 10px;
+  }
+
+  .control-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .floating-action {
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .floating-btn {
+    width: 70px;
+    height: 70px;
+  }
+
+  .detail-header {
+    padding: 16px;
+  }
+
+  .detail-title {
+    font-size: 16px;
+  }
+
+  .detail-section {
+    padding: 16px;
+  }
+
+  .action-buttons-section {
+    padding: 16px;
+  }
+
+  .download-buttons-row {
+    flex-direction: column;
+    gap: 6px;
   }
 }
 
-@media (max-width: 1200px) {
-  .sidebar {
-    width: 380px;
+@media (max-width: 480px) {
+  .search-section {
+    padding: 12px;
+    margin-bottom: 16px;
   }
 
-  .detail-sidebar-left {
-    width: 380px;
+  .filter-section {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .filter-title {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .filter-button {
+    min-width: 70px;
+    font-size: 11px;
+    padding: 6px 6px;
+  }
+
+  .price-inputs {
+    justify-content: center;
+  }
+
+  .price-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .price-input {
+    width: 35px;
+    font-size: 12px;
+  }
+
+  .detail-header {
+    padding: 12px;
+  }
+
+  .detail-title {
+    font-size: 14px;
+  }
+
+  .detail-section {
+    padding: 12px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .info-item {
+    padding: 6px 0;
+  }
+
+  .info-label,
+  .info-value {
+    font-size: 13px;
+  }
+
+  .action-buttons-section {
+    padding: 12px;
+  }
+
+  .action-btn-download,
+  .action-btn-chat {
+    padding: 10px 12px;
+    font-size: 13px;
   }
 }
 
@@ -2145,6 +2298,51 @@ onMounted(() => {
   .floating-btn {
     width: 88px;
     height: 88px;
+  }
+}
+
+/* 태블릿 세로 모드 */
+@media (max-width: 768px) and (orientation: portrait) {
+  .sidebar {
+    max-height: 350px;
+  }
+
+  .detail-sidebar-left {
+    max-height: 50vh;
+  }
+
+  .map-area {
+    height: 45vh;
+  }
+}
+
+/* 태블릿 가로 모드 */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .sidebar {
+    width: 320px;
+  }
+
+  .detail-sidebar-left {
+    width: 320px;
+  }
+
+  .map-area {
+    height: calc(100vh - 97px);
+  }
+}
+
+/* 모바일 가로 모드 */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar {
+    max-height: 250px;
+  }
+
+  .detail-sidebar-left {
+    max-height: 40vh;
+  }
+
+  .map-area {
+    height: 40vh;
   }
 }
 </style>
