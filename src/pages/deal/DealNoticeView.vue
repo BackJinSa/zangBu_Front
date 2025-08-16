@@ -473,13 +473,23 @@ const startDeal = () => {
   router.push(`/deal/seller/${dealNotice.value.building_id}`)
 }
 
-const startChat = () => {
+const startChat = async () => {
   if (!isAgreed.value) {
     showAgreementModal.value = true
     return
   }
-  // 채팅 페이지로 이동
-  router.push(`/chat/room?buildingId=${dealNotice.value.building_id}`)
+  try {
+    const chatRoom = await chatStore.createChatRoom(buildingId)
+
+    if (!chatRoom || !chatRoom.chatRoomId) {
+      throw new Error('채팅방을 찾을 수 없습니다.')
+    }
+
+    router.push({ name: 'chat-room', params: { roomId: chatRoom.chatRoomId } })
+  } catch (err) {
+    console.error('채팅방 생성 실패:', err)
+    alert('채팅방 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+  }
 }
 
 const handleBackClick = () => {

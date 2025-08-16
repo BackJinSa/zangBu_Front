@@ -567,12 +567,13 @@ const acceptDeal = () => {
   showAcceptModal.value = true
 }
 
+const chatRoomId = computed(() => String(route.query.chatRoomId || ''))
 const confirmAccept = () => {
   showAcceptModal.value = false
   // 실제로는 API 호출하여 거래 수락 처리
   console.log('거래 수락 처리:', propertyInfo.value.deal_id)
   // 성공 후 채팅 페이지로 이동
-  router.push(`/chat/room?dealId=${propertyInfo.value.deal_id}`)
+  router.push({ name: 'chat-room', params: { roomId: chatRoomId.value } })
 }
 
 const cancelAccept = () => {

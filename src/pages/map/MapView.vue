@@ -635,19 +635,8 @@ const goToChat = async () => {
     return
   }
 
-  // 로그인된 경우 채팅방 생성 후 채팅방으로 이동
-  try {
-    const chatRoom = await chatStore.createChatRoom(props.buildingId)
-
-    if (!chatRoom || !chatRoom.chatRoomId) {
-      throw new Error('채팅방을 찾을 수 없습니다.')
-    }
-
-    router.push({ name: 'chat-room', params: { roomId: chatRoom.chatRoomId } })
-  } catch (err) {
-    console.error('채팅방 생성 실패:', err)
-    alert('채팅방 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.')
-  }
+  // 로그인된 경우 거래 전 안내페이지로 이동
+  router.push({ name: 'deal-notice', params: { buildingId: props.buildingId } })
 }
 
 // 리뷰 목록 페이지로 이동

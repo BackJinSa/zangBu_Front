@@ -24,7 +24,7 @@ function refreshActiveRooms() {
 export function useStomp() {
   //JWT 토큰을 가져와 연결
   const connect = (onConnected = () => {}) => {
-    // 이미 연결 중이면 무시
+    // 이미 연결 중이면
     if (stompClient?.connected) {
       isConnected = true
       onConnected()
@@ -39,8 +39,7 @@ export function useStomp() {
     const authStore = useAuthStore()
     //const token = authStore?.accessToken
     const token =
-      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbWFuZGEuaGFycmlzQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1MjQ0ODg5LCJleHAiOjE3NTUzMDQ4ODl9.xxgyjMDn3HLIX0ojyIAwPS_pD8yTGiHF9dnTjdx-kf8'
-
+      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZXNzaWNhLmFuZGVyc29uQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1MzY1OTgwLCJleHAiOjE3NTU0MjU5ODB9.LWPTA4-VScmVL_pkQ1EIZujx67A9RByBOGjWW5T891k'
     if (!token) {
       console.warn('[STOMP] JWT 토큰이 없습니다.')
     }
