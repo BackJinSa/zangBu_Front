@@ -11,9 +11,20 @@ function getSenderId(m) {
   return candidates.length ? String(candidates[0]).trim() : null
 }
 
+function getType(m) {
+  const t = String(m?.type || '').toUpperCase()
+  if (t === 'SYSTEM') return 'SYSTEM'
+  // REST로 받은 과거 메시지엔 type이 없을 수 있음 → senderId로 판별
+  const isSystemSender = String(m?.senderId || '').toLowerCase() === 'system'
+  return isSystemSender ? 'SYSTEM' : 'USER'
+}
+
 function normalizeMessage(m) {
+  const type = getType(m)
   return {
     ...m,
+    type,
+    isSystem: type === 'SYSTEM',
     senderId: getSenderId(m), // 통일!
   }
 }
@@ -108,6 +119,23 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  //채팅방 삭제 로직
+  async function deleteChatRoom(roomId) {
+    try {
+      await axios.delete(`http://localhost:8080/chat/room/${roomId}`)
+      // 성공적으로 삭제되면 목록에서 제거
+      chatRooms.value = chatRooms.value.filter((r) => r.chatRoomId !== roomId)
+      if (currentChat.value?.chatRoomId === roomId) {
+        currentChat.value = null
+        messages.value = []
+        oldestMessageId.value = null
+      }
+    } catch (err) {
+      console.error('채팅방 삭제 실패:', err)
+      throw err
+    }
+  }
+
   // 채팅방 나가기 로직
   async function leaveChatRoom() {
     const id = roomId.value
@@ -168,6 +196,16 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  //채팅방 존재하는지 확인
+  async function existChatRoom(buildingId, consumerId) {
+    try {
+      const res = await axios.get(`http://localhost:8080/chat/room/${buildingId}/${consumerId}`)
+      return { exists: res.data.exists, chatRoomId: res.data.chatRoomId }
+    } catch (err) {
+      console.error('채팅방 존재 여부 확인 실패:', err)
+    }
+  }
+
   return {
     chatRooms,
     currentChat,
@@ -180,7 +218,9 @@ export const useChatStore = defineStore('chat', () => {
     sendMessage,
     createChatRoom,
     leaveChatRoom,
+    deleteChatRoom,
     markAsRead,
     pushIncoming,
+    existChatRoom,
   }
 })

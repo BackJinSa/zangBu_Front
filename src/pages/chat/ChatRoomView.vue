@@ -5,7 +5,7 @@
       <header class="bg-[var(--brand-3)] text-white flex items-center justify-between px-4 py-3">
         <!-- 좌측 영역 -->
         <div class="flex items-start gap-3">
-          <button @click="router.back()" class="text-white mt-1">
+          <button @click="router.push('/chat/list')" class="text-white mt-1">
             <i class="fas fa-arrow-left"></i>
           </button>
 
@@ -113,29 +113,37 @@
       <!-- 채팅 내용 -->
       <main ref="scrollArea" class="flex-1 overflow-y-auto px-4 py-3 space-y-4" @scroll="onScroll">
         <div v-for="(msg, index) in viewMessages" :key="index" class="flex flex-col">
-          <!-- 말풍선 -->
-          <div
-            :class="[
-              msg.isMine
-                ? 'self-end bg-[var(--brand-4)] text-gray-800'
-                : 'self-start bg-[var(--brand-5)] border text-gray-800',
-              'rounded-lg px-3 py-2 max-w-xs text-sm',
-            ]"
-          >
-            <p>{{ msg.message }}</p>
+          <!-- 시스템 메시지: 가운데 회색 배지 -->
+          <div v-if="msg.isSystem" class="self-center my-1">
+            <span class="text-[10px] md:text-xs px-2 py-1 rounded bg-gray-100 text-gray-500">
+              {{ msg.message }}
+            </span>
           </div>
 
-          <!-- 시간 -->
-          <p
-            :class="[
-              msg.isMine
-                ? 'self-end text-right text-xs text-gray-500 pr-1'
-                : 'self-start text-xs text-gray-400 pl-1',
-              'mt-1',
-            ]"
-          >
-            {{ msg.createdAt || '' }}
-          </p>
+          <!-- 일반 말풍선 -->
+          <template v-else>
+            <div
+              :class="[
+                msg.isMine
+                  ? 'self-end bg-[var(--brand-4)] text-gray-800'
+                  : 'self-start bg-[var(--brand-5)] border text-gray-800',
+                'rounded-lg px-3 py-2 max-w-xs text-sm',
+              ]"
+            >
+              <p>{{ msg.message }}</p>
+            </div>
+
+            <p
+              :class="[
+                msg.isMine
+                  ? 'self-end text-right text-xs text-gray-500 pr-1'
+                  : 'self-start text-xs text-gray-400 pl-1',
+                'mt-1',
+              ]"
+            >
+              {{ msg.createdAt || '' }}
+            </p>
+          </template>
         </div>
       </main>
 
@@ -309,7 +317,7 @@ const viewMessages = computed(() =>
   messages.value.map((m) => ({
     ...m,
     //isMine: m.senderId === myUserId.value,
-    isMine: m.senderId === myUserId,
+    isMine: !m.isSystem && m.senderId === myUserId,
   }))
 )
 
@@ -356,9 +364,13 @@ function subscribeCurrentRoom() {
   subscribeRoom(roomId.value, (message /*, subscribedRoomId */) => {
     // 수신 즉시 스토어에 누적
     const normalized = chatStore.pushIncoming(message)
-    // 내가 보낸 게 아니면 읽음 처리
+    // 내가 보낸 게 아니고 시스템 메시지도 아닐 때만 읽음 처리
     //if (message?.senderId && message.senderId !== myUserId.value) {
-    if (normalized?.senderId && String(normalized.senderId) !== String(myUserId)) {
+    if (
+      !normalized?.isSystem &&
+      normalized?.senderId &&
+      String(normalized.senderId) !== String(myUserId)
+    ) {
       chatStore.markAsRead()
     }
   })

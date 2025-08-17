@@ -635,8 +635,17 @@ const goToChat = async () => {
     return
   }
 
-  // 로그인된 경우 거래 전 안내페이지로 이동
-  router.push({ name: 'deal-notice', params: { buildingId: props.buildingId } })
+  // 로그인된 경우
+  //const consumerId = localStorage.getItem('consumerId') //TODO: 수정
+  const consumerId = '8h9i0j1k-1111-2222-3333-444455556673'
+  const { exists, chatRoomId } = await chatStore.existChatRoom(props.buildingId, consumerId)
+
+  //채팅방 존재하면 해당 채팅방으로 이동, 존재하지 않으면 거래 안내페이지로 이동
+  if (exists && chatRoomId) {
+    router.push({ name: 'chat-room', params: { roomId: chatRoomId } })
+  } else {
+    router.push({ name: 'deal-notice', params: { buildingId } })
+  }
 }
 
 // 리뷰 목록 페이지로 이동
