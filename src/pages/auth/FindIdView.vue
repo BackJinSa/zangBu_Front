@@ -1,29 +1,33 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { findId as findIdApi } from '@/api/auth/auth'
 
 // 상태
 const showResult = ref(false)
 const name = ref('')
 const phone = ref('')
 const foundId = ref('')
+const errorMessage = ref('')
 
-// 더미 유저 데이터
-const dummyUsers = [
-  { name: '홍길동', phone: '010-1234-5678', id: 'gildong123' },
-  { name: '김영희', phone: '010-1111-2222', id: 'younghee88' },
-  { name: '이철수', phone: '010-3333-4444', id: 'chulsoo99' },
-]
+// 아이디 찾기 버튼 활성화 여부
+const isFindIdButtonDisabled = computed(() => {
+  return !name.value || !phone.value
+})
 
-//아이디 찾기 로직
-function findId() {
-  const user = dummyUsers.find((u) => u.name === name.value && u.phone === phone.value)
-
-  if (user) {
-    foundId.value = user.id
-  } else {
-    foundId.value = '' // 아이디가 없으면 빈 문자열
+// 아이디 찾기 로직 (API 연동)
+async function findId() {
+  try {
+    const response = await findIdApi({
+      name: name.value,
+      phone: phone.value.replace(/-/g, ''), // 하이픈 제거
+    })
+    // 백엔드 응답(email)
+    foundId.value = response.data.email
+    errorMessage.value = ''
+  } catch (err) {
+    foundId.value = ''
+    errorMessage.value = '입력하신 정보와 일치하는 아이디가 없습니다.'
   }
-
   showResult.value = true
 }
 </script>
@@ -45,11 +49,18 @@ function findId() {
         <!-- 휴대폰 번호 입력 -->
         <div class="form-group">
           <label class="label">휴대폰 번호</label>
-          <input type="tel" class="input" v-model="phone" placeholder="예: 010-1234-5678" />
+          <input type="tel" class="input" v-model="phone" placeholder="예: 01012345678" />
         </div>
 
         <!-- 아이디 찾기 버튼 -->
-        <button class="btn-primary" @click="findId">아이디 찾기</button>
+        <button
+          class="w-full bg-brand-4 hover:bg-brand-3 text-white py-2 rounded"
+          :class="{ 'cursor-not-allowed': isFindIdButtonDisabled }"
+          @click="findId"
+          :disabled="isFindIdButtonDisabled"
+        >
+          아이디 찾기
+        </button>
         <!-- 찾기 버튼 누르고 + 인증 되면 보이게 -->
 
         <!-- 하단 링크 -->
