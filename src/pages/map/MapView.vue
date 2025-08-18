@@ -31,7 +31,12 @@ import {
   setPropertyNotification,
   cancelPropertyNotification,
 } from '@/api/property/property.js'
-import { getAptTrades } from '@/api/publicdata/publicdata.js'
+import {
+  getAptTrades,
+  getCompleteAptInfo,
+  getPropertyInfoByBuildingId,
+  getAptTradeInfo,
+} from '@/api/publicdata/publicdata.js'
 import { useMembership } from '@/composables/useMembership'
 
 // Props 정의
@@ -245,6 +250,73 @@ const formatPrice = (price) => {
     return `${Math.floor(numPrice / 10000)}억 ${numPrice % 10000}만원`
   } else {
     return `${numPrice}만원`
+  }
+}
+
+// 🆕 실제 공공데이터를 사용하여 매물 정보를 가져오는 함수
+const loadPropertyWithPublicData = async (buildingId) => {
+  try {
+    console.log('🏠 매물 ID로 공공데이터 조회 중...', buildingId)
+
+    // 1. 매물 기본 정보 조회
+    const propertyInfo = await getPropertyInfoByBuildingId(buildingId)
+
+    if (propertyInfo.success) {
+      console.log('✅ 공공데이터 조회 성공:', propertyInfo)
+
+      // 2. 공공데이터로 매물 정보 업데이트
+      const updatedProperty = {
+        buildingId: buildingId,
+        address: propertyInfo.address || '주소 정보 없음',
+        buildingName: propertyInfo.complexName || '건물명 정보 없음',
+        saleType: '정보 없음', // 공공데이터에서 제공하지 않는 정보
+        propertyType: '아파트', // 기본값
+        price: 0, // 공공데이터에서 제공하지 않는 정보
+        deposit: 0,
+        isBookmarked: false,
+        isNotification: false,
+
+        // 🆕 공공데이터에서 가져온 정보들
+        publicData: {
+          area: propertyInfo.areaDisplay || '84.5m²', // 면적
+          floorInfo: propertyInfo.floorInfo || '지하 3층 ~ 지상 25층', // 층수
+          detailedAddress: propertyInfo.detailedAddress || '101동 1001호', // 상세주소
+          heatingType: propertyInfo.heatingType || '지역난방', // 난방
+          completionDate: propertyInfo.completionDate || '2019년 12월', // 준공일자
+          unitCount: propertyInfo.unitCount || '1200세대', // 세대수
+          complexPk: propertyInfo.complexPk, // 단지 고유번호
+          dongName: propertyInfo.dongName, // 동명
+        },
+      }
+
+      return updatedProperty
+    } else {
+      console.error('❌ 공공데이터 조회 실패:', propertyInfo.message)
+      return null
+    }
+  } catch (error) {
+    console.error('❌ 공공데이터 조회 중 오류:', error)
+    return null
+  }
+}
+
+// 🆕 주소로 공공데이터 조회하는 함수
+const loadPublicDataByAddress = async (address) => {
+  try {
+    console.log('🌐 주소로 공공데이터 조회 중...', address)
+
+    const publicData = await getCompleteAptInfo(address)
+
+    if (publicData.success) {
+      console.log('✅ 공공데이터 조회 성공:', publicData)
+      return publicData
+    } else {
+      console.error('❌ 공공데이터 조회 실패:', publicData.message)
+      return null
+    }
+  } catch (error) {
+    console.error('❌ 공공데이터 조회 중 오류:', error)
+    return null
   }
 }
 
@@ -809,7 +881,7 @@ const goToRegistryDownload = async () => {
       // 멤버십 검증
       const result = await validateMembership({
         onSuccess: () => {
-          router.push(`/deal/consumer/documents/${buildingId}/registry/download`)
+          router.push(`/deal/consumer/documents/${buildingId}/ESTATE/download`)
         },
         onFailure: (message) => {
           console.warn('멤버십 검증 실패:', message)
@@ -832,7 +904,7 @@ const goToBuildingRegisterDownload = async () => {
       // 멤버십 검증
       const result = await validateMembership({
         onSuccess: () => {
-          router.push(`/deal/consumer/documents/${buildingId}/building-register/download`)
+          router.push(`/deal/consumer/documents/${buildingId}/BUILDING_REGISTER/download`)
         },
         onFailure: (message) => {
           console.warn('멤버십 검증 실패:', message)
