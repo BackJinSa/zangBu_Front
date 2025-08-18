@@ -37,9 +37,7 @@ export function useStomp() {
     }
 
     const authStore = useAuthStore()
-    //const token = authStore?.accessToken
-    const token =
-      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZXNzaWNhLmFuZGVyc29uQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1NDkyMzMzLCJleHAiOjE3NTU1NTIzMzN9.XC76sWnduhJy7mzVJIzx7xR_NF1sjp340Hs15UNqxY4'
+    const token = authStore?.accessToken
 
     if (!token) {
       console.warn('[STOMP] JWT 토큰이 없습니다.')

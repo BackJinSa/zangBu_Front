@@ -40,7 +40,7 @@ export const useChatStore = defineStore('chat', () => {
   const oldestMessageId = ref(null) //가장 오래 로드된(리스트 맨 앞) 메시지 id 기억 → 더보기 요청용
 
   const authStore = useAuthStore()
-  const myUserId = computed(() => authStore.userId || authStore.memberId || '')
+  const myUserId = computed(() => authStore.user?.email || '')
 
   // 채팅방 목록 조회 로직
   async function getChatRooms(type = 'ALL') {
@@ -108,15 +108,74 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   // 채팅방 생성 로직
-  async function createChatRoom(buildingId) {
-    try {
-      const res = await axios.post(`/api/chat/room/${buildingId}`)
-      console.log('createChatRoom result:', res.data)
-      return res.data // 생성된 채팅방 ChatRoom 반환
-    } catch (err) {
-      console.error('채팅방 생성 실패:', err)
-      throw err
+  // async function createChatRoom(buildingId) {
+  //   try {
+  //     const token = authStore.accessToken
+  //     console.log('createChatRoom의 token: ' + token)
+
+  //     if (!token) {
+  //       console.error('[createChatRoom] accessToken이 없습니다. 로그인/저장 로직 확인!')
+  //       throw new Error('NO_ACCESS_TOKEN')
+  //     }
+
+  //     const res = await axios.post(`/api/chat/room/${buildingId}`, {
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     })
+  //     console.log('createChatRoom result:', res.data)
+  //     return res.data // 생성된 채팅방 ChatRoom 반환
+  //   } catch (err) {
+  //     console.error('채팅방 생성 실패:', err)
+  //     throw err
+  //   }
+  // }
+  async function reissueAccessToken() {
+    // refreshToken이 HttpOnly 쿠키라면 이 호출에서 쿠키가 서버로 가야 함
+    const { data } = await axios.post('/api/auth/reissue', {}, { withCredentials: true })
+    const token = data?.accessToken
+    if (!token) throw new Error('REISSUE_NO_TOKEN')
+    localStorage.setItem('accessToken', token)
+    return token
+  }
+
+  async function createChatRoom(buildingId, memberId) {
+    const doRequest = async (token) => {
+      // 디버깅 로그: 실제로 무엇을 붙이는지
+      console.log('[createChatRoom] Using token(head)=', token?.slice(0, 12), 'len=', token?.length)
+      const res = await axios.post(
+        `/api/chat/room/${buildingId}`,
+        { consumerId: memberId },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`, // ★ 여기서 붙임
+          },
+        }
+      )
+      return res
     }
+
+    let token = localStorage.getItem('accessToken')
+
+    // 1차 시도
+    if (token) {
+      try {
+        const { data } = await doRequest(token)
+        return data
+      } catch (err) {
+        if (err?.response?.status !== 401) throw err
+        console.warn('[createChatRoom] 401 → 토큰 만료로 보고 재발급 진행')
+      }
+    } else {
+      console.warn('[createChatRoom] 저장된 accessToken 없음 → 재발급 시도')
+    }
+
+    // 2차: 재발급 후 재시도
+    token = await reissueAccessToken()
+    const { data } = await doRequest(token)
+    return data
   }
 
   //채팅방 삭제 로직

@@ -34,6 +34,7 @@ import {
 import { getAptTrades } from '@/api/publicdata/publicdata.js'
 import { useMembership } from '@/composables/useMembership'
 import { useChatStore } from '@/stores/chat/chat'
+import { useAuthStore } from '@/stores/auth/auth'
 
 // Props 정의
 const props = defineProps({
@@ -48,6 +49,7 @@ const mapStore = useMapStore()
 const router = useRouter()
 const route = useRoute()
 const chatStore = useChatStore()
+const authStore = useAuthStore()
 
 // 상세 보기 상태
 const showDetail = ref(false)
@@ -770,9 +772,10 @@ const goToChat = async () => {
   }
 
   // 로그인된 경우
-  //const consumerId = localStorage.getItem('consumerId') //TODO: 수정
-  const consumerId = '8h9i0j1k-1111-2222-3333-444455556673'
-  const { exists, chatRoomId } = await chatStore.existChatRoom(props.buildingId, consumerId)
+  const consumerId = authStore.memberId
+  // const { exists, chatRoomId } = await chatStore.existChatRoom(props.buildingId, consumerId)  //TODO: buildingId 수정
+  const buildingId = '9'
+  const { exists, chatRoomId } = await chatStore.existChatRoom(buildingId, consumerId)
 
   //채팅방 존재하면 해당 채팅방으로 이동, 존재하지 않으면 거래 안내페이지로 이동
   if (exists && chatRoomId) {

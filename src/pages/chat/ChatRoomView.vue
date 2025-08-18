@@ -186,8 +186,7 @@ const chatStore = useChatStore()
 const authStore = useAuthStore()
 const { connect, subscribeRoom, unsubscribeRoom, disconnect, connected } = useStomp()
 const roomId = computed(() => String(route.params.roomId || ''))
-//const myUserId = computed(() => authStore.userId || authStore.memberId || '')
-const myUserId = '8h9i0j1k-1111-2222-3333-444455556673'
+const myUserId = computed(() => authStore.memberId || '')
 
 //나가기 모달
 const showModal = ref(false)
@@ -230,8 +229,7 @@ async function fetchRoomMeta() {
     // 응답 형태가 {room: {...}} 또는 바로 {...} 둘 다 대응
     const r = data?.room ?? data ?? {}
 
-    //const myId = myUserId.value
-    const myId = myUserId
+    const myId = myUserId.value
 
     sellerVisible.value = Number(r.sellerVisible ?? 1)
     consumerVisible.value = Number(r.consumerVisible ?? 1)
@@ -316,8 +314,7 @@ const messages = computed(() => chatStore.messages)
 const viewMessages = computed(() =>
   messages.value.map((m) => ({
     ...m,
-    //isMine: m.senderId === myUserId.value,
-    isMine: !m.isSystem && m.senderId === myUserId,
+    isMine: !m.isSystem && m.senderId === myUserId.value, //TODO: senderId가 이메일인듯?
   }))
 )
 
@@ -365,11 +362,10 @@ function subscribeCurrentRoom() {
     // 수신 즉시 스토어에 누적
     const normalized = chatStore.pushIncoming(message)
     // 내가 보낸 게 아니고 시스템 메시지도 아닐 때만 읽음 처리
-    //if (message?.senderId && message.senderId !== myUserId.value) {
     if (
       !normalized?.isSystem &&
-      normalized?.senderId &&
-      String(normalized.senderId) !== String(myUserId)
+      normalized?.senderId && //TODO: senderID 이메일이어서 수정해야함
+      String(normalized.senderId) !== String(myUserId.value)
     ) {
       chatStore.markAsRead()
     }

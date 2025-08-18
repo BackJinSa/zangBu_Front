@@ -239,6 +239,7 @@ async function fetchRooms() {
         page: currentPage.value, // 1-base 또는 0-base면 서버에 맞춰 수정
         size: pageSize,
       },
+      headers: { Authorization: `Bearer ${authStore.accessToken}` },
     })
 
     // 호환 처리: items/total/counts가 없을 수도 있으니 안전하게
@@ -309,7 +310,8 @@ function resubscribeForCurrentPage() {
       // 표시용 프리뷰도 동기화 (빈 문자열이면 플레이스홀더)
       const msg = (message.message ?? '').trim()
       target.lastMessagePreview = msg.length ? msg : '채팅을 시작해보세요'
-      if (authStore.userId && message.senderId !== authStore.userId) {
+      if (authStore.memberId && message.senderId !== authStore.memberId) {
+        //TODO: senderID가 이메일인듯
         target.unreadCount = (target.unreadCount || 0) + 1
       }
     })
@@ -339,10 +341,15 @@ const goToChatRoom = (roomId) => {
 
 onMounted(async () => {
   // STOMP 연결 후 목록 로딩
-  connect(() => {
-    // 연결 성공 콜백에서 목록 조회하면, 구독도 연결 이후에 정확히 붙음
-    fetchRooms()
-  })
+  fetchRooms()
+  // 2) 토큰 함수 전달: authStore에서 확실히 값이 준비된 후 사용
+  await connect(
+    () => authStore.accessToken,
+    () => {
+      // 연결되면 현재 페이지 구독만 붙이기
+      resubscribeForCurrentPage()
+    }
+  )
 })
 
 // 탭/페이지 변경 시 재조회
@@ -351,6 +358,7 @@ watch([filterType, currentPage], () => {
 })
 
 onBeforeUnmount(() => {
-  disconnect()
+  // 현재 페이지 구독만 해제 (연결 유지)
+  unsubscribeAll()
 })
 </script>

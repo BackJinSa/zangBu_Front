@@ -1,48 +1,306 @@
 <script setup>
-import MainHeroSection from '@/components/main/MainHeroSection.vue'
-import MainActionButtons from '@/components/main/MainActionButtons.vue'
-import MainPropertySection from '@/components/main/MainPropertySection.vue'
-import { ref, onMounted } from 'vue'
-import axios from '@/api/axios'
+/* ===== 기본 import ===== */
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth/auth'
+import { logout as logoutApi } from '@/api/auth/auth'
 
-// 데이터 상태
-const mostReviewedProperties = ref([])
-const mostLikedProperties = ref([])
-const newProperties = ref([])
-const nickName = ref('')
+/* ===== 섹션 컴포넌트 ===== */
+import FavoritesSection from '@/components/user/FavoritesSection.vue'
+import PropertyCard from '@/components/common/PropertyCard.vue' // '내가 등록한 매물' 더미 표시용
 
-// 메인 데이터 로드
-const loadMainData = async () => {
+/* ===== 상태 ===== */
+const router = useRouter()
+const selectedTab = ref('favorite')
+const authStore = useAuthStore()
+const isLoggingOut = ref(false)
+
+// 상단 통계용: 찜 개수는 FavoritesSection에서 emit해 주는 total을 반영
+const favTotal = ref(0)
+
+// (임시) 내가 등록한 매물 개수
+const user = { registered: 2 }
+
+/* ===== JWT 표시용 유틸 ===== */
+function decodeJwt(token) {
   try {
-    const response = await axios.get('/main')
-    const data = response.data
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    return JSON.parse(atob(payload))
+  } catch {
+    return null
+  }
+}
+const token = computed(() => authStore.accessToken || localStorage.getItem('token') || '')
+const claims = computed(() => (token.value ? decodeJwt(token.value) : null) || {})
 
-    nickName.value = data.nickName
-    mostReviewedProperties.value = data.topReviewed || []
-    mostLikedProperties.value = data.topLiked || []
-    newProperties.value = data.newRooms || []
+const displayEmail = computed(
+  () => authStore.user?.email ?? claims.value.email ?? claims.value.sub ?? ''
+)
 
-    console.log('Main data loaded:', data)
-  } catch (error) {
-    console.error('Failed to load main data:', error)
-    // 에러 시 기본 데이터 사용
-    mostReviewedProperties.value = []
-    mostLikedProperties.value = []
-    newProperties.value = []
+const displayName = computed(
+  () =>
+    authStore.user?.nickname ??
+    authStore.user?.name ??
+    claims.value.nickname ??
+    claims.value.name ??
+    (displayEmail.value ? displayEmail.value.split('@')[0] : '사용자')
+)
+
+const userInitial = computed(() => displayName.value?.charAt(0) || '?')
+const registeredCount = computed(() => authStore.user?.registered ?? user.registered ?? 0)
+
+/* ===== 로그아웃 ===== */
+async function handleLogout() {
+  if (isLoggingOut.value) return
+  isLoggingOut.value = true
+  try {
+    await logoutApi() // 1) 서버 로그아웃 (Redis 키 삭제 + refresh 쿠키 만료)
+    authStore.logout() // 2) 클라이언트 인증 상태 정리
+    router.replace('/auth/login') // 3) 로그인 페이지로 이동
+  } catch (e) {
+    console.error('로그아웃 실패:', e)
+    authStore.logout()
+    router.replace('/auth/login?relogin=1')
+  } finally {
+    isLoggingOut.value = false
   }
 }
 
-// 컴포넌트 마운트 시 데이터 로드
-onMounted(() => {
-  loadMainData()
-})
+/* ===== 내가 등록한 매물 (더미) -> PropertyCard 스키마로 맵핑 =====
+PropertyCard는 snake_case를 기대하므로 아래 형태로 맞춤
+*/
+const myPropertiesRaw = [
+  {
+    id: 3,
+    title: '내 매물 A',
+    imageUrl: '',
+    priceWon: 400000000,
+    location: '부산',
+    typeKo: '전세',
+  },
+  {
+    id: 4,
+    title: '내 매물 B',
+    imageUrl: '',
+    priceWon: 150000000,
+    location: '대구',
+    typeKo: '매매',
+  },
+  {
+    id: 5,
+    title: '내 매물 C',
+    imageUrl: '',
+    priceWon: 150000000,
+    location: '대구',
+    typeKo: '매매',
+  },
+]
+// PropertyCard 기대 스키마로 변환
+const myProperties = computed(() =>
+  myPropertiesRaw.map((p) => ({
+    building_id: p.id,
+    building_name: p.title,
+    image_url: p.imageUrl || '/default-property.jpg',
+    price: p.priceWon, // 원 단위 숫자
+    deposit: undefined,
+    sale_type: p.typeKo, // '매매' | '전세' | '월세'
+    bookmark_count: 0,
+    created_at: '직접 등록',
+    property_type: '아파트',
+    seller_nickname: '나',
+    info_oneline: p.location ? `${p.location} · 직접 등록 매물` : '직접 등록 매물',
+    facility: '',
+  }))
+)
+
+/* ===== FavoritesSection 이벤트 처리 ===== */
+function handleFavLoaded(meta) {
+  favTotal.value = meta.total ?? 0
+}
+function handleFavDetail(prop) {
+  // building_id 기준으로 상세페이지 이동
+  if (prop?.building_id) router.push(`/property/${prop.building_id}`)
+}
+function handleFavDeleted(buildingId) {
+  // 토스트/알림 등 필요 시 추가
+  console.log('favorite deleted:', buildingId)
+}
 </script>
+
 <template>
-  <div class="bg-white min-h-screen">
-    <MainHeroSection />
-    <MainActionButtons />
-    <MainPropertySection title="리뷰 많은 매물" :properties="mostReviewedProperties" />
-    <MainPropertySection title="찜 많은 매물" :properties="mostLikedProperties" />
-    <MainPropertySection title="신규 매물" :properties="newProperties" />
-  </div>
+  <section class="px-6 py-10 bg-gray-50 min-h-screen">
+    <!-- 제목 -->
+    <h1 class="text-2xl font-bold text-center mb-4">
+      <i class="fa-solid fa-user" style="color: var(--brand-3)"></i> 마이페이지
+    </h1>
+    <p class="text-xs text-center mb-8">계정을 관리하고 저장된 매물을 확인하세요.</p>
+
+    <!-- 사용자 카드 -->
+    <div class="bg-white shadow rounded-xl p-6 max-w-6xl mx-auto mb-4 flex items-center">
+      <div
+        class="w-16 h-16 bg-brand-3 rounded-full flex items-center justify-center text-xl font-bold text-white"
+      >
+        {{ userInitial }}
+      </div>
+      <div class="ml-4">
+        <p class="font-semibold text-lg">{{ displayName }}</p>
+        <p class="text-sm text-gray-600">{{ displayEmail }}</p>
+        <div class="flex space-x-4 mt-2 text-gray-700">
+          <!-- 찜한 매물 -->
+          <div class="stat-block">
+            <div class="stat-number">{{ favTotal }}</div>
+            <div class="stat-label">찜한 매물</div>
+          </div>
+          <!-- 등록한 매물 -->
+          <div class="stat-block">
+            <div class="stat-number">{{ registeredCount }}</div>
+            <div class="stat-label">등록한 매물</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 액션 버튼 -->
+    <div class="action-buttons mt-6 p-6">
+      <router-link to="/user/profile-edit" class="primary-button">
+        <i class="fa-regular fa-pen-to-square mr-2"></i>개인 정보 수정
+      </router-link>
+      <button class="primary-button" @click="handleLogout" :disabled="isLoggingOut">
+        <i class="fa-solid fa-right-from-bracket mr-2"></i>
+        {{ isLoggingOut ? '로그아웃 중...' : '로그아웃' }}
+      </button>
+      <router-link to="/user/withdraw" class="secondary-button">
+        <i class="fa-solid fa-trash-can mr-2"></i>계정 삭제
+      </router-link>
+    </div>
+
+    <!-- 섹션 -->
+    <div class="max-w-6xl mx-auto mt-6 p-6 rounded-lg mb-20" style="background: var(--bg-1)">
+      <!-- 탭 버튼 -->
+      <div class="flex justify-center gap-4 mb-6">
+        <button
+          class="tab-button"
+          :class="{ active: selectedTab === 'favorite' }"
+          @click="selectedTab = 'favorite'"
+        >
+          <i class="fa-regular fa-heart mr-2"></i> 내가 찜한 매물
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: selectedTab === 'my' }"
+          @click="selectedTab = 'my'"
+        >
+          <i class="fa-solid fa-house mr-2"></i> 내가 등록한 매물
+        </button>
+      </div>
+
+      <!-- 콘텐츠 -->
+      <!-- A. 찜한 매물: API 연동된 섹션 -->
+      <FavoritesSection
+        v-if="selectedTab === 'favorite'"
+        :page-size="9"
+        :unit-is-manwon="true"
+        @loaded="handleFavLoaded"
+        @detail="handleFavDetail"
+        @deleted="handleFavDeleted"
+      />
+
+      <!-- B. 내가 등록한 매물(더미) -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <PropertyCard
+          v-for="property in myProperties"
+          :key="property.building_id"
+          :property="property"
+        />
+      </div>
+    </div>
+  </section>
 </template>
+
+<style scoped>
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brand-3); /* 강조 색 */
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.tab-button {
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--brand-3);
+  background-color: var(--bg-2);
+  color: var(--text-1);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tab-button.active {
+  background-color: var(--brand-3);
+  color: var(--text-3);
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.primary-button {
+  height: 40px;
+  padding: 0 20px;
+  background: var(--brand-3);
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.2s ease;
+  text-align: center;
+  line-height: 40px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.primary-button:hover {
+  background: var(--brand-2);
+}
+
+.secondary-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 2px solid var(--status-2);
+  background: var(--bg-2);
+  cursor: pointer;
+  color: var(--status-2);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s ease;
+  text-align: center;
+  line-height: 40px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.secondary-button:hover {
+  background: #fef2f2;
+}
+</style>
