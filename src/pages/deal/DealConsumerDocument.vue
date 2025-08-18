@@ -53,7 +53,7 @@
                 {{ documentTypeLabel }}
               </span>
               <button
-                @click="openOfficialDocument"
+                @click="refreshDocument"
                 class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,22 +61,37 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                   />
+                </svg>
+                새로고침
+              </button>
+              <button
+                @click="downloadPdf"
+                :disabled="downloadLoading"
+                class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg
+                  v-if="downloadLoading"
+                  class="w-3 h-3 mr-1.5 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                   />
                 </svg>
-                공식서류 열람
-              </button>
-              <button
-                @click="downloadPdf"
-                class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  v-else
+                  class="w-3 h-3 mr-1.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -84,7 +99,7 @@
                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                다운로드
+                {{ downloadLoading ? '다운로드 중...' : '다운로드' }}
               </button>
             </div>
           </div>
@@ -92,57 +107,18 @@
 
         <!-- PDF Container -->
         <div class="relative">
-          <div class="bg-gray-100 p-4">
-            <div class="flex items-center justify-center space-x-4 mb-4">
-              <button
-                @click="zoomOut"
-                :disabled="zoom <= 0.5"
-                class="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-200 disabled:opacity-50"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"
-                  />
-                </svg>
-              </button>
-              <span class="text-sm text-gray-600">{{ Math.round(zoom * 100) }}%</span>
-              <button
-                @click="zoomIn"
-                :disabled="zoom >= 2"
-                class="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-200 disabled:opacity-50"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-
+          <!-- 간단한 PDF 뷰어 -->
           <div class="overflow-auto" style="height: calc(100vh - 200px)">
             <div class="flex justify-center p-4">
               <div class="w-full max-w-4xl">
                 <div class="bg-white rounded-lg shadow-sm border border-gray-300 overflow-hidden">
+                  <!-- 간단한 PDF 뷰어 -->
                   <iframe
+                    v-if="pdfUrl"
                     :src="pdfUrl"
                     class="w-full"
-                    :style="{
-                      transform: `scale(${zoom})`,
-                      transformOrigin: 'top center',
-                      aspectRatio: '1 / 1.414',
-                      minHeight: '800px',
-                      maxHeight: 'calc(100vh - 300px)',
-                    }"
+                    style="height: 1200px; border: none"
                     frameborder="0"
-                    sandbox="allow-same-origin allow-scripts"
-                    allow="fullscreen"
                   ></iframe>
                 </div>
               </div>
@@ -180,9 +156,10 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getConsumerDocumentUrl } from '@/api/deal/deal'
+import { getConsumerDocumentUrl, refreshConsumerDocument } from '@/api/deal/deal'
 import { DOCUMENT_TYPE } from '@/utils/constants'
 import BackButton from '@/components/common/BackButton.vue'
+import { getObject, createSignedUrl } from '@/utils/ncp-object-storage-service'
 
 export default {
   name: 'DealConsumerDocument',
@@ -196,7 +173,7 @@ export default {
     const loading = ref(true)
     const error = ref(null)
     const pdfUrl = ref(null)
-    const zoom = ref(1)
+    const downloadLoading = ref(false)
 
     const dealId = computed(() => route.params.dealId)
     const documentType = computed(() => route.params.type)
@@ -224,9 +201,53 @@ export default {
 
     // 더미 PDF URL 생성 함수
     const getDummyPdfUrl = (type) => {
-      const dummyPdfBase64 =
-        'JVBERi0xLjQKJcOkw7zDtsO8DQoxIDAgb2JqDQo8PA0KL1R5cGUgL0NhdGFsb2cNCi9QYWdlcyAyIDAgUg0KPj4NCmVuZG9iag0KMiAwIG9iag0KPDwNCi9UeXBlIC9QYWdlcw0KL0NvdW50IDENCi9LaWRzIFsgMyAwIFIgXQ0KPj4NCmVuZG9iag0KMyAwIG9iag0KPDwNCi9UeXBlIC9QYWdlDQovUGFyZW50IDIgMCBSDQovUmVzb3VyY2VzIDw8DQovRm9udCA8PA0KL0YxIDQgMCBSDQo+Pg0KPj4NCi9NZWRpYUJveCBbIDAgMCA2MTIgNzkyIF0NCi9Db250ZW50cyA1IDAgUg0KPj4NCmVuZG9iag0KNCAwIG9iag0KPDwNCi9UeXBlIC9Gb250DQovU3VidHlwZSAvVHlwZTENCi9CYXNlRm9udCAvSGVsdmV0aWNhDQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZw0KPj4NCmVuZG9iag0KNSAwIG9iag0KPDwNCi9MZW5ndGggNDQNCj4+DQpzdHJlYW0NCkJUCjcwIDUwIFRECi9GMSAxMiBUZgooSGVsbG8gV29ybGQpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoNCnhyZWYNCjAgNg0KMDAwMDAwMDAwMCA2NTUzNSBmDQowMDAwMDAwMDEwIDAwMDAwIG4NCjAwMDAwMDAwNzkgMDAwMDAgbg0KMDAwMDAwMDE3MyAwMDAwMCBuDQowMDAwMDAwMzAxIDAwMDAwIG4NCjAwMDAwMDAzODAgMDAwMDAgbg0KdHJhaWxlcg0KPDwNCi9TaXplIDYNCi9Sb290IDEgMCBSDQo+Pg0Kc3RhcnR4cmVmDQo0OTINCiUlRU9G'
-      return `data:application/pdf;base64,${dummyPdfBase64}`
+      // 문서 타입에 따라 실제 NCP URL 사용
+      const ncpUrls = {
+        [DOCUMENT_TYPE.ESTATE]:
+          'https://kr.object.ncloudstorage.com/bjs-bucket/estate-register-test_11111.pdf',
+        [DOCUMENT_TYPE.BUILDING_REGISTER]:
+          'https://kr.object.ncloudstorage.com/bjs-bucket/building-register-test_12345.pdf',
+      }
+
+      return ncpUrls[type] || ncpUrls[DOCUMENT_TYPE.ESTATE] // 기본값으로 estate URL 사용
+    }
+
+    // NCP URL에서 bucket과 object name 추출하는 함수
+    const parseNcpUrl = (url) => {
+      try {
+        // NCP URL 형식: https://kr.object.ncloudstorage.com/bucket-name/object-name
+        const urlObj = new URL(url)
+        const pathParts = urlObj.pathname.split('/').filter((part) => part)
+
+        if (pathParts.length >= 2) {
+          return {
+            bucketName: pathParts[0],
+            objectName: pathParts.slice(1).join('/'), // 경로가 여러 단계일 수 있음
+          }
+        }
+
+        // 기본값 반환
+        return {
+          bucketName: 'default-bucket',
+          objectName: 'document.pdf',
+        }
+      } catch (error) {
+        console.warn('URL 파싱 실패:', error)
+        return {
+          bucketName: 'default-bucket',
+          objectName: 'document.pdf',
+        }
+      }
+    }
+
+    // NCP URL 유효성 검사 함수
+    const isValidNcpUrl = (url) => {
+      try {
+        const urlObj = new URL(url)
+        return urlObj.hostname === 'kr.object.ncloudstorage.com' && urlObj.protocol === 'https:'
+      } catch (error) {
+        return false
+      }
     }
 
     // PDF URL에 파라미터 추가하여 브라우저 기능 비활성화
@@ -257,16 +278,69 @@ export default {
             throw new Error('문서 URL을 받지 못했습니다.')
           }
 
-          // PDF URL을 보안 처리하여 브라우저 기능 비활성화
-          pdfUrl.value = getSecurePdfUrl(originalUrl)
+          // NCP를 통해 문서 가져오기
+          try {
+            // NCP URL 유효성 검사
+            if (!isValidNcpUrl(originalUrl)) {
+              console.warn('유효하지 않은 NCP URL:', originalUrl)
+              pdfUrl.value = getSecurePdfUrl(originalUrl)
+              return
+            }
+
+            // URL에서 bucket과 object name 추출
+            const { bucketName, objectName } = parseNcpUrl(originalUrl)
+
+            console.log('NCP 요청 정보:', { bucketName, objectName })
+
+            // NCP에서 문서 blob 가져오기
+            const documentBlob = await getObject(bucketName, objectName)
+
+            // Blob을 data URL로 변환
+            const reader = new FileReader()
+            reader.onload = () => {
+              const dataUrl = reader.result
+              pdfUrl.value = getSecurePdfUrl(dataUrl)
+            }
+            reader.readAsDataURL(documentBlob)
+          } catch (ncpError) {
+            console.warn('NCP 요청 실패, 원본 URL 사용')
+            // NCP 실패 시 원본 URL 사용
+            pdfUrl.value = getSecurePdfUrl(originalUrl)
+          }
         } catch (apiError) {
-          console.warn('API 호출 실패, 더미 PDF 사용:', apiError)
-          // API 호출 실패 시 더미 PDF URL 사용
-          const dummyUrl = getDummyPdfUrl(documentType.value)
-          pdfUrl.value = getSecurePdfUrl(dummyUrl)
+          console.warn('API 호출 실패, 더미 PDF 사용')
+          // API 호출 실패 시 더미 PDF URL 사용 (NCP를 통해 가져오기)
+          const dummyUrl = getDummyPdfUrl(apiType.value)
+
+          try {
+            // NCP URL 유효성 검사
+            if (!isValidNcpUrl(dummyUrl)) {
+              console.warn('유효하지 않은 더미 NCP URL:', dummyUrl)
+              pdfUrl.value = getSecurePdfUrl(dummyUrl)
+              return
+            }
+
+            // 더미 URL도 NCP를 통해 가져오기
+            const { bucketName, objectName } = parseNcpUrl(dummyUrl)
+
+            // NCP에서 문서 blob 가져오기
+            const documentBlob = await getObject(bucketName, objectName)
+
+            // Blob을 data URL로 변환
+            const reader = new FileReader()
+            reader.onload = () => {
+              const dataUrl = reader.result
+              pdfUrl.value = getSecurePdfUrl(dataUrl)
+            }
+            reader.readAsDataURL(documentBlob)
+          } catch (ncpError) {
+            console.warn('더미 PDF NCP 요청 실패, 원본 URL 사용')
+            // NCP 실패 시 원본 URL 사용
+            pdfUrl.value = getSecurePdfUrl(dummyUrl)
+          }
         }
       } catch (err) {
-        console.error('문서 로드 오류:', err)
+        console.error('문서 로드 오류')
         error.value =
           err.response?.data?.message || err.message || '문서를 불러오는 중 오류가 발생했습니다.'
       } finally {
@@ -274,50 +348,144 @@ export default {
       }
     }
 
-    const openOfficialDocument = async () => {
+    const refreshDocument = async () => {
       try {
         loading.value = true
         error.value = null
 
-        // 공식서류 열람 API 호출
-        const response = await getConsumerDocumentUrl(dealId.value, apiType.value)
-        const originalUrl = response.data.url
+        // API 호출 시도
+        try {
+          const response = await refreshConsumerDocument(dealId.value, apiType.value)
+          const originalUrl = response.data.url
 
-        if (!originalUrl) {
-          throw new Error('공식서류 URL을 받지 못했습니다.')
+          if (!originalUrl) {
+            throw new Error('문서 URL을 받지 못했습니다.')
+          }
+
+          // NCP를 통해 문서 가져오기
+          try {
+            // NCP URL 유효성 검사
+            if (!isValidNcpUrl(originalUrl)) {
+              console.warn('유효하지 않은 새로고침 NCP URL:', originalUrl)
+              pdfUrl.value = getSecurePdfUrl(originalUrl)
+              return
+            }
+
+            // URL에서 bucket과 object name 추출
+            const { bucketName, objectName } = parseNcpUrl(originalUrl)
+
+            // NCP에서 문서 blob 가져오기
+            const documentBlob = await getObject(bucketName, objectName)
+
+            // Blob을 data URL로 변환
+            const reader = new FileReader()
+            reader.onload = () => {
+              const dataUrl = reader.result
+              pdfUrl.value = getSecurePdfUrl(dataUrl)
+            }
+            reader.readAsDataURL(documentBlob)
+          } catch (ncpError) {
+            console.warn('NCP 새로고침 요청 실패, 원본 URL 사용')
+            // NCP 실패 시 원본 URL 사용
+            pdfUrl.value = getSecurePdfUrl(originalUrl)
+          }
+        } catch (apiError) {
+          console.warn('API 호출 실패, 더미 PDF 사용')
+          // API 호출 실패 시 더미 PDF URL 사용 (NCP를 통해 가져오기)
+          const dummyUrl = getDummyPdfUrl(apiType.value)
+
+          try {
+            // NCP URL 유효성 검사
+            if (!isValidNcpUrl(dummyUrl)) {
+              console.warn('유효하지 않은 더미 NCP URL:', dummyUrl)
+              pdfUrl.value = getSecurePdfUrl(dummyUrl)
+              return
+            }
+
+            // 더미 URL도 NCP를 통해 가져오기
+            const { bucketName, objectName } = parseNcpUrl(dummyUrl)
+
+            // NCP에서 문서 blob 가져오기
+            const documentBlob = await getObject(bucketName, objectName)
+
+            // Blob을 data URL로 변환
+            const reader = new FileReader()
+            reader.onload = () => {
+              const dataUrl = reader.result
+              pdfUrl.value = getSecurePdfUrl(dataUrl)
+            }
+            reader.readAsDataURL(documentBlob)
+          } catch (ncpError) {
+            console.warn('더미 PDF NCP 요청 실패, 원본 URL 사용')
+            // NCP 실패 시 원본 URL 사용
+            pdfUrl.value = getSecurePdfUrl(dummyUrl)
+          }
         }
-
-        // 새 창에서 공식서류 열기
-        window.open(originalUrl, '_blank', 'noopener,noreferrer')
       } catch (err) {
-        console.error('공식서류 열람 오류:', err)
-        error.value = err.response?.data?.message || err.message || '공식서류를 열람할 수 없습니다.'
+        console.error('문서 새로고침 오류')
+        error.value =
+          err.response?.data?.message ||
+          err.message ||
+          '문서를 새로고침하는 중 오류가 발생했습니다.'
       } finally {
         loading.value = false
       }
     }
 
-    const downloadPdf = () => {
-      if (pdfUrl.value) {
-        const link = document.createElement('a')
-        link.href = pdfUrl.value
-        link.download = `${documentTypeLabel.value}_${dealId.value}.pdf`
-        link.target = '_blank'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+    const downloadPdf = async () => {
+      if (!pdfUrl.value) {
+        console.warn('PDF URL이 없습니다.')
+        return
       }
-    }
 
-    const zoomIn = () => {
-      if (zoom.value < 2) {
-        zoom.value = Math.min(2, zoom.value + 0.1)
-      }
-    }
+      downloadLoading.value = true
 
-    const zoomOut = () => {
-      if (zoom.value > 0.5) {
-        zoom.value = Math.max(0.5, zoom.value - 0.1)
+      try {
+        // Data URL인 경우 (NCP에서 가져온 경우)
+        if (pdfUrl.value.startsWith('data:')) {
+          const link = document.createElement('a')
+          link.href = pdfUrl.value
+          link.download = `${documentTypeLabel.value}_${dealId.value}.pdf`
+          link.style.display = 'none'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          console.log('다운로드 완료 (Data URL)')
+          return
+        }
+
+        // 외부 URL인 경우 (NCP 실패로 원본 URL 사용하는 경우)
+        if (pdfUrl.value.startsWith('http')) {
+          // fetch로 파일을 가져와서 다운로드
+          const response = await fetch(pdfUrl.value)
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+          }
+
+          const blob = await response.blob()
+          const url = window.URL.createObjectURL(blob)
+
+          const link = document.createElement('a')
+          link.href = url
+          link.download = `${documentTypeLabel.value}_${dealId.value}.pdf`
+          link.style.display = 'none'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+
+          // Blob URL 정리
+          window.URL.revokeObjectURL(url)
+          console.log('다운로드 완료 (HTTP URL)')
+          return
+        }
+
+        console.warn('지원하지 않는 URL 형식:', pdfUrl.value)
+      } catch (error) {
+        console.error('다운로드 실패:', error)
+        // 에러 발생 시 새 창에서 열기로 fallback
+        window.open(pdfUrl.value, '_blank')
+      } finally {
+        downloadLoading.value = false
       }
     }
 
@@ -329,16 +497,14 @@ export default {
       loading,
       error,
       pdfUrl,
-      zoom,
       dealId,
       documentType,
       documentTypeLabel,
       documentTitle,
       loadDocument,
-      openOfficialDocument,
+      refreshDocument,
       downloadPdf,
-      zoomIn,
-      zoomOut,
+      downloadLoading,
     }
   },
 }
