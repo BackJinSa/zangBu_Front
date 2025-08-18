@@ -592,13 +592,7 @@ const confirmAccept = async () => {
       status: DEAL_STATUS.BEFORE_CONSUMER,
     } // 판매자 수락 - 소비자 확인 대기 상태로 변경
 
-<<<<<<< HEAD
-    await axios.patch(`/api/deal/${roomId}/status`, dto, {
-      headers: { 'Content-Type': 'application/json' },
-    })
-=======
     await changeDealStatus(dto)
->>>>>>> 60387af038013524edab4624bf5384043e216278
 
     // (선택) 방 메타 갱신 후 이동하고 싶으면:
     //await fetchRoomMeta()

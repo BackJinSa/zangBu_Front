@@ -389,6 +389,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getDealNotice } from '@/api/deal/deal'
 import { useChatStore } from '@/stores/chat/chat'
+import { useAuthStore } from '@/stores/auth/auth'
 import axios from 'axios'
 
 const route = useRoute()
@@ -403,6 +404,7 @@ const showAgreementModal = ref(false)
 const showBackModal = ref(false)
 const showBackButton = ref(false)
 const chatStore = useChatStore()
+const authStore = useAuthStore()
 
 const fetchDealNotice = async () => {
   try {
@@ -510,9 +512,7 @@ const startChat = async () => {
 
 //거래 생성
 const createDeal = async (chatRoomId) => {
-  //const token = auth.accessToken || auth.token || auth.jwt || auth.idToken || ''
-  const token =
-    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZXNzaWNhLmFuZGVyc29uQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1NDkyMzMzLCJleHAiOjE3NTU1NTIzMzN9.XC76sWnduhJy7mzVJIzx7xR_NF1sjp340Hs15UNqxY4'
+  const token = authStore.accessToken || ''
   try {
     const res = await axios.post(
       `/api/deal`,

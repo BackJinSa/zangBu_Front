@@ -178,6 +178,19 @@ export const useChatStore = defineStore('chat', () => {
     return data
   }
 
+  async function fetchMemberIdByEmail(email) {
+    const res = await axios.get('/api/chat/id', { params: { email } })
+
+    // 실제 키가 무엇인지 확인 후 맞춰 반환
+    const data = res.data
+    const memberId = data?.memberId ?? data?.member_id ?? data?.id ?? null
+
+    if (!memberId) {
+      throw new Error('응답에 memberId가 없음')
+    }
+    return String(memberId)
+  }
+
   //채팅방 삭제 로직
   async function deleteChatRoom(roomId) {
     try {
@@ -280,5 +293,6 @@ export const useChatStore = defineStore('chat', () => {
     markAsRead,
     pushIncoming,
     existChatRoom,
+    fetchMemberIdByEmail,
   }
 })

@@ -186,7 +186,18 @@ const chatStore = useChatStore()
 const authStore = useAuthStore()
 const { connect, subscribeRoom, unsubscribeRoom, disconnect, connected } = useStomp()
 const roomId = computed(() => String(route.params.roomId || ''))
-const myUserId = computed(() => authStore.memberId || '')
+
+const userStr = localStorage.getItem('user')
+const user = userStr ? JSON.parse(userStr) : null
+
+// email만 꺼내기
+const email = user?.email || null
+console.log('멤버email: ' + email)
+
+//const myUserId = await chatStore.fetchMemberIdByEmail(email)
+const myUserId = ref('')
+//const myUserId = '8h9i0j1k-1111-2222-3333-444455556673'
+console.log('멤버 ID:', myUserId)
 
 //나가기 모달
 const showModal = ref(false)
@@ -228,15 +239,15 @@ async function fetchRoomMeta() {
     const { data } = await axios.get(`/api/chat/room/info/${roomId.value}`)
     // 응답 형태가 {room: {...}} 또는 바로 {...} 둘 다 대응
     const r = data?.room ?? data ?? {}
-
-    const myId = myUserId.value
+    console.log('fetchRoomMeta : 방 정보:', r)
 
     sellerVisible.value = Number(r.sellerVisible ?? 1)
     consumerVisible.value = Number(r.consumerVisible ?? 1)
 
     // 내가 판매자인지 계산
-    const iAmSeller = !!myId && !!r.sellerId && myId === r.sellerId
+    const iAmSeller = !!myUserId && !!r.sellerId && myUserId === r.sellerId
     isSeller.value = iAmSeller
+    console.log('내가 판매자:', isSeller.value)
 
     // 헤더
     buildingName.value = r.buildingName ?? ''
@@ -309,15 +320,6 @@ const isInputDisabled = computed(() => {
 })
 
 const messages = computed(() => chatStore.messages)
-
-// 화면용: 정렬 방향(isMine) 붙이기
-const viewMessages = computed(() =>
-  messages.value.map((m) => ({
-    ...m,
-    isMine: !m.isSystem && m.senderId === myUserId.value, //TODO: senderId가 이메일인듯?
-  }))
-)
-
 const scrollArea = ref(null)
 const isLoadingOlder = ref(false)
 const hasMore = ref(true) // 더 불러올 수 있는지 (서버에서 빈 배열이면 false)
@@ -327,6 +329,14 @@ const scrollToBottom = async () => {
   const el = scrollArea.value
   if (el) el.scrollTop = el.scrollHeight
 }
+
+// 화면용: 정렬 방향(isMine) 붙이기
+const viewMessages = computed(() =>
+  messages.value.map((m) => ({
+    ...m,
+    isMine: !m.isSystem && m.senderId === myUserId,
+  }))
+)
 
 // 자동 스크롤(새 메시지 들어오면 아래로)
 watch(
@@ -361,11 +371,12 @@ function subscribeCurrentRoom() {
   subscribeRoom(roomId.value, (message /*, subscribedRoomId */) => {
     // 수신 즉시 스토어에 누적
     const normalized = chatStore.pushIncoming(message)
+    console.log('새 메시지 수신:', normalized)
     // 내가 보낸 게 아니고 시스템 메시지도 아닐 때만 읽음 처리
     if (
       !normalized?.isSystem &&
-      normalized?.senderId && //TODO: senderID 이메일이어서 수정해야함
-      String(normalized.senderId) !== String(myUserId.value)
+      normalized?.senderId &&
+      String(normalized.senderId) !== String(myUserId)
     ) {
       chatStore.markAsRead()
     }
@@ -374,7 +385,11 @@ function subscribeCurrentRoom() {
 
 onMounted(async () => {
   // STOMP 연결 후 구독, 기존 메시지 로드
+  console.log('=== onMounted 시작 ===')
+  console.log('초기 메시지 개수:', messages.value.length)
   connect(async () => {
+    const userId = await chatStore.fetchMemberIdByEmail(email)
+    myUserId.value = userId
     subscribeCurrentRoom()
     await chatStore.markAsRead()
   })
