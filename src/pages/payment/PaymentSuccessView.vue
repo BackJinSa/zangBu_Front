@@ -1,7 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { confirmPayment } from '@/api/payment/payment.js'
+import {
+  confirmPayment,
+  loadOrderContext,
+  clearOrderContext,
+  checkMembershipStatus,
+} from '@/api/payment/payment.js'
 
 const router = useRouter()
 
@@ -14,6 +19,7 @@ const paymentInfo = ref({
 const loading = ref(false)
 const confirmed = ref(false)
 const errorMessage = ref('')
+const membershipStatus = ref(null)
 
 onMounted(() => {
   // URL 파라미터에서 결제 정보 가져오기
@@ -36,13 +42,32 @@ const handleConfirmPayment = async () => {
   errorMessage.value = ''
 
   try {
+    const orderContext = loadOrderContext(paymentInfo.value.orderId) || {}
     await confirmPayment({
       paymentKey: paymentInfo.value.paymentKey,
       orderId: paymentInfo.value.orderId,
       amount: paymentInfo.value.amount,
+      productType: orderContext.productType,
+      productId: orderContext.productId,
+      price: orderContext.price,
+      orderName: orderContext.orderName,
     })
 
     confirmed.value = true
+    clearOrderContext(paymentInfo.value.orderId)
+
+    // 멤버십 상태 확인
+    try {
+      const status = await checkMembershipStatus()
+      membershipStatus.value = status
+    } catch (error) {
+      console.error('멤버십 상태 확인 실패:', error)
+    }
+
+    // 3초 후 멤버십 페이지로 자동 이동
+    setTimeout(() => {
+      router.push('/membership')
+    }, 3000)
   } catch (error) {
     console.error('결제 승인 실패:', error)
 
@@ -56,6 +81,10 @@ const handleConfirmPayment = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const goToMembership = () => {
+  router.push('/membership')
 }
 
 const goToHome = () => {
@@ -133,6 +162,30 @@ const goToPayment = () => {
         />
         <h2 class="title">결제를 완료했어요</h2>
 
+        <!-- 멤버십 상태 표시 -->
+        <div
+          v-if="membershipStatus"
+          class="w-full mt-4 p-4 bg-green-50 border border-green-200 rounded-md"
+        >
+          <div class="flex items-center">
+            <span class="text-green-500 mr-2">✓</span>
+            <span class="text-green-700 font-semibold">
+              {{
+                membershipStatus.hasMembership
+                  ? '멤버십이 활성화되었습니다!'
+                  : '건당 크레딧이 추가되었습니다!'
+              }}
+            </span>
+          </div>
+          <p class="text-green-600 text-sm mt-1">
+            {{
+              membershipStatus.hasMembership
+                ? '이제 모든 서비스를 이용할 수 있습니다.'
+                : '문서를 다운로드할 수 있습니다.'
+            }}
+          </p>
+        </div>
+
         <div class="response-section w-100">
           <div class="flex justify-between">
             <span class="response-label">결제 금액</span>
@@ -148,9 +201,16 @@ const goToPayment = () => {
           </div>
         </div>
 
+        <!-- 자동 이동 안내 -->
+        <div class="w-full mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <p class="text-blue-700 text-sm text-center">
+            <span class="font-semibold">3초 후 멤버십 페이지로 이동합니다...</span>
+          </p>
+        </div>
+
         <div class="w-100 button-group">
           <div class="flex" style="gap: 16px">
-            <button @click="goToPayment" class="btn w-100">다시 테스트하기</button>
+            <button @click="goToMembership" class="btn w-100">멤버십 바로가기</button>
             <button @click="goToHome" class="btn w-100">홈으로 돌아가기</button>
           </div>
         </div>
