@@ -44,7 +44,7 @@
       </div>
     </main>
 
-    <!-- ✅ 확인 모달 -->
+    <!-- 확인 모달 -->
     <div v-if="showModal" class="modal-overlay">
       <div class="modal-box">
         <h3 class="modal-title">최종 확인</h3>
@@ -53,7 +53,9 @@
           이 작업은 되돌릴 수 없습니다.
         </p>
         <div class="modal-buttons">
-          <button class="btn-modal btn-confirm" @click="confirmDelete">삭제</button>
+          <button class="btn-modal btn-confirm" @click="confirmDelete" :disabled="isLoading">
+            {{ isLoading ? '삭제 중...' : '삭제' }}
+          </button>
           <button class="btn-modal btn-cancel" @click="showModal = false">돌아가기</button>
         </div>
       </div>
@@ -70,11 +72,16 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { withdraw } from '@/api/user/user' // 회원 탈퇴 API
+import { useAuthStore } from '@/stores/auth/auth'
 
 const showModal = ref(false)
 const showToast = ref(false)
 const toastMessage = ref('')
+
 const router = useRouter()
+const auth = useAuthStore()
+const isLoading = ref(false)
 
 function goBack() {
   history.back()
@@ -84,15 +91,34 @@ function deleteAccount() {
   showModal.value = true
 }
 
-function confirmDelete() {
-  showModal.value = false
-  toastMessage.value = '계정이 삭제되었습니다. 로그인 페이지로 이동합니다.'
-  showToast.value = true
+async function confirmDelete() {
+  if (isLoading.value) return
+  isLoading.value = true
+  try {
+    // 1) 실제 탈퇴 API (서버가 refresh 쿠키 만료 Set-Cookie 내려줌)
+    await withdraw()
 
-  setTimeout(() => {
-    showToast.value = false
-    router.push('/auth/login')
-  }, 2000)
+    // 2) 클라이언트 인증 상태 정리 (Pinia)
+    auth.logout() // access/refresh/user 전부 비움 + localStorage 정리
+
+    // 3) UX
+    showModal.value = false
+    toastMessage.value = '계정이 삭제되었습니다. 로그인 페이지로 이동합니다.'
+    showToast.value = true
+
+    setTimeout(() => {
+      showToast.value = false
+      router.replace({ path: '/auth/login', query: { deleted: '1' } })
+    }, 1200)
+  } catch (e) {
+    console.error('회원 탈퇴 실패:', e)
+    showModal.value = false
+    toastMessage.value = e?.response?.data || '계정 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.'
+    showToast.value = true
+    setTimeout(() => (showToast.value = false), 2000)
+  } finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(() => {

@@ -10,6 +10,11 @@ export const getPropertyDetailById = (buildingId) => {
   return api.get(`/building/${buildingId}`)
 }
 
+// 매물 상세보기 + 공공데이터 통합 조회 (사진의 매물 정보에 표시되는 모든 정보 포함)
+export const getPropertyDetailWithPublicData = (buildingId) => {
+  return api.get(`/building/${buildingId}/detail-with-publicdata`)
+}
+
 // 매물 찜하기
 export const bookmarkProperty = (data) => {
   return api.post('/building/bookmark', data)
