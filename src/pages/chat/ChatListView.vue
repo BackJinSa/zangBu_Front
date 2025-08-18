@@ -233,7 +233,7 @@ async function fetchRooms() {
   loading.value = true
   errorMsg.value = ''
   try {
-    const { data } = await axios.get('http://localhost:8080/chat/list', {
+    const { data } = await axios.get('/api/chat/list', {
       params: {
         type: filterType.value, // 'ALL' | 'BUY' | 'SELL'
         page: currentPage.value, // 1-base 또는 0-base면 서버에 맞춰 수정

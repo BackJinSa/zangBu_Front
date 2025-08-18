@@ -512,10 +512,10 @@ const startChat = async () => {
 const createDeal = async (chatRoomId) => {
   //const token = auth.accessToken || auth.token || auth.jwt || auth.idToken || ''
   const token =
-    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZXNzaWNhLmFuZGVyc29uQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1NDI4MTkzLCJleHAiOjE3NTU0ODgxOTN9.Iuo1GI_vOyMNZfL9af7OguTA1LTsPEDp4vbROpRoFB4'
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZXNzaWNhLmFuZGVyc29uQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1NDkyMzMzLCJleHAiOjE3NTU1NTIzMzN9.XC76sWnduhJy7mzVJIzx7xR_NF1sjp340Hs15UNqxY4'
   try {
     const res = await axios.post(
-      `http://localhost:8080/deal`,
+      `/api/deal`,
       { chatRoomId },
       {
         headers: {

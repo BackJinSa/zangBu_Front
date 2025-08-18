@@ -139,7 +139,7 @@ const acceptDeal = async () => {
     console.log('거래 수락 요청 데이터:', dealData)
     console.log('현재 토큰:', localStorage.getItem('token'))
 
-    await axios.patch(`http://localhost:8080/deal/${roomId}/status`, dealData, {
+    await axios.patch(`/api/deal/${roomId}/status`, dealData, {
       headers: { 'Content-Type': 'application/json' },
     })
 

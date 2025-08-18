@@ -8,7 +8,7 @@ const subscriptions = new Map() //현재 구독을 저장하는 변수
 const subscribeIntents = new Map() //roomId -> callback(payload, roomId) // 재연결 시 복구용 (구독 콜백을 기억)
 
 // 옵션: 환경에 맞게 수정
-const WS_URL = 'ws://localhost:8080/chat'
+const WS_URL = '/chat'
 const SUBSCRIBE_PREFIX = '/topic/chat.' // 예: /topic/chat.{roomId}
 const TOPIC_PREFIX = '/app/chat.send' // 예: /app/chat.send/{roomId}
 
@@ -39,7 +39,7 @@ export function useStomp() {
     const authStore = useAuthStore()
     //const token = authStore?.accessToken
     const token =
-      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZXNzaWNhLmFuZGVyc29uQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1NDI4MTkzLCJleHAiOjE3NTU0ODgxOTN9.Iuo1GI_vOyMNZfL9af7OguTA1LTsPEDp4vbROpRoFB4'
+      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZXNzaWNhLmFuZGVyc29uQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1NDkyMzMzLCJleHAiOjE3NTU1NTIzMzN9.XC76sWnduhJy7mzVJIzx7xR_NF1sjp340Hs15UNqxY4'
 
     if (!token) {
       console.warn('[STOMP] JWT 토큰이 없습니다.')
