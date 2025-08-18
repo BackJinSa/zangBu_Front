@@ -7,16 +7,21 @@ export const checkServerHealth = () => {
 
 // 거래 전체 목록 조회
 export const getDeals = () => {
-  console.log('getDeals 함수 호출됨')
-  console.log('/deal/waitinglist 엔드포인트 호출')
+  console.log('=== getDeals 함수 호출됨 ===')
+  console.log('API 엔드포인트: /deal/waitinglist')
+  console.log('현재 localStorage 토큰:', localStorage.getItem('token'))
+  console.log('현재 localStorage 사용자:', localStorage.getItem('user'))
 
   // Postman에서 작동하는 방식과 동일하게 설정
-  return api.get('/deal/waitinglist', {
+  const request = api.get('/deal/waitinglist', {
     headers: {
       'Content-Type': 'application/json',
       // Postman에서 사용한 헤더와 동일하게 설정
     },
   })
+
+  console.log('API 요청 객체:', request)
+  return request
 }
 
 // 거래 생성

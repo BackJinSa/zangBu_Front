@@ -18,13 +18,27 @@ const processQueue = (error, token = null) => {
 // 요청 인터셉터
 api.interceptors.request.use(
   (config) => {
+    console.log('=== Axios 요청 인터셉터 ===')
+    console.log('요청 URL:', config.url)
+    console.log('요청 메서드:', config.method)
+    console.log('요청 헤더:', config.headers)
+
     // reissue/login 에만 Authorization 생략 (logout엔 붙임)
     const skipAuth = config.url?.includes('/auth/reissue') || config.url?.includes('/auth/login')
+    console.log('인증 생략 여부:', skipAuth)
 
     if (!skipAuth) {
       const at = localStorage.getItem('token')
-      if (at) config.headers.Authorization = `Bearer ${at}`
+      console.log('localStorage에서 가져온 토큰:', at)
+      if (at) {
+        config.headers.Authorization = `Bearer ${at}`
+        console.log('Authorization 헤더 설정됨:', config.headers.Authorization)
+      } else {
+        console.log('토큰이 없어서 Authorization 헤더 설정 안됨')
+      }
     }
+
+    console.log('최종 요청 헤더:', config.headers)
     return config
   },
   (error) => Promise.reject(error)
