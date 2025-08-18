@@ -365,17 +365,54 @@ const handleConfirm = async () => {
   }
 }
 
+const senderUserId = ref('')
+// function subscribeCurrentRoom() {
+//   if (!connected.value || !roomId.value) return
+//   subscribeRoom(roomId.value, async (message /*, subscribedRoomId */) => {
+//     // 수신 즉시 스토어에 누적
+//     const normalized = chatStore.pushIncoming(message)
+//     console.log('새 메시지 수신:', normalized)
+//     // 내가 보낸 게 아니고 시스템 메시지도 아닐 때만 읽음 처리
+//     if (
+//       !normalized?.isSystem &&
+//       normalized?.senderId &&
+//       String(normalized.senderId) !== String(myUserId)
+//     ) {
+//       chatStore.markAsRead()
+//     }
+//   })
+// }
 function subscribeCurrentRoom() {
   if (!connected.value || !roomId.value) return
-  subscribeRoom(roomId.value, (message /*, subscribedRoomId */) => {
-    // 수신 즉시 스토어에 누적
-    const normalized = chatStore.pushIncoming(message)
-    console.log('새 메시지 수신:', normalized)
+  subscribeRoom(roomId.value, async (message) => {
+    console.log('원본 메시지 수신:', message)
+
+    // ⭐ pushIncoming 하기 전에 senderId를 변환
+    let processedMessage = { ...message }
+
+    if (message.senderId && !message.isSystem) {
+      // senderId가 email인지 확인하고 ID로 변환
+      if (message.senderId.includes('@')) {
+        try {
+          const memberId = await chatStore.fetchMemberIdByEmail(message.senderId)
+          senderUserId.value = memberId // 변환된 ID 저장
+          processedMessage.senderId = senderUserId.value // email을 ID로 교체
+          console.log('senderId 변환:', message.senderId, '->', senderUserId.value)
+        } catch (error) {
+          console.error('senderId 변환 실패:', error)
+        }
+      }
+    }
+
+    // 변환된 메시지로 스토어에 저장
+    const normalized = chatStore.pushIncoming(processedMessage)
+    console.log('변환된 메시지 저장:', normalized)
+
     // 내가 보낸 게 아니고 시스템 메시지도 아닐 때만 읽음 처리
     if (
       !normalized?.isSystem &&
       normalized?.senderId &&
-      String(normalized.senderId) !== String(myUserId)
+      String(normalized.senderId) !== String(myUserId.value)
     ) {
       chatStore.markAsRead()
     }

@@ -259,7 +259,17 @@ export const useChatStore = defineStore('chat', () => {
   // 읽음 처리 로직
   async function markAsRead() {
     try {
-      await axios.put(`/api/chat/room/${roomId.value}/read`)
+      await axios.put(
+        `/api/chat/room/${roomId.value}/read`,
+        {}, // ← 빈 본문이라도 {}를 보내면 JSON로 안전
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authStore.accessToken}`,
+          },
+          withCredentials: true, // refreshToken을 쿠키로 쓰는 경우 대비
+        }
+      )
       const room = chatRooms.value.find((r) => r.chatRoomId === roomId.value)
       if (room) room.unreadCount = 0
     } catch (err) {
