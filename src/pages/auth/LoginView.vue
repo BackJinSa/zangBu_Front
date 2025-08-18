@@ -26,33 +26,16 @@ async function login() {
     isLoading.value = true
     errorMessage.value = ''
 
-    const response = await loginApi({
+    // 스토어로 위임
+    await authStore.login({
       email: email.value.trim(),
       password: password.value,
     })
-
-    // 응답에서 토큰과 사용자 정보 추출
-    const { accessToken, refreshToken, role, nickname } = response.data
-
-    // 인증 스토어에 로그인 정보 설정
-    authStore.setTokens({ accessToken, refreshToken })
-    authStore.setUser({ nickname, role, email: email.value.trim() })
-
-    // 로그인 성공 후 원래 가려던 페이지로 리다이렉트
     const redirectPath = route.query.redirect || '/'
     router.push(redirectPath)
-  } catch (error) {
-    if (error.response?.status === 401) {
-      errorMessage.value = '이메일 또는 비밀번호가 올바르지 않습니다.'
-    } else if (error.response?.status === 400) {
-      errorMessage.value = '입력 정보를 확인해주세요.'
-    } else if (error.response?.status === 500) {
-      errorMessage.value = '서버 내부 오류가 발생했습니다. 다시 시도해주세요.'
-    } else if (error.code === 'ECONNREFUSED') {
-      errorMessage.value = '서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.'
-    } else {
-      errorMessage.value = '로그인 중 오류가 발생했습니다. 다시 시도해주세요.'
-    }
+  } catch (e) {
+    // 스토어에서 만든 Error(message, status)
+    errorMessage.value = e.message || '로그인 중 오류가 발생했습니다. 다시 시도해주세요.'
   } finally {
     isLoading.value = false
   }

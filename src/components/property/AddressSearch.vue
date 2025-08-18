@@ -39,8 +39,6 @@ const openPostcode = () => {
 
   new window.daum.Postcode({
     oncomplete: function (data) {
-      console.log('🏠 주소 검색 완료:', data)
-
       // 주소 정보 구성
       const addressData = {
         roadAddress: data.roadAddress,

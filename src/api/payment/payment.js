@@ -61,3 +61,63 @@ export const checkMembershipStatus = async () => {
     throw error
   }
 }
+
+// 멤버 자격(권한/크레딧) 조회: 멤버십 활성 여부 및 건당 잔여 횟수
+export const getEntitlements = async () => {
+  try {
+    const response = await axios.get('/payment/entitlements')
+    return response.data // { membershipActive: boolean, perCaseRemaining: number }
+  } catch (error) {
+    console.error('권한 정보 조회 실패:', error)
+    throw error
+  }
+}
+
+// 건당 크레딧 사용(다운로드 시 차감)
+export const consumePerCaseCredit = async (payload) => {
+  // payload: { resourceType, resourceId, orderId?: string }
+  try {
+    const response = await axios.post('/payment/consume', payload)
+    return response.data
+  } catch (error) {
+    console.error('건당 크레딧 차감 실패:', error)
+    throw error
+  }
+}
+
+// 다운로드 기록 저장(무엇을 어떤 결제수단으로 받았는지 서버에 기록)
+export const recordDownload = async (payload) => {
+  // payload: { resourceType, resourceId, usedPaymentType: 'PER_CASE'|'MEMBERSHIP'|'FREE', orderId?: string }
+  try {
+    const response = await axios.post('/downloads/record', payload)
+    return response.data
+  } catch (error) {
+    console.error('다운로드 기록 실패:', error)
+    throw error
+  }
+}
+
+// 결제 주문 컨텍스트를 로컬에 저장/조회 (결제 성공 리디렉트 후 확인 단계에 보조적으로 사용)
+export const saveOrderContext = (orderId, context) => {
+  try {
+    const key = `payment:order:${orderId}`
+    localStorage.setItem(key, JSON.stringify(context))
+  } catch {}
+}
+
+export const loadOrderContext = (orderId) => {
+  try {
+    const key = `payment:order:${orderId}`
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+export const clearOrderContext = (orderId) => {
+  try {
+    const key = `payment:order:${orderId}`
+    localStorage.removeItem(key)
+  } catch {}
+}
