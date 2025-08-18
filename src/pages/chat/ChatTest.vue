@@ -55,13 +55,9 @@
           </span>
 
           <!-- 나가기 버튼 -->
-          <Button
-            variant="button9"
-            class="px-2 py-1 text-xs h-auto"
-            :disabled="leaving"
-            @click="showModal = true"
-            >{{ leaving ? '처리 중...' : '나가기' }}
-          </Button>
+          <Button variant="button9" class="px-2 py-1 text-xs h-auto" @click="showModal = true"
+            >나가기</Button
+          >
         </div>
 
         <!-- 팝업 -->
@@ -71,7 +67,6 @@
           message="이 작업은 되돌릴 수 없습니다."
           cancel-text="취소"
           confirm-text="확인"
-          :confirm-disabled="leaving"
           @cancel="handleCancel"
           @confirm="handleConfirm"
           @close="showModal = false"
@@ -143,13 +138,12 @@ const router = useRouter()
 const chatStore = useChatStore()
 const authStore = useAuthStore()
 const { connect, subscribeRoom, unsubscribeRoom, disconnect, connected } = useStomp()
-const roomId = computed(() => String(route.params.roomId || ''))
+const roomId = computed(() => String(route.params.roomId || 'b10011-1111-2222-3333-444455556675'))
 //const myUserId = computed(() => authStore.userId || authStore.memberId || '')
-const myUserId = '1a2b3c4d-1111-2222-3333-444455556666'
+const myUserId = '1a2b3c4d-1111-2222-3333-444455556666' //johnny
 
 //나가기 모달
 const showModal = ref(false)
-const leaving = ref(false)
 
 const isSeller = ref(false) // 'BUYER' or 'SELLER'
 const isActive = ref(true) // 거래 활성화 toggle
@@ -179,7 +173,9 @@ function mapDealStatus(raw) {
 
 async function fetchRoomMeta() {
   try {
-    const { data } = await axios.get(`http://localhost:8080/chat/room/info/${roomId.value}`)
+    const { data } = await axios.get(
+      `http://localhost:8080/chat/room/info/b10011-1111-2222-3333-444455556675`
+    )
     // 응답 형태가 {room: {...}} 또는 바로 {...} 둘 다 대응
     const r = data?.room ?? data ?? {}
 
@@ -250,18 +246,12 @@ const handleCancel = () => {
 }
 
 const handleConfirm = async () => {
-  if (leaving.value) return
-  leaving.value = true
   try {
-    const ok = await chatStore.leaveChatRoom()
+    await chatStore.leaveChatRoom() // 채팅방 나가기 API 호출
     showModal.value = false
-    // 목록 화면으로 이동
-    router.replace('/chat/list')
+    router.push('/chat/list') // 채팅방 목록 페이지로 이동
   } catch (err) {
-    // 실패: 모달은 닫지 않고 사용자에게 알림
-    alert('채팅방 나가기에 실패했습니다. 다시 시도해 주세요.')
-  } finally {
-    leaving.value = false
+    console.error('채팅방 나가기 실패:', err)
   }
 }
 
