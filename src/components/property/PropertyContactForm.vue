@@ -94,8 +94,7 @@ const handleNameInput = (event) => {
   const value = event.target.value
   const formattedValue = formatContactName(value)
 
-  // 포맷된 값으로 입력 필드 업데이트
-  event.target.value = formattedValue
+  // formData만 업데이트하고 event.target.value는 직접 수정하지 않음
   formData.value.contactName = formattedValue
   emit('update:modelValue', { ...formData.value })
 }

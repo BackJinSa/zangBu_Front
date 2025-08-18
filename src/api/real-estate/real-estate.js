@@ -1,72 +1,34 @@
 import axios from '../axios'
 
 /**
- * 실제 부동산 건물 정보 조회
+ * 부동산 건물 정보 조회 (추정 면적만 제공)
  * @param {Object} buildingInfo - 건물 정보
  * @param {string} buildingInfo.buildingName - 건물명
  * @param {string} buildingInfo.sido - 시도
  * @param {string} buildingInfo.sigungu - 시군구
  * @param {string} buildingInfo.eupmyeondong - 읍면동
  * @param {string} buildingInfo.roadAddress - 도로명주소
- * @returns {Promise<Object>} 실제 부동산 정보
+ * @returns {Promise<Object>} 추정 부동산 정보
  */
 export const fetchBuildingInfo = async (buildingInfo) => {
   try {
-    console.log('🏢 실제 부동산 정보 API 호출:', buildingInfo)
+    console.log('🏢 부동산 정보 조회:', buildingInfo)
 
-    // 1차: 국토교통부 실거래가 API 시도
-    const realTradeData = await fetchRealTradeData(buildingInfo)
-    if (realTradeData.success) {
-      return {
-        success: true,
-        data: {
-          availableDong: realTradeData.dong,
-          availableHo: realTradeData.ho,
-          availableArea: realTradeData.area,
-          buildingInfo: realTradeData.buildingInfo,
-          dataSource: 'real_trade_api',
-        },
-      }
-    }
+    // 건물명과 주소를 기반으로 추정 면적 제공
+    const estimatedData = getEstimatedBuildingData(buildingInfo)
 
-    // 2차: 부동산 정보 제공업체 API 시도 (예: 네이버, 다음 등)
-    const propertyData = await fetchPropertyPortalData(buildingInfo)
-    if (propertyData.success) {
-      return {
-        success: true,
-        data: {
-          availableDong: propertyData.dong,
-          availableHo: propertyData.ho,
-          availableArea: propertyData.area,
-          buildingInfo: propertyData.buildingInfo,
-          dataSource: 'property_portal',
-        },
-      }
-    }
-
-    // 3차: 웹 스크래핑 또는 캐시된 데이터 시도
-    const cachedData = await fetchCachedBuildingData(buildingInfo)
-    if (cachedData.success) {
-      return {
-        success: true,
-        data: {
-          availableDong: cachedData.dong,
-          availableHo: cachedData.ho,
-          availableArea: cachedData.area,
-          buildingInfo: cachedData.buildingInfo,
-          dataSource: 'cached_data',
-        },
-      }
-    }
-
-    // 모든 방법 실패 시
     return {
-      success: false,
-      message: '실제 부동산 정보를 찾을 수 없습니다.',
-      error: 'NO_DATA_FOUND',
+      success: true,
+      data: {
+        availableDong: estimatedData.dong,
+        availableHo: estimatedData.ho,
+        availableArea: estimatedData.area,
+        buildingInfo: estimatedData.buildingInfo,
+        dataSource: 'estimated_data',
+      },
     }
   } catch (error) {
-    console.error('🚨 실제 부동산 정보 조회 오류:', error)
+    console.error('🚨 부동산 정보 조회 오류:', error)
     return {
       success: false,
       message: '부동산 정보 조회 중 오류가 발생했습니다.',
@@ -76,131 +38,71 @@ export const fetchBuildingInfo = async (buildingInfo) => {
 }
 
 /**
- * 국토교통부 실거래가 API에서 건물 정보 조회
+ * 건물 정보를 기반으로 추정 데이터 생성
  */
-const fetchRealTradeData = async (buildingInfo) => {
-  try {
-    // 국토교통부 아파트매매 실거래자료 API
-    const response = await axios.get('/real-estate/apartment-trade', {
-      params: {
-        LAWD_CD: buildingInfo.regionCode, // 지역코드 (시군구코드)
-        DEAL_YMD: new Date().getFullYear() + String(new Date().getMonth() + 1).padStart(2, '0'), // 최근 월
-        serviceKey: process.env.VUE_APP_MOLIT_API_KEY, // 국토교통부 API 키
-      },
-    })
-
-    if (response.data && response.data.response && response.data.response.body) {
-      const items = response.data.response.body.items.item || []
-
-      // 해당 건물명과 일치하는 데이터 필터링
-      const matchingData = items.filter(
-        (item) => item.아파트 && item.아파트.includes(buildingInfo.buildingName)
-      )
-
-      if (matchingData.length > 0) {
-        // 실거래 데이터에서 동/호수/면적 정보 추출
-        const dongSet = new Set()
-        const hoSet = new Set()
-        const areaSet = new Set()
-
-        matchingData.forEach((item) => {
-          if (item.동) dongSet.add(item.동.toString())
-          if (item.호수) hoSet.add(item.호수.toString())
-          if (item.전용면적) areaSet.add(parseFloat(item.전용면적).toString())
-        })
-
-        return {
-          success: true,
-          dong: Array.from(dongSet).sort((a, b) => parseInt(a) - parseInt(b)),
-          ho: Array.from(hoSet).sort(),
-          area: Array.from(areaSet).sort((a, b) => parseFloat(a) - parseFloat(b)),
-          buildingInfo: {
-            name: buildingInfo.buildingName,
-            address: buildingInfo.roadAddress,
-            totalUnits: matchingData.length,
-            lastTradeDate: matchingData[0].거래일,
-          },
-        }
-      }
-    }
-
-    return { success: false }
-  } catch (error) {
-    console.error('국토교통부 API 호출 오류:', error)
-    return { success: false }
-  }
-}
-
-/**
- * 부동산 포털 사이트에서 건물 정보 조회
- */
-const fetchPropertyPortalData = async (buildingInfo) => {
-  try {
-    // 부동산 포털 API 호출 (예: 네이버 부동산, 다음 부동산)
-    const response = await axios.post('/real-estate/portal-search', {
-      buildingName: buildingInfo.buildingName,
+const getEstimatedBuildingData = (buildingInfo) => {
+  const buildingName = buildingInfo.buildingName || ''
+  const suggestions = {
+    dong: [],
+    ho: [],
+    area: [],
+    buildingInfo: {
+      name: buildingName,
       address: buildingInfo.roadAddress,
-      sido: buildingInfo.sido,
-      sigungu: buildingInfo.sigungu,
-    })
+      dataSource: 'estimated',
+    },
+  }
 
-    if (response.data && response.data.success) {
-      const data = response.data.data
+  // 공동주택인 경우 일반적인 동/호수 범위 제안
+  if (
+    buildingName.includes('아파트') ||
+    buildingName.includes('APT') ||
+    buildingName.includes('오피스텔') ||
+    buildingName.includes('OFFICETEL') ||
+    buildingName.includes('빌라') ||
+    buildingName.includes('연립')
+  ) {
+    // 아파트 단지 규모에 따른 동 수 추정
+    if (
+      buildingName.includes('단지') ||
+      buildingName.includes('타운') ||
+      buildingName.includes('마을')
+    ) {
+      // 대규모 단지
+      suggestions.dong = Array.from({ length: 15 }, (_, i) => (i + 1).toString())
+    } else {
+      // 일반 규모
+      suggestions.dong = Array.from({ length: 8 }, (_, i) => (i + 1).toString())
+    }
 
-      return {
-        success: true,
-        dong: data.availableDong || [],
-        ho: data.availableHo || [],
-        area: data.availableArea || [],
-        buildingInfo: {
-          name: data.buildingName,
-          address: data.address,
-          buildingType: data.buildingType,
-          totalFloors: data.totalFloors,
-          totalUnits: data.totalUnits,
-          completionYear: data.completionYear,
-        },
+    // 일반적인 호수 범위 (20층 × 4호/층 가정)
+    const floors = 20
+    const unitsPerFloor = 4
+    suggestions.ho = []
+
+    for (let floor = 1; floor <= floors; floor++) {
+      for (let unit = 1; unit <= unitsPerFloor; unit++) {
+        suggestions.ho.push(`${floor}0${unit}`)
       }
     }
 
-    return { success: false }
-  } catch (error) {
-    console.error('부동산 포털 API 호출 오류:', error)
-    return { success: false }
-  }
-}
-
-/**
- * 캐시된 건물 데이터 조회
- */
-const fetchCachedBuildingData = async (buildingInfo) => {
-  try {
-    // 로컬 데이터베이스나 캐시에서 건물 정보 조회
-    const response = await axios.get('/real-estate/cached-building', {
-      params: {
-        buildingName: buildingInfo.buildingName,
-        sido: buildingInfo.sido,
-        sigungu: buildingInfo.sigungu,
-      },
-    })
-
-    if (response.data && response.data.success) {
-      const data = response.data.data
-
-      return {
-        success: true,
-        dong: data.dong || [],
-        ho: data.ho || [],
-        area: data.area || [],
-        buildingInfo: data.buildingInfo || {},
-      }
+    // 부동산 유형별 실제 시장에서 흔한 전용면적
+    if (buildingName.includes('아파트') || buildingName.includes('APT')) {
+      suggestions.area = ['59.92', '74.93', '84.78', '101.85', '114.93', '134.85', '164.82']
+    } else if (buildingName.includes('오피스텔') || buildingName.includes('OFFICETEL')) {
+      suggestions.area = ['16.52', '23.14', '29.75', '33.06', '42.97', '59.92']
+    } else if (buildingName.includes('빌라') || buildingName.includes('연립')) {
+      suggestions.area = ['59.92', '74.93', '84.78', '101.85']
+    } else {
+      // 일반 공동주택
+      suggestions.area = ['59.92', '74.93', '84.78', '101.85']
     }
-
-    return { success: false }
-  } catch (error) {
-    console.error('캐시된 데이터 조회 오류:', error)
-    return { success: false }
+  } else {
+    // 단독주택인 경우
+    suggestions.area = ['59.92', '74.93', '84.78', '101.85', '114.93', '134.85']
   }
+
+  return suggestions
 }
 
 /**

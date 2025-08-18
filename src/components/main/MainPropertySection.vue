@@ -1,8 +1,9 @@
 <script setup>
 import PropertyCardMain from '@/components/common/PropertyCardMain.vue'
 import EmptyStateCard from '@/components/common/EmptyStateCard.vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useMainStore } from '@/stores/main/main'
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -12,27 +13,63 @@ const props = defineProps({
 // 라우터 초기화
 const router = useRouter()
 
-// 로컬 상태로 properties 관리
-const localProperties = ref([...props.properties])
+// 메인 스토어 사용
+const mainStore = useMainStore()
+
+// API 응답 구조에 맞게 데이터 변환
+const processedProperties = computed(() => {
+  console.log('MainPropertySection: props.properties:', props.properties)
+
+  const processed = props.properties.map((item) => {
+    console.log('Processing item:', item)
+
+    // API 응답이 { building: { ... } } 형태인 경우
+    if (item.building) {
+      const result = {
+        buildingId: item.building.buildingId,
+        price: item.building.price,
+        buildingName: item.building.buildingName,
+        imageUrl: item.building.imageUrl,
+        isBookmarked: item.building.isBookmarked,
+        rank: item.building.rank,
+        complexNo: item.building.complexNo,
+      }
+      console.log('Processed result:', result)
+      return result
+    }
+    // 이미 올바른 형태인 경우 (현재 API 응답 형태)
+    console.log('Item already in correct format:', item)
+    return {
+      buildingId: item.buildingId,
+      price: item.price,
+      buildingName: item.buildingName,
+      imageUrl: item.imageUrl,
+      isBookmarked: item.isBookmarked,
+      rank: item.rank,
+      complexNo: item.complexNo,
+    }
+  })
+
+  console.log('Final processedProperties:', processed)
+  return processed
+})
 
 // 찜 기능 처리
-const handleBookmark = (bookmarkData) => {
-  console.log('Bookmark clicked:', bookmarkData)
+const handleBookmark = async (bookmarkData) => {
+  console.log('Bookmark event received:', bookmarkData)
 
-  // 로컬 상태에서 해당 property의 isBookmarked 업데이트
-  const propertyIndex = localProperties.value.findIndex(
-    (prop) => prop.buildingId === bookmarkData.propertyId
-  )
+  // 스토어의 찜하기/찜해제 함수 호출
+  const success = await mainStore.toggleBookmark(bookmarkData.propertyId)
 
-  if (propertyIndex !== -1) {
-    localProperties.value[propertyIndex].isBookmarked = bookmarkData.isBookmarked
+  if (!success) {
+    console.error('Failed to toggle bookmark')
+  } else {
+    console.log('Bookmark toggled successfully')
   }
 }
 
 // 카드 클릭 처리
 const handleCardClick = (property) => {
-  console.log('Card clicked:', property)
-
   // MapView로 이동하면서 매물 상세 정보 조회를 위한 파라미터 전달
   const queryParams = {
     buildingId: property.buildingId,
@@ -41,8 +78,6 @@ const handleCardClick = (property) => {
     dong: '',
     ho: '',
   }
-
-  console.log('Request body for MapView:', queryParams)
 
   router.push({
     path: '/map',
@@ -97,9 +132,9 @@ const getIconType = () => {
     <div class="max-w-7xl mx-auto px-4">
       <h2 class="text-2xl font-bold text-gray-800 mb-6">{{ title }}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <template v-if="localProperties.length > 0">
+        <template v-if="processedProperties.length > 0">
           <PropertyCardMain
-            v-for="property in localProperties"
+            v-for="property in processedProperties"
             :key="property.buildingId"
             :property="property"
             @bookmark="handleBookmark"

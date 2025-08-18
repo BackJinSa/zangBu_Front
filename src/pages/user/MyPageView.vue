@@ -1,7 +1,8 @@
 <script setup>
 // 마이페이지 관련 로직
 import PropertyCard from '@/components/common/PropertyCard.vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 
 // 사용자 정보
 const user = {
@@ -11,7 +12,15 @@ const user = {
   registered: 2,
 }
 
+const route = useRoute()
 const selectedTab = ref('favorite')
+
+// URL 쿼리 파라미터에 따라 탭 설정
+onMounted(() => {
+  if (route.query.tab === 'registered') {
+    selectedTab.value = 'my'
+  }
+})
 
 // 예시 데이터
 const favoriteProperties = [
