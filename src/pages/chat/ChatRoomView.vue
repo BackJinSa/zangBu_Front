@@ -330,12 +330,24 @@ const scrollToBottom = async () => {
 }
 
 // 화면용: 정렬 방향(isMine) 붙이기
-const viewMessages = computed(() =>
-  messages.value.map((m) => ({
-    ...m,
-    isMine: !m.isSystem && m.senderId === myUserId,
-  }))
-)
+const viewMessages = computed(() => {
+  const arr = Array.isArray(messages.value) ? messages.value : []
+
+  return arr.map((m, i) => {
+    const isMine =
+      !m?.isSystem && String(m?.senderId ?? '') === String(myUserId?.value ?? myUserId ?? '')
+
+    // 여기서 마음껏 찍기
+    console.log('[viewMessages]', i, {
+      msgId: m?.chatMessageId,
+      senderId: m?.senderId,
+      myUserId: myUserId?.value ?? myUserId,
+      isMine,
+    })
+
+    return { ...m, isMine }
+  })
+})
 
 // 자동 스크롤(새 메시지 들어오면 아래로)
 watch(
