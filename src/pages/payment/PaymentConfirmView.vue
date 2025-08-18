@@ -2,7 +2,7 @@
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { loadTossPayments, ANONYMOUS } from '@tosspayments/tosspayments-sdk'
-import { getBuyerInfo } from '@/api/payment/payment.js'
+import { getBuyerInfo, saveOrderContext } from '@/api/payment/payment.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -37,7 +37,7 @@ const updateUrlInfo = () => {
 
 // 주문 ID 생성
 const generateOrderId = () => {
-  return window.btoa(Math.random()).slice(0, 20)
+  return `zb_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 }
 
 // 구매자 정보 로드
@@ -229,6 +229,14 @@ const handlePayment = async () => {
       customerMobilePhone: paymentInfo.customerMobilePhone,
     }
     console.log('토스페이먼츠 결제 요청 정보:', paymentRequest)
+
+    // 선택 옵션 컨텍스트 저장 (결제 성공 후 확인에서 사용)
+    saveOrderContext(orderId, {
+      productType: paymentInfo.selectedOption.id === 'membership' ? 'MEMBERSHIP' : 'PER_CASE',
+      productId: paymentInfo.selectedOption.id,
+      price: paymentInfo.selectedOption.price,
+      orderName: paymentInfo.selectedOption.title,
+    })
 
     await widgets.value.requestPayment(paymentRequest)
     console.log('결제 요청 완료')
