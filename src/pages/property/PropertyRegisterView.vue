@@ -11,6 +11,31 @@ const router = useRouter()
 const propertyStore = usePropertyStore()
 const authStore = useAuthStore()
 
+// 고유 ID 생성 함수
+const generateTransactionId = () => {
+  return `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+}
+
+// 도로명 추출 함수
+const extractRoadName = (roadAddress) => {
+  if (!roadAddress) return ''
+
+  // 도로명 주소에서 도로명 부분만 추출
+  // 예: "서울 동대문구 왕산로23길 89" → "왕산로23길"
+  const parts = roadAddress.split(' ')
+
+  // 시도, 시군구를 제외하고 도로명 부분 찾기
+  for (let i = 2; i < parts.length - 1; i++) {
+    const part = parts[i]
+    // "로", "길"로 끝나는 부분이 도로명
+    if (part.includes('로') || part.includes('길')) {
+      return part
+    }
+  }
+
+  return ''
+}
+
 // 로그인 상태 확인 (임시로 비활성화)
 // onMounted(() => {
 //   if (!authStore.isAuthenticated) {
@@ -36,6 +61,9 @@ const formData = ref({
   // 매매가/보증금
   price: '',
   deposit: '',
+
+  // 주민등록번호
+  identity: '',
 
   // 부동산 유형
   buildingType: 'house', // 'apartment' | 'officetel' | 'villa' | 'house'
@@ -115,6 +143,45 @@ const handleDepositInput = (event) => {
   event.target.value = formattedValue
 }
 
+// 주민등록번호 입력 처리
+const handleIdentityInput = (event) => {
+  const value = event.target.value.replace(/[^\d]/g, '') // 숫자만 허용
+  let formattedValue = value
+
+  // 주민등록번호 형식으로 포맷팅 (000000-0000000)
+  if (value.length > 6) {
+    formattedValue = value.slice(0, 6) + '-' + value.slice(6, 13)
+  }
+
+  formData.value.identity = formattedValue
+  event.target.value = formattedValue
+}
+
+// 주민등록번호 유효성 검사
+const identityError = computed(() => {
+  if (!formData.value.identity) return ''
+
+  const identity = formData.value.identity.replace(/[^\d]/g, '')
+  if (identity.length !== 13) {
+    return '주민등록번호는 13자리여야 합니다'
+  }
+
+  // 생년월일 유효성 검사
+  const year = parseInt(identity.slice(0, 2))
+  const month = parseInt(identity.slice(2, 4))
+  const day = parseInt(identity.slice(4, 6))
+
+  if (month < 1 || month > 12) {
+    return '올바른 월을 입력해주세요'
+  }
+
+  if (day < 1 || day > 31) {
+    return '올바른 일을 입력해주세요'
+  }
+
+  return ''
+})
+
 // 폼 제출
 const handleSubmit = async () => {
   if (priceError.value) {
@@ -122,54 +189,87 @@ const handleSubmit = async () => {
     return
   }
 
-  // API 요청 구조에 맞게 데이터 변환
-  const requestData = {
-    Building: {
-      sellerNickname: formData.value.contactName,
-      saleType: formData.value.propertyType === 'sale' ? 'SALE' : 'RENT',
-      price: parseInt(removeCommas(formData.value.price)),
-      deposit: parseInt(removeCommas(formData.value.deposit)) || 0,
-      bookmarkCount: 0,
-      createdAt: new Date().toISOString(),
-      buildingName: formData.value.buildingName,
-      sellerType: formData.value.registrantType === 'owner' ? 'INDIVIDUAL' : 'AGENT',
-      propertyType: formData.value.buildingType.toUpperCase(),
-      moveDate: formData.value.moveInDate || new Date().toISOString(),
-      infoOneline: formData.value.title,
-      infoBuilding: formData.value.description,
-      contactName: formData.value.contactName,
-      contactPhone: formData.value.contactPhone,
-      facility: formData.value.features,
-    },
-    complexList: {
-      resType: formData.value.buildingType === 'apartment' ? '아파트' : '단독주택',
-      complexName: formData.value.buildingName,
-      complexNo: 123, // 실제로는 API에서 받아온 값 사용
-      sido: formData.value.sido,
-      sigungu: formData.value.sigungu,
-      siCode: formData.value.siCode,
-      eupmyeondong: formData.value.eupmyeondong,
-      transactionId: 'some-transaction-id', // 실제로는 고유 ID 생성
-      address: `${formData.value.roadAddress} ${formData.value.detailAddress}`,
-      zonecode: formData.value.zonecode,
-      buildingName: formData.value.buildingName,
-      bname: formData.value.bname,
-      buildingDong: formData.value.buildingDong, // 동 정보
-      buildingHo: formData.value.buildingHo, // 호수 정보
-      complexNo: formData.value.complexNo, // 건물 일련번호
-      buildingNameFromAPI: formData.value.buildingName, // API에서 받은 건물명
-    },
-    multipartFile: formData.value.images,
+  // FormData 객체 생성
+  const formDataToSend = new FormData()
+
+  // building 정보 (JSON 문자열로 변환)
+  const buildingData = {
+    sellerNickname: formData.value.contactName,
+    saleType:
+      formData.value.propertyType === 'sale'
+        ? 'TRADING'
+        : formData.value.propertyType === 'jeonse'
+        ? 'CHARTER'
+        : 'MONTHLY',
+    price: parseInt(removeCommas(formData.value.price)),
+    deposit: parseInt(removeCommas(formData.value.deposit)) || 0,
+    bookmarkCount: 0,
+    buildingName: formData.value.buildingName,
+    sellerType: formData.value.registrantType === 'owner' ? 'OWNER' : 'TENANT',
+    propertyType: formData.value.buildingType.toUpperCase(),
+    moveDate: formData.value.moveInDate || new Date().toISOString(),
+    infoOneline: formData.value.title,
+    infoBuilding: formData.value.description,
+    contactName: formData.value.contactName,
+    contactPhone: formData.value.contactPhone,
+    facility: formData.value.features,
+    size: parseFloat(formData.value.area) || 0,
   }
 
-  const result = await propertyStore.createProperty(requestData)
+  // JSON 문자열을 Blob으로 감싸서 Content-Type 지정
+  const buildingJson = JSON.stringify(buildingData)
+  const buildingBlob = new Blob([buildingJson], { type: 'application/json' })
+  formDataToSend.append('building', buildingBlob)
 
-  if (result.success) {
-    alert(result.message)
-    // 성공 시 이전 페이지로 이동
-    router.back()
+  // complexList 정보 (JSON 문자열로 변환)
+  const complexListData = {
+    resType: formData.value.buildingType === 'apartment' ? '아파트' : '단독주택',
+    complexName: formData.value.buildingName,
+    complexNo: formData.value.complexNo || null, // CODEF API에서 받아온 건물 일련번호
+    sido: formData.value.sido,
+    sigungu: formData.value.sigungu,
+    siCode: formData.value.siCode,
+    eupmyeondong: formData.value.eupmyeondong,
+    transactionId: generateTransactionId(), // 고유 ID 생성
+    address: formData.value.roadAddress,
+    zonecode: formData.value.zonecode,
+    buildingName: formData.value.buildingName,
+    bname: formData.value.bname,
+    dong: formData.value.buildingDong, // 동 정보
+    ho: formData.value.buildingHo, // 호수 정보
+    roadName: extractRoadName(formData.value.roadAddress) || '', // 도로명 추출
+  }
+
+  // JSON 문자열을 Blob으로 감싸서 Content-Type 지정
+  const complexJson = JSON.stringify(complexListData)
+  const complexBlob = new Blob([complexJson], { type: 'application/json' })
+  formDataToSend.append('complexList', complexBlob)
+
+  // 이미지 파일들 추가
+  if (formData.value.images && formData.value.images.length > 0) {
+    formData.value.images.forEach((file, index) => {
+      formDataToSend.append('imageFile', file)
+    })
+  }
+
+  // identity 정보 (사용자 주민등록번호) - 하이픈 제거하고 숫자만
+  const identity = (formData.value.identity || '').replace(/[^\d]/g, '')
+  formDataToSend.append('identity', identity)
+
+  const result = await propertyStore.createProperty(formDataToSend)
+
+  if (result.success && result.status === 201) {
+    // 성공 팝업창 표시
+    showSuccessModal.value = true
+    successMessage.value = '매물 등록이 성공했습니다!'
+
+    // 2초 후 마이페이지의 내가 등록한 매물 탭으로 리다이렉트
+    setTimeout(() => {
+      showSuccessModal.value = false
+      router.push('/user/mypage?tab=registered')
+    }, 2000)
   } else {
-    alert(result.message)
+    alert(result.message || '매물 등록에 실패했습니다.')
   }
 }
 
@@ -216,6 +316,8 @@ const validateStep = (step) => {
 // 모달 상태
 const showValidationModal = ref(false)
 const validationMessage = ref('')
+const showSuccessModal = ref(false)
+const successMessage = ref('')
 
 // 다음 단계로 이동
 const nextStep = () => {
@@ -247,6 +349,12 @@ const nextStep = () => {
 const closeValidationModal = () => {
   showValidationModal.value = false
   validationMessage.value = ''
+}
+
+// 성공 모달 닫기
+const closeSuccessModal = () => {
+  showSuccessModal.value = false
+  successMessage.value = ''
 }
 
 // 이미지 URL 생성 함수
@@ -592,6 +700,7 @@ const handleCancel = () => {
                     <!-- 이전 버튼 (1단계가 아닐 때만 표시) -->
                     <button
                       v-if="currentStep > 1"
+                      type="button"
                       @click="prevStep"
                       class="w-full sm:w-48 py-3 lg:py-4 px-6 lg:px-8 rounded-lg font-semibold flex items-center justify-center gap-2 lg:gap-3 transition-all duration-200 text-base lg:text-lg whitespace-nowrap"
                       style="
@@ -615,6 +724,7 @@ const handleCancel = () => {
 
                     <!-- 취소 버튼 -->
                     <button
+                      type="button"
                       @click="handleCancel"
                       class="w-full sm:w-48 py-3 lg:py-4 px-6 lg:px-8 rounded-lg font-semibold flex items-center justify-center gap-2 lg:gap-3 transition-all duration-200 text-base lg:text-lg whitespace-nowrap"
                       style="
@@ -639,6 +749,7 @@ const handleCancel = () => {
                     <!-- 다음/등록 버튼 -->
                     <button
                       v-if="currentStep < totalSteps"
+                      type="button"
                       @click="nextStep"
                       class="w-full sm:w-48 py-3 lg:py-4 px-6 lg:px-8 rounded-lg font-semibold flex items-center justify-center gap-2 lg:gap-3 transition-all duration-200 text-base lg:text-lg text-white shadow-lg hover:shadow-xl whitespace-nowrap"
                       style="background: var(--brand-3)"
@@ -718,6 +829,46 @@ const handleCancel = () => {
           <div class="flex justify-end">
             <button
               @click="closeValidationModal"
+              class="px-6 py-2 bg-brand-3 text-white rounded-lg hover:bg-brand-2 transition-colors"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 성공 모달 -->
+    <div
+      v-if="showSuccessModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+    >
+      <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4">
+        <div class="p-6">
+          <!-- 모달 헤더 -->
+          <div class="flex items-center mb-4">
+            <div class="w-8 h-8 rounded-full bg-status-1 flex items-center justify-center mr-3">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-text-2">매물 등록 완료</h3>
+          </div>
+
+          <!-- 모달 내용 -->
+          <div class="mb-6">
+            <p class="text-text-1 text-center">{{ successMessage }}</p>
+            <p class="text-text-1 text-center text-sm mt-2">잠시 후 마이페이지로 이동합니다...</p>
+          </div>
+
+          <!-- 모달 버튼 -->
+          <div class="flex justify-center">
+            <button
+              @click="closeSuccessModal"
               class="px-6 py-2 bg-brand-3 text-white rounded-lg hover:bg-brand-2 transition-colors"
             >
               확인

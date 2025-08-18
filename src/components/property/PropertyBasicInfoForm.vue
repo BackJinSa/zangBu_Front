@@ -19,6 +19,7 @@ const props = defineProps({
       propertyType: 'sale',
       price: '',
       deposit: '',
+      identity: '', // 주민등록번호
       buildingType: 'house',
       buildingName: '',
       roadAddress: '',
@@ -79,6 +80,7 @@ const formData = ref({
   propertyType: props.modelValue.propertyType || 'sale',
   price: props.modelValue.price || '',
   deposit: props.modelValue.deposit || '',
+  identity: props.modelValue.identity || '', // 주민등록번호
   buildingType: props.modelValue.buildingType || 'house',
   buildingName: props.modelValue.buildingName || '',
   roadAddress: props.modelValue.roadAddress || '',
@@ -112,6 +114,7 @@ watch(
       propertyType: newValue.propertyType || 'sale',
       price: newValue.price || '',
       deposit: newValue.deposit || '',
+      identity: newValue.identity || '', // 주민등록번호
       buildingType: newValue.buildingType || 'house',
       buildingName: newValue.buildingName || '',
       roadAddress: newValue.roadAddress || '',
@@ -239,6 +242,59 @@ const handleAreaKeypress = (event) => {
   }
 }
 
+// 주민등록번호 입력 처리
+const handleIdentityInput = (event) => {
+  const value = event.target.value
+  const numericValue = value.replace(/[^\d]/g, '') // 숫자만 허용
+  let formattedValue = numericValue
+
+  // 주민등록번호 형식으로 포맷팅 (000000-0000000)
+  if (numericValue.length > 6) {
+    formattedValue = numericValue.slice(0, 6) + '-' + numericValue.slice(6, 13)
+  }
+
+  // 포맷된 값으로 입력 필드 업데이트
+  event.target.value = formattedValue
+  formData.value.identity = formattedValue
+  emit('update:modelValue', { ...formData.value })
+}
+
+// 주민등록번호 입력 키 제한 (숫자만 허용)
+const handleIdentityKeypress = (event) => {
+  const char = String.fromCharCode(event.which)
+
+  // 숫자가 아닌 경우 입력 차단
+  if (!/\d/.test(char)) {
+    event.preventDefault()
+    return
+  }
+}
+
+// 주민등록번호 유효성 검사
+const identityError = computed(() => {
+  if (!formData.value.identity) return ''
+
+  const identity = formData.value.identity.replace(/[^\d]/g, '')
+  if (identity.length !== 13) {
+    return '주민등록번호는 13자리여야 합니다'
+  }
+
+  // 생년월일 유효성 검사
+  const year = parseInt(identity.slice(0, 2))
+  const month = parseInt(identity.slice(2, 4))
+  const day = parseInt(identity.slice(4, 6))
+
+  if (month < 1 || month > 12) {
+    return '올바른 월을 입력해주세요'
+  }
+
+  if (day < 1 || day > 31) {
+    return '올바른 일을 입력해주세요'
+  }
+
+  return ''
+})
+
 // 가격 유효성 검사
 const priceError = computed(() => {
   if (!formData.value.price) return ''
@@ -326,64 +382,48 @@ const setBuildingType = (addressData) => {
     buildingType = 'house'
   }
 
-  console.log(
-    '부동산 유형 자동 설정:',
-    buildingType,
-    '(건물명:',
-    addressData.buildingName,
-    ', 공동주택:',
-    addressData.apartment,
-    ')'
-  )
+  // 부동산 유형 자동 설정 완료
   updateFormData('buildingType', buildingType)
 }
 
-// 실제 부동산 정보 API 호출
-const fetchRealEstateInfo = async (addressData) => {
-  try {
-    const buildingName = addressData.buildingName || ''
-    const sido = addressData.sido || ''
-    const sigungu = addressData.sigungu || ''
-    const eupmyeondong = addressData.eupmyeondong || addressData.bname
+// 부동산 정보 API 호출 (추정 데이터) - API 호출 제거
+// const fetchRealEstateInfo = async (addressData) => {
+//   try {
+//     const buildingName = addressData.buildingName || ''
+//     const sido = addressData.sido || ''
+//     const sigungu = addressData.sigungu || ''
 
-    if (!buildingName || !sido || !sigungu) {
-      console.log('부동산 정보 조회를 위한 필수 정보가 부족합니다.')
-      return getDefaultSuggestions(addressData)
-    }
+//     if (!buildingName || !sido || !sigungu) {
+//       return getDefaultSuggestions(addressData)
+//     }
 
-    console.log('🏢 실제 부동산 정보 조회 시작:', { buildingName, sido, sigungu, eupmyeondong })
+//     // 부동산 정보 API 호출
+//     const { fetchBuildingInfo } = await import('@/api/real-estate/real-estate')
 
-    // 실제 부동산 정보 API 호출
-    const { fetchBuildingInfo } = await import('@/api/real-estate/real-estate')
+//     const result = await fetchBuildingInfo({
+//       buildingName: buildingName.trim(),
+//       sido: sido.trim(),
+//       sigungu: sigungu.trim(),
+//       roadAddress: addressData.roadAddress,
+//     })
 
-    const result = await fetchBuildingInfo({
-      buildingName: buildingName.trim(),
-      sido: sido.trim(),
-      sigungu: sigungu.trim(),
-      eupmyeondong: eupmyeondong.trim(),
-      roadAddress: addressData.roadAddress,
-    })
-
-    if (result.success) {
-      console.log('✅ 실제 부동산 정보 조회 성공:', result.data)
-
-      return {
-        dong: result.data.availableDong || [],
-        ho: result.data.availableHo || [],
-        area: result.data.availableArea || [],
-        isRealData: true,
-        buildingInfo: result.data.buildingInfo || null,
-        dataSource: result.data.dataSource,
-      }
-    } else {
-      console.log('❌ 실제 부동산 정보 조회 실패:', result.message)
-      return getDefaultSuggestions(addressData)
-    }
-  } catch (error) {
-    console.error('🚨 실제 부동산 정보 조회 중 오류:', error)
-    return getDefaultSuggestions(addressData)
-  }
-}
+//     if (result.success) {
+//       return {
+//         dong: result.data.availableDong || [],
+//         ho: result.data.availableHo || [],
+//         area: result.data.availableArea || [],
+//         isRealData: false, // 추정 데이터이므로 false
+//         buildingInfo: result.data.buildingInfo || null,
+//         dataSource: result.data.dataSource,
+//       }
+//     } else {
+//       return getDefaultSuggestions(addressData)
+//     }
+//   } catch (error) {
+//     console.error('🚨 부동산 정보 조회 중 오류:', error)
+//     return getDefaultSuggestions(addressData)
+//   }
+// }
 
 // 기본 추정 정보 제공 (API 실패 시 사용)
 const getDefaultSuggestions = (addressData) => {
@@ -438,39 +478,33 @@ const getDefaultSuggestions = (addressData) => {
   return suggestions
 }
 
-// 주소 기반 동/호수 정보 제공 (실제 API 연동)
-const getSuggestedDongHo = async (addressData) => {
-  // 실제 부동산 정보 API 호출 시도
-  const realInfo = await fetchRealEstateInfo(addressData)
-  return realInfo
-}
+// 주소 기반 동/호수 정보 제공 (추정 데이터) - API 호출 제거
+// const getSuggestedDongHo = async (addressData) => {
+//   // 부동산 정보 API 호출 시도
+//   const realInfo = await fetchRealEstateInfo(addressData)
+//   return realInfo
+// }
 
-// 건물 일련번호 조회 함수
-const fetchComplexNo = async (addrSido, addrSigun, addrDong, buildingName) => {
-  try {
-    console.log('건물 일련번호 조회 시작:', { addrSido, addrSigun, addrDong, buildingName })
+// 건물 일련번호 조회 함수 - API 호출 제거
+// const fetchComplexNo = async (addrSido, addrSigun, addrDong, buildingName) => {
+//   try {
+//     const result = await codefStore.getComplexNo(addrSido, addrSigun, addrDong, buildingName)
 
-    const result = await codefStore.getComplexNo(addrSido, addrSigun, addrDong, buildingName)
-
-    if (result.success) {
-      console.log('건물 일련번호 조회 성공:', result.data.complexNo)
-      // 건물 일련번호를 폼 데이터에 저장
-      updateFormData('complexNo', result.data.complexNo)
-      return result.data.complexNo
-    } else {
-      console.log('건물 일련번호 조회 실패:', result.error)
-      return null
-    }
-  } catch (error) {
-    console.error('건물 일련번호 조회 오류:', error)
-    return null
-  }
-}
+//     if (result.success) {
+//       console.log('✅ CODEF API 응답:', result.data)
+//       // 건물 일련번호를 폼 데이터에 저장
+//       updateFormData('complexNo', result.data.complexNo)
+//       return result.data.complexNo
+//     } else {
+//       return null
+//     }
+//   } catch (error) {
+//     return null
+//   }
+// }
 
 // 주소 선택 핸들러
 const handleAddressSelected = (addressData) => {
-  console.log('🏠 주소 검색 완료:', addressData)
-
   // 주소 정보를 폼 데이터에 저장
   formData.value.roadAddress = addressData.roadAddress
   formData.value.buildingName = addressData.buildingName || ''
@@ -484,36 +518,29 @@ const handleAddressSelected = (addressData) => {
   // 부동산 유형 자동 설정
   setBuildingType(addressData)
 
-  // 동/호수/면적 제안 정보 설정 (실제 API 호출)
-  getSuggestedDongHo(addressData).then((result) => {
-    suggestions.value = result
-    showSuggestions.value = addressData.apartment === 'Y' // 공동주택인 경우만 제안 표시
-
-    // 실제 데이터 여부에 따른 UI 표시
-    if (result.isRealData) {
-      console.log('✅ 실제 부동산 데이터 적용됨')
-    } else {
-      console.log('📋 추정 데이터 사용 중')
+  // 동/호수/면적 제안 정보 설정 (백엔드 API 없음으로 기본값 사용)
+  if (addressData.apartment === 'Y') {
+    suggestions.value = {
+      dong: Array.from({ length: 8 }, (_, i) => (i + 1).toString()),
+      ho: Array.from({ length: 80 }, (_, i) => `${Math.floor(i / 4) + 1}0${(i % 4) + 1}`),
+      area: ['59.92', '74.93', '84.78', '101.85', '114.93', '134.85'],
+      isRealData: false,
     }
-  })
+    showSuggestions.value = true
+  }
 
   // 가공된 주소 필드에 저장
   updateDetailAddress()
 
-  // 건물 일련번호 조회 및 저장
-  if (
-    addressData.sido &&
-    addressData.sigungu &&
-    addressData.eupmyeondong &&
-    addressData.buildingName
-  ) {
-    fetchComplexNo(
-      addressData.sido,
-      addressData.sigungu,
-      addressData.eupmyeondong,
-      addressData.buildingName
-    )
-  }
+  // 건물 일련번호 조회 및 저장 (API 호출 제거)
+  // if (addressData.sido && addressData.sigungu && addressData.bname && addressData.buildingName) {
+  //   fetchComplexNo(
+  //     addressData.sido,
+  //     addressData.sigungu,
+  //     addressData.bname,
+  //     addressData.buildingName
+  //   )
+  // }
 
   // 부모 컴포넌트에 업데이트 알림
   emit('update:modelValue', { ...formData.value })
@@ -577,45 +604,30 @@ const openPostcode = () => {
       // 부동산 유형 자동 설정
       setBuildingType(data)
 
-      // 동/호수/면적 제안 정보 설정 (실제 API 호출)
-      getSuggestedDongHo(data).then((result) => {
-        suggestions.value = result
-        showSuggestions.value = data.apartment === 'Y' // 공동주택인 경우만 제안 표시
-
-        // 실제 데이터 여부에 따른 UI 표시
-        if (result.isRealData) {
-          console.log('✅ 실제 부동산 데이터 적용됨')
-        } else {
-          console.log('📋 추정 데이터 사용 중')
-        }
-      })
+      // 동/호수/면적 제안 정보 설정 (기본값 사용, API 호출 제거)
+      suggestions.value = {
+        dong: Array.from({ length: 8 }, (_, i) => (i + 1).toString()),
+        ho: Array.from({ length: 80 }, (_, i) => `${Math.floor(i / 4) + 1}0${(i % 4) + 1}`),
+        area: ['59.92', '74.93', '84.78', '101.85', '114.93', '134.85'],
+        isRealData: false,
+      }
+      showSuggestions.value = data.apartment === 'Y' // 공동주택인 경우만 제안 표시
 
       // 가공된 주소 필드에 저장
       updateFormData('addrSido', data.sido)
       updateFormData('addrSigun', data.sigungu)
       // bname(법정동명)을 사용하여 동 정보 가져오기
-      updateFormData('addrDong', data.bname || data.eupmyeondong)
+      updateFormData('addrDong', data.bname)
 
-      console.log('가공된 주소 데이터:', {
-        addrSido: data.sido,
-        addrSigun: data.sigungu,
-        addrDong: data.bname || data.eupmyeondong,
-        buildingName: data.buildingName,
-      })
-
-      // 주소 데이터를 받은 후 자동으로 건물 일련번호 조회
-      if (data.sido && data.sigungu && (data.bname || data.eupmyeondong)) {
-        const complexNo = await fetchComplexNo(
-          data.sido,
-          data.sigungu,
-          data.bname || data.eupmyeondong,
-          data.buildingName || ''
-        )
-
-        if (complexNo) {
-          console.log('건물 일련번호 자동 조회 완료:', complexNo)
-        }
-      }
+      // 주소 데이터를 받은 후 자동으로 건물 일련번호 조회 (API 호출 제거)
+      // if (data.sido && data.sigungu && data.bname && data.buildingName) {
+      //   const complexNo = await fetchComplexNo(
+      //     data.sido,
+      //     data.sigungu,
+      //     data.bname, // bname(법정동명)을 읍면동으로 사용
+      //     data.buildingName || ''
+      //   )
+      // }
     },
     theme: {
       searchBgColor: '#0B65C8', //검색창 배경색
@@ -858,12 +870,25 @@ const updateBuildingHo = (value) => {
     </div>
 
     <!-- 전용 면적 -->
-    <AreaInput
-      v-model="formData.area"
-      :suggestions="suggestions"
-      :show-suggestions="showSuggestions"
-      @update:model-value="updateFormData('area', $event)"
-    />
+    <AreaInput v-model="formData.area" @update:model-value="updateFormData('area', $event)" />
+
+    <!-- 주민등록번호 -->
+    <div>
+      <label class="block text-sm font-medium text-text-2 mb-3">주민등록번호</label>
+      <input
+        :value="formData.identity"
+        @input="handleIdentityInput"
+        @keypress="handleIdentityKeypress"
+        type="text"
+        placeholder="예) 901231-1234567"
+        maxlength="14"
+        class="w-full px-4 py-3 text-base leading-6 text-text-2 bg-bg-2 border border-bg-1 rounded-lg outline-none box-border placeholder:text-text-1 placeholder:text-base focus:border-brand-3 focus:ring-1 focus:ring-brand-3 transition-colors"
+      />
+      <p v-if="identityError" class="text-status-2 text-sm mt-1">
+        <i class="fa-solid fa-circle-exclamation mr-1"></i>
+        {{ identityError }}
+      </p>
+    </div>
 
     <!-- 매매가 -->
     <PriceInput
