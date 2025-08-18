@@ -24,7 +24,7 @@ function refreshActiveRooms() {
 export function useStomp() {
   //JWT 토큰을 가져와 연결
   const connect = (onConnected = () => {}) => {
-    // 이미 연결 중이면 무시
+    // 이미 연결 중이면
     if (stompClient?.connected) {
       isConnected = true
       onConnected()
@@ -100,6 +100,7 @@ export function useStomp() {
       console.warn('[STOMP] 연결 전, 구독 대기:', roomId)
       return
     }
+
 
     // 중복 방지: 기존 구독 있으면 해제 후 재구독
     const prev = subscriptions.get(roomId)

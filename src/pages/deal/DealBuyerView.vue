@@ -5,6 +5,7 @@ import { getDealNotice, changeDealStatus } from '@/api/deal/deal'
 import { DEAL_STATUS } from '@/utils/constants'
 import Button from '@/components/common/Button.vue'
 import BackButton from '@/components/common/BackButton.vue'
+import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
@@ -107,7 +108,7 @@ const downloadContract = () => {
   document.body.removeChild(link)
 }
 
-const startDeal = () => {
+const startDeal = async () => {
   if (!isChecklistComplete.value) {
     alert('거래를 시작하기 전에 모든 체크리스트 항목을 확인해주세요.')
     return
@@ -120,8 +121,10 @@ const startDeal = () => {
   })
 }
 
+const chatRoomId = computed(() => String(route.query.chatRoomId || ''))
 // 거래 수락 함수
 const acceptDeal = async () => {
+  const roomId = chatRoomId.value
   try {
     if (!isChecklistComplete.value) {
       alert('거래를 수락하기 전에 모든 체크리스트 항목을 확인해주세요.')
@@ -130,17 +133,24 @@ const acceptDeal = async () => {
 
     const dealData = {
       dealId: propertyInfo.value.dealId,
-      status: DEAL_STATUS.BEFORE_CONSUMER,
+      status: DEAL_STATUS.MIDDLE_DEAL,
     }
 
     console.log('거래 수락 요청 데이터:', dealData)
     console.log('현재 토큰:', localStorage.getItem('token'))
 
-    const response = await changeDealStatus(dealData)
-    console.log('거래 수락 성공:', response.data)
+    await axios.patch(`http://localhost:8080/deal/${roomId}/status`, dealData, {
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    // 성공 후 채팅방으로 이동
+    router.push({ name: 'chat-room', params: { roomId } })
+
+    //const response = await changeDealStatus(dealData)
+    //console.log('거래 수락 성공:', response.data)
 
     // 성공 후 거래 시작 페이지로 이동
-    startDeal()
+    // startDeal()
   } catch (err) {
     console.error('거래 수락 실패:', err)
 
