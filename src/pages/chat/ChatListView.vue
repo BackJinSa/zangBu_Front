@@ -1,66 +1,97 @@
 <template>
   <div class="w-full max-w-screen-xl mx-auto">
-    <div class="flex flex-col min-h-screen bg-[var(--bg-1)] py-6 px-4 md:px-6 xl:px-8">
-      <div class="flex items-center gap-3 text-lg mb-5">
-        <button @click="router.back()" class="text-[var(--text-1)] hover:text-[var(--brand-1)]">
-          <i class="fas fa-arrow-left"></i>
+    <div
+      class="flex flex-col min-h-screen bg-[var(--bg-1)] py-4 px-3 sm:py-6 sm:px-4 md:px-6 xl:px-8"
+    >
+      <!-- 헤더 -->
+      <div class="flex items-center gap-3 mb-4 sm:mb-5">
+        <button
+          @click="router.back()"
+          class="text-[var(--text-1)] hover:text-[var(--brand-1)] p-2 -ml-2 rounded-lg active:scale-[0.98]"
+          aria-label="뒤로가기"
+        >
+          <i class="fas fa-arrow-left text-base sm:text-lg"></i>
         </button>
-        <h3 class="font-semibold">채팅방 목록</h3>
+        <h3 class="font-semibold text-base sm:text-lg">채팅방 목록</h3>
       </div>
 
       <main class="flex-1 flex flex-col">
         <!-- 필터 탭 -->
-        <div class="flex justify-center my-6 gap-10 md:gap-[260px]">
+        <div class="my-3 sm:my-6">
           <div
-            v-for="tab in tabs"
-            :key="tab.type"
-            :class="[
-              'flex flex-col-reverse items-center cursor-pointer text-[var(--text-1)] transition',
-              tab.type === filterType ? 'text-black font-bold' : '',
-            ]"
-            @click="selectTab(tab.type)"
+            class="grid grid-cols-3 gap-2 sm:gap-6 md:flex md:justify-center md:gap-16 xl:gap-[260px]"
           >
-            <div class="text-xl font-bold">
-              {{ tab.count }}
-              <span
-                v-if="tab.unread > 0"
-                class="inline-flex items-center justify-center ml-1 w-4 h-4 text-[11px] font-semibold bg-[var(--status-1)] text-white rounded-full"
-              >
-                {{ tab.unread }}
-              </span>
+            <div
+              v-for="tab in tabs"
+              :key="tab.type"
+              :class="[
+                'flex flex-col-reverse items-center cursor-pointer select-none text-[var(--text-1)] transition rounded-lg active:scale-[0.98]',
+                // 기본 크기 (모바일)
+                'py-2 sm:py-3 px-2',
+                // 큰 화면에서 더 넓게
+                'md:min-w-[120px] md:px-6 md:py-4',
+                tab.type === filterType
+                  ? 'text-black font-bold bg-[var(--bg-2)] shadow-sm'
+                  : 'hover:bg-white/60',
+              ]"
+              @click="selectTab(tab.type)"
+            >
+              <div class="text-lg sm:text-xl font-bold leading-none">
+                {{ tab.count }}
+                <span
+                  v-if="tab.unread > 0"
+                  class="inline-flex items-center justify-center ml-1 w-4 h-4 text-[11px] font-semibold bg-[var(--status-1)] text-white rounded-full"
+                >
+                  {{ tab.unread }}
+                </span>
+              </div>
+              <div class="mt-1 text-xs sm:text-sm">{{ tab.label }}</div>
             </div>
-            <div class="mt-1 text-sm">{{ tab.label }}</div>
           </div>
         </div>
 
         <!-- 채팅방 리스트 -->
-        <div v-if="rooms.length > 0" class="flex flex-col gap-4">
+        <div v-if="rooms.length > 0" class="flex flex-col gap-3 sm:gap-4">
           <div
             v-for="room in rooms"
             :key="room.chatRoomId"
-            class="flex items-start bg-[var(--bg-2)] p-4 rounded-lg relative cursor-pointer"
+            class="flex items-center sm:items-start bg-[var(--bg-2)] p-3 sm:p-4 rounded-lg relative cursor-pointer active:scale-[0.99]"
             @click="goToChatRoom(room.chatRoomId)"
           >
+            <!-- 아바타 -->
             <div
-              class="w-10 h-10 rounded-full text-white font-bold text-base flex items-center justify-center mr-3 flex-shrink-0"
+              class="w-10 h-10 sm:w-11 sm:h-11 rounded-full text-white font-bold text-sm sm:text-base flex items-center justify-center mr-3 sm:mr-4 shrink-0"
               :style="{
                 backgroundColor: room.type === 'BUY' ? 'var(--brand-3)' : 'var(--brand-2)',
               }"
+              :aria-label="room.otherUserNickname"
             >
-              {{ room.otherUserNickname.charAt(0) }}
+              {{ room.otherUserNickname?.charAt(0) }}
             </div>
 
-            <div class="flex-1">
-              <div class="flex items-center justify-between text-sm text-[var(--text-2)] mb-1">
-                <div>
-                  <div class="flex items-center gap-2">
-                    <span class="font-semibold">{{ room.otherUserNickname }}</span>
+            <!-- 본문 -->
+            <div class="flex-1 min-w-0">
+              <!-- 상단 라인: 닉네임/뱃지/시간 -->
+              <div
+                class="flex items-center justify-between gap-2 text-[var(--text-2)] mb-0.5 sm:mb-1"
+              >
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <span
+                      class="font-semibold text-sm sm:text-base truncate max-w-[10rem] sm:max-w-[14rem]"
+                    >
+                      {{ room.otherUserNickname }}
+                    </span>
+
+                    <!-- 뱃지 (모바일에선 간략화) -->
                     <div class="flex gap-1">
-                      <span class="text-xs px-2 py-1 rounded bg-[var(--brand-3)] text-white">{{
-                        room.displaySellerType
-                      }}</span>
                       <span
-                        class="text-xs px-2 py-1 rounded"
+                        class="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded bg-[var(--brand-3)] text-white whitespace-nowrap"
+                      >
+                        {{ room.displaySellerType }}
+                      </span>
+                      <span
+                        class="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded whitespace-nowrap hidden xs:inline-block sm:inline-block"
                         :class="{
                           'bg-gray-100 text-gray-600': room.displayStatus === '거래 전',
                           'bg-blue-100 text-gray-600': room.displayStatus === '판매자 수락 전',
@@ -69,80 +100,99 @@
                           'bg-gray-100 text-gray-500': room.displayStatus === '거래 완료',
                         }"
                       >
-                        {{ room.displayStatus }}</span
-                      >
+                        {{ room.displayStatus }}
+                      </span>
                     </div>
                   </div>
-                  <div class="text-xs text-[var(--text-1)] mt-0.5">
-                    <i class="fa-solid fa-house fa-lg"></i>
-                    {{ room.buildingName }} | <i class="fa-solid fa-sack-dollar"></i> 전세
-                    {{ room.price }}억
+
+                  <!-- 빌딩/가격: 모바일 한 줄 트렁킷 -->
+                  <div
+                    class="text-[11px] sm:text-xs text-[var(--text-1)] mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis"
+                  >
+                    <i class="fa-solid fa-house"></i>
+                    {{ room.buildingName }} |
+                    <i class="fa-solid fa-sack-dollar"></i>
+                    전세 {{ room.price }}억
                   </div>
                 </div>
-                <span class="text-xs text-[var(--text-1)]">
+
+                <!-- 시간: 모바일에선 작게 -->
+                <span class="text-[10px] sm:text-xs text-[var(--text-1)] shrink-0">
                   {{ room.lastMessageTime || room.createdAt }}
                 </span>
               </div>
-              <div class="text-sm text-[var(--text-1)]">
+
+              <!-- 마지막 메시지 -->
+              <div
+                class="text-[13px] sm:text-sm text-[var(--text-1)] whitespace-nowrap overflow-hidden text-ellipsis"
+              >
                 {{ room.lastMessagePreview }}
               </div>
             </div>
 
+            <!-- 안읽음 카운트 -->
             <div
               v-if="room.unreadCount > 0"
-              class="absolute right-3 bottom-3 text-xs px-2 py-0.5 rounded-full bg-[var(--brand-3)] text-white"
+              class="absolute right-3 bottom-2 sm:bottom-3 text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-[var(--brand-3)] text-white"
             >
               {{ room.unreadCount }}
             </div>
           </div>
         </div>
+
         <!-- 빈 목록 안내 -->
-        <div v-else class="flex flex-col items-center justify-center py-16 text-[var(--text-1)]">
-          <i class="fa-regular fa-comment-dots text-4xl mb-3"></i>
-          <p class="text-base font-medium">표시할 채팅방이 없습니다.</p>
+        <div
+          v-else
+          class="flex flex-col items-center justify-center py-14 sm:py-16 text-[var(--text-1)]"
+        >
+          <i class="fa-regular fa-comment-dots text-3xl sm:text-4xl mb-2 sm:mb-3"></i>
+          <p class="text-sm sm:text-base font-medium text-center">표시할 채팅방이 없습니다.</p>
         </div>
 
         <!-- 페이지네이션 -->
-        <div class="flex justify-center mt-6 gap-2">
-          <!-- 이전 버튼 -->
+        <div class="flex justify-center mt-5 sm:mt-6 flex-wrap gap-1.5 sm:gap-2">
+          <!-- 이전 -->
           <button
             @click="changePage(currentPage - 1)"
             :disabled="currentPage === 1"
-            class="px-3 py-1 rounded border text-sm"
+            class="px-3 py-1 rounded border text-sm min-w-9"
             :class="
               currentPage === 1
                 ? 'text-gray-400 border-gray-300 cursor-not-allowed'
-                : 'hover:bg-gray-100 border-gray-400'
+                : 'hover:bg-gray-100 border-gray-400 active:scale-[0.98]'
             "
+            aria-label="이전 페이지"
           >
             <i class="fa-solid fa-angle-left"></i>
           </button>
 
-          <!-- 페이지 번호 -->
+          <!-- 번호 -->
           <button
             v-for="page in totalPages"
             :key="page"
             @click="changePage(page)"
-            class="px-3 py-1 rounded border text-sm"
+            class="px-3 py-1 rounded border text-sm min-w-9"
             :class="
               page === currentPage
                 ? 'bg-[var(--brand-3)] text-white border-[var(--brand-3)]'
-                : 'border-gray-400 hover:bg-gray-100'
+                : 'border-gray-400 hover:bg-gray-100 active:scale-[0.98]'
             "
+            :aria-current="page === currentPage ? 'page' : undefined"
           >
             {{ page }}
           </button>
 
-          <!-- 다음 버튼 -->
+          <!-- 다음 -->
           <button
             @click="changePage(currentPage + 1)"
             :disabled="currentPage === totalPages"
-            class="px-3 py-1 rounded border text-sm"
+            class="px-3 py-1 rounded border text-sm min-w-9"
             :class="
               currentPage === totalPages
                 ? 'text-gray-400 border-gray-300 cursor-not-allowed'
-                : 'hover:bg-gray-100 border-gray-400'
+                : 'hover:bg-gray-100 border-gray-400 active:scale-[0.98]'
             "
+            aria-label="다음 페이지"
           >
             <i class="fa-solid fa-angle-right"></i>
           </button>

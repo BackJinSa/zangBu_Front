@@ -8,14 +8,12 @@
           <button @click="router.push('/chat/list')" class="text-white mt-1">
             <i class="fas fa-arrow-left"></i>
           </button>
-
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-2">
               <span class="font-semibold text-base">{{ otherNickname }}</span>
             </div>
             <div class="flex items-center gap-2 text-xs text-white/90">
-              <i class="fas fa-home"></i>
-              <span>{{ buildingName }}</span>
+              <i class="fas fa-home"></i> <span>{{ buildingName }}</span>
               <span
                 class="text-xs bg-[var(--brand-2)] text-[var(--brand-5)] px-2 py-0.5 rounded-lg"
               >
@@ -24,7 +22,6 @@
             </div>
           </div>
         </div>
-
         <!-- 우측 영역 (판매자, 구매자에 따라 다르게) -->
         <div class="flex items-center gap-5">
           <!-- 판매자인 경우 거래 활성화 토글 -->
@@ -36,7 +33,6 @@
             >
               거래 완료
             </span>
-
             <div v-else class="flex flex-col items-center text-sm">
               <span class="mb-1">거래 활성화</span>
               <label
@@ -61,7 +57,6 @@
               </label>
             </div>
           </template>
-
           <!-- 구매자인 경우 거래 상태 -->
           <div v-else>
             <router-link
@@ -85,7 +80,6 @@
               {{ status }}
             </span>
           </div>
-
           <!-- 나가기 버튼 -->
           <Button
             variant="button9"
@@ -95,7 +89,6 @@
             >{{ leaving ? '처리 중...' : '나가기' }}
           </Button>
         </div>
-
         <!-- 팝업 -->
         <PopupModal
           :is-visible="showModal"
@@ -109,7 +102,6 @@
           @close="showModal = false"
         />
       </header>
-
       <!-- 채팅 내용 -->
       <main ref="scrollArea" class="flex-1 overflow-y-auto px-4 py-3 space-y-4" @scroll="onScroll">
         <div v-for="(msg, index) in viewMessages" :key="index" class="flex flex-col">
@@ -119,7 +111,6 @@
               {{ msg.message }}
             </span>
           </div>
-
           <!-- 일반 말풍선 -->
           <template v-else>
             <div
@@ -132,7 +123,6 @@
             >
               <p>{{ msg.message }}</p>
             </div>
-
             <p
               :class="[
                 msg.isMine
@@ -146,7 +136,6 @@
           </template>
         </div>
       </main>
-
       <!-- 입력창 -->
       <footer class="px-4 py-3 bg-white border-t flex items-center gap-2">
         <input
