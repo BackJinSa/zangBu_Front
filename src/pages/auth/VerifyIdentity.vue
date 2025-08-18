@@ -108,10 +108,11 @@
               />
               <button
                 type="button"
-                class="h-10 w-full bg-brand-4 hover:bg-brand-3 text-white rounded"
+                class="h-10 w-full bg-brand-4 hover:bg-brand-3 text-white rounded disabled:opacity-60"
                 @click="verifyCaptcha"
+                :disabled="loading"
               >
-                확인
+                {{ loading ? '로딩중...' : '확인' }}
               </button>
               <p v-if="captchaVerified" class="text-green-600 text-xs">보안문자 확인 완료</p>
             </div>
@@ -141,7 +142,8 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { encryptRsa } from '@/utils/rsa'
+import { requestAuth, requestAuthStep2 } from '@/api/auth/auth'
 
 const router = useRouter()
 
@@ -156,9 +158,11 @@ const phone = ref('')
 // 에러/캡차 상태
 const errorMessage = ref('')
 const showCaptcha = ref(false)
-const captchaImageUrl = ref('https://dummyimage.com/160x48/eeeeee/000000&text=123456') // 서버 URL로 교체
+const captchaImageUrl = ref('')
 const captchaInput = ref('')
 const captchaVerified = ref(false)
+const sessionKey = ref('')
+const loading = ref(false)
 
 function getTelecomCode(telecomValue) {
   if (telecomValue.includes('SKT')) return '0'
@@ -167,20 +171,19 @@ function getTelecomCode(telecomValue) {
   return ''
 }
 
-// 하단 메인 버튼
-async function onPrimary() {
-  if (!showCaptcha.value) {
-    await handleSubmit() // 1단계: 기본정보 검증 → 캡차 열기
-  } else {
-    // 2단계: 인증 완료 플래그 저장 후 이동
-    if (captchaVerified.value) {
-      sessionStorage.setItem('verified', 'true')
-      router.push('/auth/signup')
-    }
-  }
+// base64 string → data:image/png;base64 변환
+function toPngDataUrlFromBase64(b64) {
+  if (!b64) return ''
+  if (b64.startsWith('data:')) return b64
+
+  const clean = b64.replace(/\s/g, '').replace(/-/g, '+').replace(/_/g, '/')
+  const pad = clean.length % 4
+  const padded = pad ? clean + '='.repeat(4 - pad) : clean
+
+  return `data:image/png;base64,${padded}`
 }
 
-// 1단계: 본인인증 제출 -> 캡차 열기
+// 1단계: 본인인증 제출 -> 캡차 요청
 async function handleSubmit() {
   errorMessage.value = ''
 
@@ -196,55 +199,77 @@ async function handleSubmit() {
     return
   }
 
-  // 실제 API 호출 위치:
-  // const { data } = await axios.post('/api/identity/verify', {
-  //   name: name.value,
-  //   birth: birth.value,
-  //   identity: identity.value,
-  //   issueDate: issueDate.value,
-  //   telecom: getTelecomCode(telecom.value),
-  //   phone: phone.value.replace(/[^0-9]/g, '')
-  // })
-  // captchaImageUrl.value = data.captchaImageUrl
+  try {
+    const payload = {
+      name: name.value,
+      birth: birth.value,
+      identity: encryptRsa(identity.value),
+      issueDate: issueDate.value,
+      telecom: getTelecomCode(telecom.value),
+      phone: phone.value.replace(/[^0-9]/g, ''),
+    }
 
-  showCaptcha.value = true
-  captchaVerified.value = false
-  errorMessage.value = ''
+    const { data } = await requestAuth(payload)
+
+    // 응답: sessionKey, captchaDataUri
+    sessionKey.value = data.sessionKey
+    captchaImageUrl.value = toPngDataUrlFromBase64(data.captchaDataUri)
+    showCaptcha.value = true
+    captchaVerified.value = false
+  } catch (e) {
+    errorMessage.value = e?.response?.data?.message || '본인인증 요청 실패'
+  }
 }
 
-// 캡차 확인
+// 2단계: 보안문자 확인
 async function verifyCaptcha() {
-  // 실제 API 예시
-  // try {
-  //   await axios.post('/api/identity/captcha/verify', {
-  //     captchaId: ...,   // 서버가 내려준 아이디
-  //     answer: captchaInput.value
-  //   })
-  //   captchaVerified.value = true
-  //   errorMessage.value = ''
-  // } catch (e) {
-  //   captchaVerified.value = false
-  //   errorMessage.value = e?.response?.data?.message || '보안문자 검증에 실패했어요.'
-  //   return
-  // }
-
-  // 임시 로직(입력만 있으면 성공으로 처리)
   if (!captchaInput.value?.trim()) {
-    captchaVerified.value = false
     errorMessage.value = '보안문자를 입력해주세요.'
     return
   }
-  captchaVerified.value = true
-  errorMessage.value = ''
+
+  loading.value = true
+  try {
+    const payload = {
+      sessionKey: sessionKey.value,
+      secureNo: captchaInput.value,
+    }
+    const { data } = await requestAuthStep2(payload)
+    // 기대 응답:
+    // {
+    //   "resUserNm": "",
+    //   "resUserIdentiyNo": "",
+    //   "resAuthenticity": "",        // "1" = 성공, 그 외 실패
+    //   "resAuthenticityDesc": ""     // 예: "성공", "주민번호 불일치"
+    // }
+
+    const ok = String(data?.resAuthenticity) === '1'
+    captchaVerified.value = ok
+
+    if (ok) {
+      errorMessage.value = '' // 성공이면 에러 제거
+    } else {
+      // 서버 설명이 있으면 그걸 보여주고, 없으면 기본 메시지
+      errorMessage.value = data?.resAuthenticityDesc || '보안문자 확인에 실패했어요.'
+    }
+  } catch (e) {
+    captchaVerified.value = false
+    errorMessage.value = e?.response?.data?.message || '보안문자 확인 실패'
+  } finally {
+    loading.value = false
+  }
 }
 
-// (옵션) 캡차 새로고침이 필요할 때 사용
-function refreshCaptcha() {
-  captchaImageUrl.value =
-    'https://dummyimage.com/160x48/eeeeee/000000&text=' +
-    Math.floor(100000 + Math.random() * 900000)
-  captchaInput.value = ''
-  captchaVerified.value = false
-  errorMessage.value = ''
+// 하단 메인 버튼
+async function onPrimary() {
+  if (!showCaptcha.value) {
+    await handleSubmit() // 1단계: 기본정보 검증 → 캡차 열기
+  } else {
+    // 2단계: 인증 완료 플래그 저장 후 이동
+    if (captchaVerified.value) {
+      sessionStorage.setItem('verified', 'true')
+      router.push('/auth/signup')
+    }
+  }
 }
 </script>

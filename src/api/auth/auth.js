@@ -24,6 +24,14 @@ export const findPassword = (email) => {
 }
 
 //5. 본인인증 요청
+//1) 1단계
+export const requestAuth = (payload) => {
+  return api.post('/codef/captcha', payload)
+}
+//2) 2단계
+export const requestAuthStep2 = (payload) => {
+  return api.post('/codef/secure', payload)
+}
 
 // 6. 회원가입
 export const signup = (userData) => {
