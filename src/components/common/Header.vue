@@ -79,10 +79,13 @@
             </span>
           </button>
           <!-- Notification Bell Icon -->
-          <button class="relative" @click="handleNavigation('notification')">
+          <button
+            class="relative text-green-900 hover:text-brand-1 transition-colors"
+            @click="handleNavigation('notification')"
+          >
             <!-- 종 아이콘 -->
             <svg
-              class="w-6 h-6 sm:w-7 sm:h-7 text-green-900 hover:text-brand-1 transition-colors"
+              class="w-6 h-6 sm:w-7 sm:h-7"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
@@ -95,14 +98,15 @@
               />
             </svg>
 
-            <!-- 숫자 뱃지 -->
+            <!-- 빨간 원 숫자 뱃지 -->
             <span
-              v-if="notificationStore.unreadCount > 0"
-              class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] text-xs bg-red-500 text-white rounded-full flex items-center justify-center px-1"
+              v-if="totalAllCount > 0"
+              class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 text-[11px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center shadow-md ring-2 ring-white"
             >
-              {{ notificationStore.unreadCount > 99 ? '99+' : notificationStore.unreadCount }}
+              {{ totalAllCountDisplay }}
             </span>
           </button>
+
           <!-- Hamburger Menu Button for Desktop -->
           <button
             @click="toggleSidebar"
@@ -162,7 +166,7 @@
           </button>
           <button
             @click="isLoggedIn ? handleNavigation('mypage') : handleNavigation('login')"
-            class="lg:hidden flex items-center gap-1 h-full hover:opacity-80 transition-opacity"
+            class="flex items-center gap-1 h-full hover:opacity-80 transition-opacity"
           >
             <div
               :class="[
@@ -200,7 +204,6 @@
             @click="handleNavigation('notification')"
             class="relative text-green-900 hover:text-brand-1 transition-colors h-full flex items-center justify-center"
           >
-            <!-- 종 아이콘 -->
             <svg
               class="w-5 h-5 sm:w-6 sm:h-6"
               fill="none"
@@ -215,13 +218,20 @@
               />
             </svg>
 
-            <!-- 🔴 숫자 뱃지 -->
+            <!-- 빨간 원 숫자 뱃지 -->
             <span
-              v-if="notificationStore.unreadCount > 0"
-              class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] text-xs bg-red-500 text-white rounded-full flex items-center justify-center px-1"
+              v-if="totalAllCount > 0"
+              class="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-[3px] text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center shadow-md ring-2 ring-white"
             >
-              {{ notificationStore.unreadCount > 99 ? '99+' : notificationStore.unreadCount }}
+              {{ totalAllCountDisplay }}
             </span>
+          </button>
+          <button
+            v-if="isLoggedIn"
+            @click="handleLogout"
+            class="text-brand-1 text-xs font-semibold font-inter border border-brand-2 rounded px-2 py-1 hover:bg-brand-2 hover:text-white transition-colors whitespace-nowrap flex-shrink-0 h-full items-center"
+          >
+            로그아웃
           </button>
 
           <!-- Hamburger Menu Button -->
@@ -285,11 +295,17 @@ import { useNotificationStore } from '@/stores/notification/notification'
 import { useAuthStore } from '@/stores/auth/auth'
 
 import { onMounted } from 'vue'
-import { listenForegroundMessage } from '@/utils/fcm'
+import { listenForegroundMessage, requestFcmToken } from '@/utils/fcm'
 
 // 스토어 인스턴스 가져오기
 const notificationStore = useNotificationStore()
 const authStore = useAuthStore()
+
+// 종 옆에 표시할 전체 알림 개수 (filterCounts.ALL)
+const totalAllCount = computed(() => Number(notificationStore.counts?.ALL ?? 0))
+const totalAllCountDisplay = computed(() =>
+  totalAllCount.value > 99 ? '99+' : String(totalAllCount.value)
+)
 
 // Router 인스턴스 가져오기
 const router = useRouter()
@@ -301,16 +317,26 @@ const userInitial = computed(() => (userName.value ? userName.value.charAt(0) : 
 
 // 메인페이지 관련 로직
 
-onMounted(() => {
-  // 스토어에서 더미데이터 가져옴 -> ☆나중에 실제 API로 대체 예정☆
-  notificationStore.loadDummyNotifications()
-  /**
-   * fcm.js의 listenForegroundMessage() 호출
-   * -> 즉, 이 시점부터는 앱이 켜져있는 동안 FCM이
-   *    보내는 모든 알림을 수신함.
-   * 알림 수신되면 내부의 onMessage()가 호출됨
-   */
-  listenForegroundMessage()
+onMounted(async () => {
+  // 1) 실제 백엔드에서 1페이지 로딩 (필터/카운트 포함)
+  await notificationStore.loadNotifications()
+  // 2) (선택) FCM 토큰 발급/등록
+  try {
+    await requestFcmToken()
+  } catch (e) {
+    console.warn('[FCM] token issue failed:', e)
+  }
+
+  // 3) 앱 실행 중 수신되는 FCM 포그라운드 메시지 반영
+  listenForegroundMessage?.((payload) => {
+    // 스토어가 addNotificationFromFCM 제공 시 낙관적 반영
+    if (typeof notificationStore.addNotificationFromFCM === 'function') {
+      notificationStore.addNotificationFromFCM(payload)
+    } else {
+      // 없으면 서버 기준으로 재동기화
+      notificationStore.loadNotifications()
+    }
+  })
 })
 
 // 라우트 변경 시 사이드바 닫기
