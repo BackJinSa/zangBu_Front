@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 
 // API 및 컴포넌트 import
 import { getDeals } from '@/api/deal/deal.js'
+import axios from 'axios'
 import PropertyCardWaiting from '@/components/common/PropertyCardWaiting.vue'
 import Button from '@/components/common/Button.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -75,16 +76,43 @@ const fetchDeals = async () => {
     }
 
     // 실제 API 호출
-    const response = await getDeals()
+    console.log('=== API 호출 시작 ===')
+    console.log('현재 토큰:', localStorage.getItem('token'))
+    console.log('현재 사용자:', localStorage.getItem('user'))
+    console.log('API 엔드포인트: /deal/waitinglist')
+
+    let response
+    try {
+      console.log('getDeals 함수 호출 직전')
+
+      // 직접 axios 호출로 테스트
+      console.log('직접 axios 호출 시도')
+      const directResponse = await axios.get('/api/deal/waitinglist', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      })
+      console.log('직접 axios 호출 성공:', directResponse)
+
+      response = await getDeals()
+      console.log('getDeals 함수 호출 완료')
+      console.log('API 응답 성공:', response)
+      console.log('응답 데이터:', response.data)
+      console.log('응답 상태:', response.status)
+    } catch (apiError) {
+      console.error('getDeals API 호출 실패:', apiError)
+      throw apiError
+    }
 
     // API 응답 데이터 처리 - Postman 응답 구조에 맞게 처리
-    if (response.data && response.data.deals) {
+    if (response && response.data && response.data.deals) {
       // 페이지네이션된 응답 구조 처리 (Postman 응답과 동일)
       deals.value = response.data.deals
-    } else if (response.data && Array.isArray(response.data)) {
+    } else if (response && response.data && Array.isArray(response.data)) {
       // 배열 형태로 직접 응답하는 경우
       deals.value = response.data
-    } else if (response.data) {
+    } else if (response && response.data) {
       // 단일 객체인 경우 배열로 변환
       deals.value = [response.data]
     } else {
@@ -92,6 +120,12 @@ const fetchDeals = async () => {
       deals.value = []
     }
   } catch (err) {
+    console.log('=== API 호출 실패 ===')
+    console.log('에러 객체:', err)
+    console.log('에러 응답:', err.response)
+    console.log('에러 상태:', err.response?.status)
+    console.log('에러 메시지:', err.message)
+
     // 401 Unauthorized 에러인 경우 로그인 페이지로 이동
     if (err.response?.status === 401) {
       showLoginRequiredPopup()
@@ -234,10 +268,7 @@ const formatDealForPropertyCard = (deal) => {
     buildingId: deal.buildingId, // API: buildingId: 10001
     buildingName: deal.buildingName, // API: buildingName: "확장더미 매물 10001"
     address: deal.address, // API: address: "서울 강남구 역삼동 1"
-    imageUrl:
-      deal.imageUrl && deal.imageUrl !== 'https://example.com/img902.jpg'
-        ? deal.imageUrl
-        : '/default-property.jpg', // API: imageUrl: "https://img.example.com/10001/1.jpg"
+    imageUrl: deal.imageUrl || '/default-property.jpg', // API: imageUrl: "https://img.example.com/10001/1.jpg"
     price: deal.price || 0, // API: price: 50000
     dealStatus: deal.dealStatus, // API: dealStatus: "BEFORE_CONSUMER"
     createdAt: deal.createdAt || new Date().toISOString().split('T')[0], // API에 createdAt이 없으면 현재 날짜
