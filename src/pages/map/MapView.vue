@@ -39,6 +39,7 @@ import {
 } from '@/api/publicdata/publicdata.js'
 import { useMembership } from '@/composables/useMembership'
 import { useChatStore } from '@/stores/chat/chat'
+import { useCodefStore } from '@/stores/codef/codef.js'
 
 // Props 정의
 const props = defineProps({
@@ -53,6 +54,7 @@ const mapStore = useMapStore()
 const router = useRouter()
 const route = useRoute()
 const chatStore = useChatStore()
+const codefStore = useCodefStore()
 
 // 상세 보기 상태
 const showDetail = ref(false)
@@ -697,55 +699,44 @@ const fetchRealEstateData = async (propertyData) => {
 // 매물 상세 정보 + 공공데이터 통합 조회
 const fetchPropertyDetailWithPublicData = async (buildingId) => {
   try {
-    console.log('매물 상세 정보 + 공공데이터 통합 조회 시작:', buildingId)
-    const response = await getPropertyDetailWithPublicData(buildingId)
-    console.log('공공데이터 통합 API 응답:', response)
+    console.log('CODEF API로 매물 상세 정보 조회 시작:', buildingId)
+    const result = await codefStore.fetchComplexDetailByBuildingId(buildingId)
 
-    if (response && response.data) {
-      const data = response.data
+    if (result.success && result.data) {
+      const codefData = result.data.data // { estateDetail: {...}, marketPrice: {...} }
+      console.log('CODEF API 응답 데이터:', codefData)
 
-      // 기본 매물 정보 설정
+      const estate = codefData.estateDetail || {}
+      const market = codefData.marketPrice || {}
+
+      // Codef 응답 데이터를 selectedProperty 형식에 맞게 매핑
       const propertyData = {
-        ...data.buildingDetail,
-        isBookmarked: data.buildingDetail.isBookmarked ?? false,
-        isNotification: data.buildingDetail.isNotification ?? false,
-        publicDataAvailable: data.publicDataAvailable,
-        aptComplexInfo: data.aptComplexInfo,
-        errorMessage: data.errorMessage,
+        buildingId: buildingId,
+        address: estate.commAddrRoadName || '주소 정보 없음',
+        buildingName: estate.resComplexName || '건물명 정보 없음',
+        dataSource: 'codef_api',
+
+        // estateDetail (단지 상세 정보)
+        estateDetail: estate,
+
+        // marketPrice (시세 정보)
+        marketPrice: market,
       }
 
       selectedProperty.value = propertyData
       showDetail.value = true
-
-      // 공공데이터가 사용 가능한 경우 추가 정보 표시
-      if (data.publicDataAvailable && data.aptComplexInfo) {
-        console.log('공공데이터 정보:', data.aptComplexInfo)
-      }
-
-      // 실거래가 정보도 함께 불러오기
-      await fetchRealEstateData(propertyData)
     } else {
-      console.warn('공공데이터 통합 API에서 데이터가 없습니다.')
-      // API에서 데이터가 없을 때 사용자에게 알림
-      selectedProperty.value = {
-        buildingName: `매물 ID: ${buildingId}`,
-        address: '주소 정보 없음',
-        saleType: '정보 없음',
-        propertyType: '정보 없음',
-        price: 0,
-        deposit: 0,
-        isBookmarked: false,
-        isNotification: false,
-        error: '공공데이터 통합 API에서 매물 정보를 찾을 수 없습니다.',
-      }
-      showDetail.value = true
+      throw new Error(result.error || 'Codef API에서 데이터를 가져오지 못했습니다.')
     }
   } catch (error) {
-    console.error('공공데이터 통합 조회 실패:', error)
+    console.error('codef API 통합 조회 실패:', error)
 
-    // API 호출 실패 시 기본 API로 대체
-    console.log('공공데이터 통합 API 실패, 기본 API로 대체')
-    await fetchPropertyDetail(buildingId)
+    selectedProperty.value = {
+      buildingName: `매물 ID: ${buildingId}`,
+      address: '주소 정보 없음',
+      error: `API 호출 실패: ${error.message}`,
+    }
+    showDetail.value = true
   }
 }
 
@@ -2756,5 +2747,21 @@ onMounted(() => {
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 8px;
+}
+
+/* 가격 변화 스타일 */
+.price-increase {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.price-decrease {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.price-neutral {
+  color: #7f8c8d;
+  font-weight: bold;
 }
 </style>
