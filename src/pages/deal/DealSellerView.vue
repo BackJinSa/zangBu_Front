@@ -225,18 +225,10 @@
                   </button>
                   <button
                     @click="cancelDeal"
-                    :disabled="!canProceed"
-                    :class="[
-                      'w-full sm:w-48 py-3 lg:py-4 px-6 lg:px-8 rounded-lg font-semibold flex items-center justify-center gap-2 lg:gap-3 transition-colors text-base lg:text-lg',
-                      canProceed ? 'text-white' : 'cursor-not-allowed',
-                    ]"
-                    :style="
-                      canProceed
-                        ? 'background: var(--status-2)'
-                        : 'background: var(--text-1); color: var(--bg-1)'
-                    "
-                    @mouseenter="canProceed && ($event.target.style.background = '#b91c1c')"
-                    @mouseleave="canProceed && ($event.target.style.background = 'var(--status-2)')"
+                    class="w-full sm:w-48 py-3 lg:py-4 px-6 lg:px-8 rounded-lg font-semibold flex items-center justify-center gap-2 lg:gap-3 transition-colors text-base lg:text-lg text-white"
+                    style="background: var(--status-2)"
+                    @mouseenter="$event.target.style.background = '#b91c1c'"
+                    @mouseleave="$event.target.style.background = 'var(--status-2)'"
                   >
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -482,8 +474,10 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPropertyDetail } from '@/api/property/property'
+import { getDealNotice } from '@/api/deal/deal'
+import { DEAL_STATUS } from '@/utils/constants'
 import BackButton from '@/components/common/BackButton.vue'
+import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
@@ -498,7 +492,7 @@ const showAcceptModal = ref(false)
 const showCancelModal = ref(false)
 const showBackModal = ref(false)
 
-// 모든 동의가 완료되었는지 확인
+// 모든 동의가 완료되었는지 확인 (거래 수락만 체크)
 const canProceed = computed(() => {
   return registerAgreement.value && buildingAgreement.value
 })
@@ -515,8 +509,18 @@ const fetchPropertyInfo = async () => {
 
     // 실제 API 호출 시도
     try {
-      const response = await getPropertyDetail({ deal_id: dealId })
-      propertyInfo.value = response.data
+      const response = await getDealNotice(dealId)
+      console.log('거래 상세 정보 응답:', response.data)
+
+      // API 응답 구조에 맞게 데이터 매핑
+      propertyInfo.value = {
+        deal_id: dealId,
+        building_id: response.data.buildingId,
+        building_name: response.data.buildingName,
+        info_building: response.data.infoBuilding,
+        dealStatus: response.data.dealStatus,
+        chatRoomId: response.data.chatRoomId,
+      }
     } catch (apiError) {
       console.warn('API 호출 실패, 더미데이터 사용:', apiError)
       // API 호출 실패 시 더미데이터 사용
@@ -567,12 +571,38 @@ const acceptDeal = () => {
   showAcceptModal.value = true
 }
 
-const confirmAccept = () => {
+const chatRoomId = computed(() => String(route.query.chatRoomId || ''))
+const confirmAccept = async () => {
   showAcceptModal.value = false
-  // 실제로는 API 호출하여 거래 수락 처리
-  console.log('거래 수락 처리:', propertyInfo.value.deal_id)
-  // 성공 후 채팅 페이지로 이동
-  router.push(`/chat/room?dealId=${propertyInfo.value.deal_id}`)
+
+  const roomId = chatRoomId.value
+  const dealId = propertyInfo.value.deal_id
+
+  if (!roomId) {
+    alert('chatRoomId가 없습니다.')
+    return
+  }
+  if (!dealId) {
+    alert('dealId가 없습니다.')
+    return
+  }
+
+  try {
+    const dto = { dealId, status: DEAL_STATUS.BEFORE_CONSUMER } // 판매자 수락
+
+    await axios.patch(`http://localhost:8080/deal/${roomId}/status`, dto, {
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    // (선택) 방 메타 갱신 후 이동하고 싶으면:
+    //await fetchRoomMeta()
+
+    // 성공 후 채팅방으로 이동
+    router.push({ name: 'chat-room', params: { roomId } })
+  } catch (e) {
+    console.error('거래 수락 실패:', e)
+    alert('거래 수락 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+  }
 }
 
 const cancelAccept = () => {
@@ -580,10 +610,7 @@ const cancelAccept = () => {
 }
 
 const cancelDeal = () => {
-  if (!canProceed.value) {
-    showAgreementModal.value = true
-    return
-  }
+  // 거래 취소는 체크박스 동의 없이도 가능
   showCancelModal.value = true
 }
 

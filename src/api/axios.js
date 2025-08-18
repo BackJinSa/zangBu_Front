@@ -19,9 +19,7 @@ const processQueue = (error, token = null) => {
 api.interceptors.request.use(
   (config) => {
     // reissue/login 에만 Authorization 생략 (logout엔 붙임)
-    const skipAuth =
-      config.url?.includes('/auth/reissue') ||
-      config.url?.includes('/auth/login')
+    const skipAuth = config.url?.includes('/auth/reissue') || config.url?.includes('/auth/login')
 
     if (!skipAuth) {
       const at = localStorage.getItem('token')
@@ -39,7 +37,7 @@ api.interceptors.response.use(
     const originalRequest = error.config || {}
     const status = error.response?.status
     const isReissue = originalRequest?.url?.includes('/auth/reissue')
-    const isLogout  = originalRequest?.url?.includes('/auth/logout')
+    const isLogout = originalRequest?.url?.includes('/auth/logout')
 
     // 로그아웃 401: 재발급 시도하지 말고 바로 정리
     if (isLogout && status === 401) {

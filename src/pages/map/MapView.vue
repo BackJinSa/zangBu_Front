@@ -38,6 +38,7 @@ import {
   getAptTradeInfo,
 } from '@/api/publicdata/publicdata.js'
 import { useMembership } from '@/composables/useMembership'
+import { useChatStore } from '@/stores/chat/chat'
 
 // Props 정의
 const props = defineProps({
@@ -51,6 +52,7 @@ const props = defineProps({
 const mapStore = useMapStore()
 const router = useRouter()
 const route = useRoute()
+const chatStore = useChatStore()
 
 // 상세 보기 상태
 const showDetail = ref(false)
@@ -827,7 +829,7 @@ const toggleNotification = async () => {
 }
 
 // 채팅 페이지로 이동
-const goToChat = () => {
+const goToChat = async () => {
   // 로그인 상태 확인
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
   if (!isLoggedIn) {
@@ -839,8 +841,17 @@ const goToChat = () => {
     return
   }
 
-  // 로그인된 경우 채팅 페이지로 이동
-  router.push('/chat/list')
+  // 로그인된 경우
+  //const consumerId = localStorage.getItem('consumerId') //TODO: 수정
+  const consumerId = '8h9i0j1k-1111-2222-3333-444455556673'
+  const { exists, chatRoomId } = await chatStore.existChatRoom(props.buildingId, consumerId)
+
+  //채팅방 존재하면 해당 채팅방으로 이동, 존재하지 않으면 거래 안내페이지로 이동
+  if (exists && chatRoomId) {
+    router.push({ name: 'chat-room', params: { roomId: chatRoomId } })
+  } else {
+    router.push({ name: 'deal-notice', params: { buildingId } })
+  }
 }
 
 // 리뷰 목록 페이지로 이동

@@ -59,8 +59,17 @@
                       <span class="text-xs px-2 py-1 rounded bg-[var(--brand-3)] text-white">{{
                         room.displaySellerType
                       }}</span>
-                      <span class="text-xs px-2 py-1 rounded bg-[var(--status-1)] text-white"
-                        >거래 {{ room.displayStatus }}</span
+                      <span
+                        class="text-xs px-2 py-1 rounded"
+                        :class="{
+                          'bg-gray-100 text-gray-600': room.displayStatus === '거래 전',
+                          'bg-blue-100 text-gray-600': room.displayStatus === '판매자 수락 전',
+                          'bg-blue-100 text-blue-600': room.displayStatus === '구매자 수락 대기',
+                          'bg-yellow-100 text-yellow-600': room.displayStatus === '거래 중',
+                          'bg-gray-100 text-gray-500': room.displayStatus === '거래 완료',
+                        }"
+                      >
+                        {{ room.displayStatus }}</span
                       >
                     </div>
                   </div>
@@ -191,17 +200,19 @@ function mapSellerType(raw) {
   const v = String(raw || '').toUpperCase()
   if (v === 'OWNER') return '집주인'
   if (v === 'TENANT') return '세입자'
-  if (v === 'AGENCY' || v === 'AGENT' || v === 'BROKER') return '중개사'
   return raw || ''
 }
 
 function mapDealStatus(raw) {
-  if (!raw) return '중'
+  if (!raw) return '거래 전'
   const v = String(raw).toUpperCase()
-  if (['IN_PROGRESS', 'PROGRESS', 'ONGOING'].includes(v)) return '진행'
-  if (['COMPLETE', 'COMPLETED', 'DONE', '완료'].includes(v)) return '완료'
-  if (['PENDING', 'HOLD', '중'].includes(v)) return '중'
-  return String(raw)
+  if (['BEFORE_TRANSACTION'].includes(v)) return '거래 전'
+  if (['BEFORE_OWNER'].includes(v)) return '판매자 수락 전'
+  if (['BEFORE_CONSUMER'].includes(v)) return '구매자 수락 대기'
+  if (['MIDDLE_DEAL'].includes(v)) return '거래 중'
+  if (['CLOSE_DEAL'].includes(v)) return '거래 완료'
+
+  return String(raw) // 그대로 표시
 }
 
 /** ---------------------------
