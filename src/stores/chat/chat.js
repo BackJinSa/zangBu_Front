@@ -1,4 +1,5 @@
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useRoute, onBeforeRouteUpdate } from 'vue-router'
 import { defineStore } from 'pinia'
 import { useStomp } from '@/utils/useStomp'
 import axios from 'axios'
@@ -8,7 +9,10 @@ export const useChatStore = defineStore('chat', () => {
   const currentChat = ref(null)
   const messages = ref([])
   const unreadCount = ref(0)
-  const { sendStompMessage } = useStomp()
+  const route = useRoute()
+  const roomId = computed(() => String(route.params.roomId || ''))
+  const { sendToRoom, subscribeRoom, unsubscribeRoom, connected } = useStomp()
+  const oldestMessageId = ref(null) //가장 오래 로드된(리스트 맨 앞) 메시지 id 기억 → 더보기 요청용
 
   // 채팅방 목록 조회 로직
   async function getChatRooms(type = 'ALL') {
@@ -20,26 +24,50 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  // 채팅 메시지 조회 로직
-  async function getChatMessages(roomId, lastMessageId = null, limit = 30) {
+  // ★ 내부 공용 페치: 서버는 최신부터(DESC) 반환 → 여기서 reverse()로 ASC로 맞춤
+  async function fetchMessages(lastMessageId = null, limit = 5) {
+    const { data } = await axios.get(`http://localhost:8080/chat/room/${roomId.value}`, {
+      params: { lastMessageId, limit },
+    })
+    const list = Array.isArray(data) ? data : []
+    return list.reverse() // 오래→최근 순으로 변환
+  }
+
+  // ★ 최초 로드: 화면엔 오래→최근, 스크롤은 맨 아래로
+  async function loadInitialMessages(limit = 5) {
     try {
-      const res = await axios.get(`/chat/room/${roomId}`, {
-        params: { lastMessageId, limit },
-      })
-      messages.value = res.data.result.messageList
-      currentChat.value = {
-        chatRoomId: roomId,
-        ...res.data.result,
-      }
+      const asc = await fetchMessages(null, limit)
+      messages.value = asc
+      oldestMessageId.value = asc[0]?.chatMessageId ?? null
+      currentChat.value = { chatRoomId: roomId.value }
+      return asc.length
     } catch (err) {
-      console.error('채팅 메시지 조회 실패:', err)
+      console.error('초기 메시지 로드 실패:', err)
+      messages.value = []
+      oldestMessageId.value = null
+      return 0
+    }
+  }
+
+  // ★ 더보기(위로 스크롤): 가장 오래 로드된 id보다 더 오래된 묶음을 앞쪽에 붙임
+  async function loadOlderMessages(limit = 30) {
+    if (!oldestMessageId.value) return 0
+    try {
+      const olderAsc = await fetchMessages(oldestMessageId.value, limit)
+      if (olderAsc.length === 0) return 0
+      messages.value = [...olderAsc, ...messages.value]
+      oldestMessageId.value = messages.value[0]?.chatMessageId ?? oldestMessageId.value
+      return olderAsc.length
+    } catch (err) {
+      console.error('이전 메시지 로드 실패:', err)
+      return 0
     }
   }
 
   // 메시지 전송 로직
   async function sendMessage(message) {
     try {
-      sendStompMessage('/pub/chat.message', message)
+      sendToRoom(roomId.value, { message: message })
     } catch (err) {
       console.error('STOMP 메시지 전송 실패:', err)
     }
@@ -60,23 +88,59 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   // 채팅방 나가기 로직
-  async function leaveChatRoom(roomId) {
+  async function leaveChatRoom() {
+    const id = roomId.value
+    if (!id) return
+
+    // 1) 낙관적 UI: 목록/카운트/현재방 상태를 미리 정리
+    const prevRooms = [...chatRooms.value]
+    const roomIdx = chatRooms.value.findIndex((r) => r.chatRoomId === id)
+    const prevRoom = roomIdx >= 0 ? { ...chatRooms.value[roomIdx] } : null
+
+    // 목록에서 제거 & 현재방/메시지 초기화
+    chatRooms.value = chatRooms.value.filter((r) => r.chatRoomId !== id)
+    if (currentChat.value?.chatRoomId === id) {
+      currentChat.value = null
+      messages.value = []
+      oldestMessageId.value = null
+    }
+
     try {
-      await axios.patch(`/chat/room/list/exit/${roomId}`)
+      await axios.patch(`http://localhost:8080/chat/list/exit/${id}`)
 
-      unsubscribeRoom(roomId) // STOMP 구독 해제
+      unsubscribeRoom(id) // STOMP 구독 해제
 
-      chatRooms.value = chatRooms.value.filter((r) => r.chatRoomId !== roomId)
+      // 4) 남은 구독 없으면 소켓 연결 종료(선택 사항)
+      if ((typeof getActiveRooms === 'function' && getActiveRooms()?.length === 0) || false) {
+        // connected는 readonly ref 라서 길이만 체크
+        // 필요 시 자동 재연결을 막고 싶다면 아래 호출
+        // disconnect()
+
+        // 성공적으로 종료됨
+        return true
+      }
     } catch (err) {
       console.error('채팅방 나가기 실패:', err)
+      // 실패 시 낙관적 UI 롤백
+      if (roomIdx >= 0) {
+        // 삭제했던 방 되돌리기
+        chatRooms.value = [...prevRooms]
+      }
+      if (prevRoom) {
+        currentChat.value = { chatRoomId: id }
+        // 메시지까지 복원할 필요가 있다면, 필요 시 서버 재조회
+      }
+
+      throw err
     }
   }
 
   // 읽음 처리 로직
-  async function markAsRead(roomId) {
+  async function markAsRead() {
     try {
-      await axios.put(`/chat/room/${roomId}/read`)
-      const room = chatRooms.value.find((r) => r.chatRoomId === roomId)
+      //await axios.put(`/chat/room/${roomId.value}/read`)
+      await axios.put(`http://localhost:8080/chat/room/${roomId.value}/read`)
+      const room = chatRooms.value.find((r) => r.chatRoomId === roomId.value)
       if (room) room.unreadCount = 0
     } catch (err) {
       console.error('읽음 처리 실패:', err)
@@ -88,8 +152,10 @@ export const useChatStore = defineStore('chat', () => {
     currentChat,
     messages,
     unreadCount,
+    oldestMessageId,
     getChatRooms,
-    getChatMessages,
+    loadInitialMessages,
+    loadOlderMessages,
     sendMessage,
     createChatRoom,
     leaveChatRoom,

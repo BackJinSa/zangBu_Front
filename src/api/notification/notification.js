@@ -7,9 +7,43 @@ import api from '@/api/axios'
  * @param {{ page: number, size: number }} params - 페이지 번호와 항목 수
  * @returns {Promise<{ data: Notification[], pageInfo: PageInfo }>} 알림 목록과 페이지 정보 포함
  */
-export const getNotificationsApi = async (params) => {
-  const res = await api.get('/notification/all', { params })
-  return res.data
+export async function getNotificationsApi({ page = 1, size = 10, type = 'ALL' } = {}) {
+  const params = { page: Math.max(Number(page) || 1, 1), size: Number(size) || 10 }
+  const up = String(type).toUpperCase()
+  if (up !== 'ALL') params.type = up // BUILDING | TRADE | REVIEW
+
+  const { data } = await api.get('/notification/all', { params })
+
+  const rawItems = Array.isArray(data?.notifications) ? data.notifications : []
+  const items = rawItems.map((n) => ({
+    id: n.notificationId ?? n.id,
+    title: n.title ?? '',
+    message: n.message ?? '',
+    type: n.type ?? 'UNKNOWN', // BUILDING | TRADE | REVIEW
+    isRead: !!n.read, // 서버: read → 프론트: isRead
+    createdAt: n.createdAt, // "1일 전" 등 가공 문자열
+    address: n.address,
+    priceLabel: n.priceLabel,
+    rank: n.rank,
+    // 라우팅용 참조 ID들
+    buildingId: n.buildingId ?? n.propertyId ?? null,
+    reviewId: n.reviewId ?? null,
+    tradeId: n.tradeId ?? null,
+  }))
+
+  return {
+    items,
+    pageNumber: Number(data?.pageNum) || params.page,
+    pageSize: Number(data?.pageSize) || params.size,
+    totalElements: Number(data?.totalElements ?? items.length),
+    totalPages: Number(data?.totalPages ?? 1),
+    filterCounts: {
+      ALL: Number(data?.filterCounts?.ALL ?? 0),
+      BUILDING: Number(data?.filterCounts?.BUILDING ?? 0),
+      TRADE: Number(data?.filterCounts?.TRADE ?? 0),
+      REVIEW: Number(data?.filterCounts?.REVIEW ?? 0),
+    },
+  }
 }
 
 /**
