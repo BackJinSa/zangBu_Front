@@ -50,12 +50,6 @@ export default defineConfig({
           })
         },
       },
-      // WebSocket 프록시 추가
-      '/chat': {
-        target: 'ws://localhost:8080',
-        ws: true,
-        changeOrigin: true,
-      },
     },
   },
   build: {

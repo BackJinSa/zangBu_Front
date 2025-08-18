@@ -8,7 +8,7 @@ const subscriptions = new Map() //현재 구독을 저장하는 변수
 const subscribeIntents = new Map() //roomId -> callback(payload, roomId) // 재연결 시 복구용 (구독 콜백을 기억)
 
 // 옵션: 환경에 맞게 수정
-const WS_URL = '/chat'
+const WS_URL = 'ws://localhost:8080/chat'
 const SUBSCRIBE_PREFIX = '/topic/chat.' // 예: /topic/chat.{roomId}
 const TOPIC_PREFIX = '/app/chat.send' // 예: /app/chat.send/{roomId}
 

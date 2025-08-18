@@ -16,21 +16,21 @@ const props = defineProps({
     type: Object,
     default: () => ({
       registrantType: 'owner',
-      propertyType: 'sale',
-      price: '',
-      deposit: '',
+      propertyType: 'jeonse', // CHARTER에 맞춰 jeonse로 변경
+      price: '500000', // 기본값 설정
+      deposit: '0', // 기본값 설정
       identity: '', // 주민등록번호
-      buildingType: 'house',
-      buildingName: '',
+      buildingType: 'apartment', // APARTMENT에 맞춰 변경
+      buildingName: '이수브라운스톤', // 기본값 설정
       roadAddress: '',
       detailAddress: '',
       buildingDong: '', // 동 정보
       buildingHo: '', // 호수 정보
-      buildingName: '', // 건물명
+      buildingName: '이수브라운스톤', // 건물명
       complexNo: '', // 건물 일련번호
-      area: '',
-      moveInType: 'immediate',
-      moveInDate: '',
+      area: '12.5', // 기본값 설정
+      moveInType: 'date', // 날짜 지정으로 변경
+      moveInDate: '2025-09-01', // 기본값 설정
       // 주소 관련 추가 필드
       sido: '',
       sigungu: '',

@@ -3,7 +3,9 @@ import { defineStore } from 'pinia'
 import {
   getFilteredPropertyList,
   getPropertyDetail,
+  getPropertyDetailById,
   registerProperty,
+  updateProperty as updatePropertyApi,
   deleteProperty as deletePropertyApi,
   bookmarkProperty as bookmarkPropertyApi,
   cancelBookmarkProperty as cancelBookmarkPropertyApi,
@@ -108,6 +110,36 @@ export const usePropertyStore = defineStore('property', () => {
     propertyFilters.value = filters
   }
 
+  // 매물 ID로 상세 정보 조회
+  async function fetchProperty(id) {
+    loading.value = true
+    error.value = null
+    try {
+      const res = await getPropertyDetailById(id)
+      return res.data
+    } catch (err) {
+      error.value = err
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 매물 수정
+  async function updateProperty(data) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await updatePropertyApi(data)
+      return { success: true, data: response.data, status: response.status }
+    } catch (err) {
+      error.value = err
+      return { success: false, message: err.response?.data?.message || '매물 수정에 실패했습니다.' }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     properties,
     currentProperty,
@@ -121,5 +153,7 @@ export const usePropertyStore = defineStore('property', () => {
     bookmarkProperty,
     cancelBookmark,
     setFilters,
+    fetchProperty,
+    updateProperty,
   }
 })

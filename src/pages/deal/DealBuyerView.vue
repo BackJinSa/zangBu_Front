@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getDealNotice, changeDealStatus } from '@/api/deal/deal'
+import { getDealNotice, changeDealStatus, downloadStandardContract } from '@/api/deal/deal'
 import { DEAL_STATUS } from '@/utils/constants'
 import Button from '@/components/common/Button.vue'
 import BackButton from '@/components/common/BackButton.vue'
@@ -33,6 +33,7 @@ const fetchPropertyInfo = async () => {
     try {
       const response = await getDealNotice(dealId)
       console.log('거래 상세 정보 응답:', response.data)
+      console.log('응답 데이터 전체 구조:', response.data)
 
       // API 응답 구조에 맞게 데이터 매핑
       propertyInfo.value = {
@@ -40,7 +41,13 @@ const fetchPropertyInfo = async () => {
         buildingId: response.data.buildingId,
         buildingName: response.data.buildingName,
         infoBuilding: response.data.infoBuilding,
+        dealStatus: response.data.dealStatus, // 거래 상태 추가
+        dealStatusEnum: response.data.dealStatus, // 거래 상태 enum 추가
+        chatRoomId: response.data.chatRoomId, // 채팅방 ID 추가
       }
+
+      console.log('매핑된 propertyInfo:', propertyInfo.value)
+      console.log('거래 상태 확인:', propertyInfo.value.dealStatus)
     } catch (apiError) {
       console.error('API 호출 실패:', apiError)
 
@@ -73,6 +80,7 @@ const viewDocument = (type) => {
       name: 'deal-consumer-document',
       params: {
         dealId: propertyInfo.value.dealId,
+        dealId: propertyInfo.value.dealId,
         type: type,
       },
     })
@@ -93,63 +101,108 @@ const viewAnalysisReport = () => {
 
 // 체크리스트 완료 여부 확인
 const isChecklistComplete = computed(() => {
-  return checklistItems.value.precautions && checklistItems.value.specialTerms
+  const isComplete = checklistItems.value.precautions && checklistItems.value.specialTerms
+  console.log('=== 체크리스트 상태 확인 ===')
+  console.log('주의사항 체크:', checklistItems.value.precautions)
+  console.log('특약사항 체크:', checklistItems.value.specialTerms)
+  console.log('체크리스트 완료 여부:', isComplete)
+  console.log('=== 체크리스트 상태 확인 완료 ===')
+  return isComplete
+})
+
+// 거래 수락 버튼 비활성화 여부
+const isAcceptButtonDisabled = computed(() => {
+  // 디버깅용 로그
+  console.log('=== 버튼 비활성화 상태 확인 ===')
+  console.log('현재 거래 상태:', propertyInfo.value.dealStatus)
+  console.log('MIDDLE_DEAL 상태:', DEAL_STATUS.MIDDLE_DEAL)
+  console.log('상태 일치 여부:', propertyInfo.value.dealStatus === DEAL_STATUS.MIDDLE_DEAL)
+
+  // 체크리스트가 완료되면 거래 상태와 관계없이 버튼 활성화
+  // (거래 수락 시에만 상태 검증)
+  const isDisabled = false
+  console.log('버튼 비활성화 여부:', isDisabled)
+  console.log('=== 버튼 비활성화 상태 확인 완료 ===')
+
+  return isDisabled
 })
 
 // 계약 진행 함수들
-const downloadContract = () => {
-  console.log('표준계약서 다운로드')
-  // 실제로는 PDF 다운로드 API 호출
-  const link = document.createElement('a')
-  link.href = '/api/contract/download'
-  link.download = '표준계약서.pdf'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
+const downloadContract = async () => {
+  try {
+    console.log('표준계약서 다운로드 시작')
+    const dealId = propertyInfo.value.dealId
 
-const startDeal = async () => {
-  if (!isChecklistComplete.value) {
-    alert('거래를 시작하기 전에 모든 체크리스트 항목을 확인해주세요.')
-    return
+    const response = await downloadStandardContract(dealId)
+
+    // API 응답에서 URL 추출
+    const downloadUrl = response.data.url
+
+    if (!downloadUrl) {
+      throw new Error('다운로드 URL을 찾을 수 없습니다.')
+    }
+
+    // URL을 사용하여 파일 다운로드
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = `표준계약서_${dealId}.pdf`
+    link.target = '_blank'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    console.log('표준계약서 다운로드 완료')
+  } catch (error) {
+    console.error('표준계약서 다운로드 실패:', error)
+    alert('계약서 다운로드에 실패했습니다. 다시 시도해주세요.')
   }
-  console.log('거래 시작')
-  // 채팅 페이지로 이동
-  router.push(`/chat/room?dealId=${propertyInfo.value.dealId}`).then(() => {
-    // 페이지 이동 후 스크롤을 맨 위로 초기화
-    window.scrollTo(0, 0)
-  })
 }
 
-const chatRoomId = computed(() => String(route.query.chatRoomId || ''))
+// 거래 시작 함수 (현재 사용되지 않음)
+// const startDeal = () => {
+//   if (!isChecklistComplete.value) {
+//     alert('거래를 시작하기 전에 모든 체크리스트 항목을 확인해주세요.')
+//     return
+//   }
+//   console.log('거래 시작')
+//   // 채팅 페이지로 이동
+//   router.push(`/chat/room?dealId=${propertyInfo.value.dealId}`).then(() => {
+//     // 페이지 이동 후 스크롤을 맨 위로 초기화
+//     window.scrollTo(0, 0)
+//   })
+// }
+
 // 거래 수락 함수
 const acceptDeal = async () => {
-  const roomId = chatRoomId.value
   try {
+    // 체크리스트 완료 확인
     if (!isChecklistComplete.value) {
       alert('거래를 수락하기 전에 모든 체크리스트 항목을 확인해주세요.')
       return
     }
 
+    // 현재 거래 상태 확인 (디버깅용)
+    console.log('현재 거래 상태:', propertyInfo.value.dealStatus)
+    console.log('현재 거래 ID:', propertyInfo.value.dealId)
+
     const dealData = {
+      chatRoomId: propertyInfo.value.chatRoomId, // 채팅방 ID 추가
       dealId: propertyInfo.value.dealId,
-      status: DEAL_STATUS.MIDDLE_DEAL,
+      status: DEAL_STATUS.CLOSE_DEAL, // 거래 완료 상태로 변경
     }
 
     console.log('거래 수락 요청 데이터:', dealData)
     console.log('현재 토큰:', localStorage.getItem('token'))
-    await axios.patch(`/api/deal/${roomId}/status`, dealData, {
-      headers: { 'Content-Type': 'application/json' },
+
+    const response = await changeDealStatus(dealData)
+    console.log('거래 수락 성공:', response.data)
+
+    // 성공 후 거래 완료 알림 및 거래 목록 페이지로 이동
+    alert('거래가 성사되었습니다!')
+    router.push('/deal/waiting-list').then(() => {
+      // 페이지 이동 후 스크롤을 맨 위로 초기화
+      window.scrollTo(0, 0)
     })
-
-    // 성공 후 채팅방으로 이동
-    router.push({ name: 'chat-room', params: { roomId } })
-
-    //const response = await changeDealStatus(dealData)
-    //console.log('거래 수락 성공:', response.data)
-
-    // 성공 후 거래 시작 페이지로 이동
-    // startDeal()
   } catch (err) {
     console.error('거래 수락 실패:', err)
 
@@ -174,6 +227,8 @@ const acceptDeal = async () => {
   }
 }
 
+const chatRoomId = computed(() => String(route.query.chatRoomId || ''))
+
 const cancelDeal = () => {
   showCancelModal.value = true
 }
@@ -181,6 +236,7 @@ const cancelDeal = () => {
 const confirmCancel = () => {
   showCancelModal.value = false
   // 실제로는 API 호출하여 거래 취소 처리
+  console.log('거래 취소 처리:', propertyInfo.value.dealId)
   console.log('거래 취소 처리:', propertyInfo.value.dealId)
   // 성공 후 이전 페이지로 이동
   router.go(-1).then(() => {
@@ -268,8 +324,10 @@ onMounted(() => {
                 </div>
                 <h1 class="text-xl lg:text-3xl font-bold mb-2 lg:mb-3" style="color: var(--text-2)">
                   {{ propertyInfo.buildingName }}
+                  {{ propertyInfo.buildingName }}
                 </h1>
                 <p class="text-xs lg:text-base mb-2 leading-relaxed" style="color: var(--text-1)">
+                  {{ propertyInfo.infoBuilding }}
                   {{ propertyInfo.infoBuilding }}
                 </p>
               </div>
@@ -506,6 +564,47 @@ onMounted(() => {
               </div>
             </div>
 
+            <!-- 표준 계약서 다운로드 섹션 -->
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 lg:p-6 mb-8 lg:mb-12">
+              <div class="flex items-center mb-4 lg:mb-6">
+                <div class="bg-gray-100 rounded-full p-1.5 lg:p-2 mr-3 lg:mr-4">
+                  <svg
+                    class="w-4 h-4 lg:w-5 lg:h-5 text-gray-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6zm2 2a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                </div>
+                <h2 class="text-lg lg:text-2xl font-bold text-gray-800">표준 계약서</h2>
+              </div>
+              <div class="text-center">
+                <button
+                  @click="downloadContract"
+                  class="inline-flex items-center justify-center gap-2 lg:gap-3 px-6 lg:px-8 py-3 lg:py-4 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+                >
+                  <svg
+                    class="w-5 h-5 lg:w-6 lg:h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    ></path>
+                  </svg>
+                  표준 계약서 다운로드
+                </button>
+              </div>
+            </div>
+
             <!-- 계약 진행 섹션 -->
             <div class="rounded-xl p-8 lg:p-12" style="background: var(--bg-2)">
               <div class="text-center">
@@ -556,21 +655,27 @@ onMounted(() => {
                   </button>
                   <button
                     @click="acceptDeal"
-                    :disabled="!isChecklistComplete"
+                    :disabled="!isChecklistComplete || isAcceptButtonDisabled"
                     :class="[
                       'w-full sm:w-48 py-3 lg:py-4 px-6 lg:px-8 rounded-lg font-semibold flex items-center justify-center gap-2 lg:gap-3 transition-colors text-base lg:text-lg',
-                      isChecklistComplete ? 'text-white' : 'cursor-not-allowed',
+                      isChecklistComplete && !isAcceptButtonDisabled
+                        ? 'text-white'
+                        : 'cursor-not-allowed',
                     ]"
                     :style="
-                      isChecklistComplete
+                      isChecklistComplete && !isAcceptButtonDisabled
                         ? 'background: var(--brand-3)'
                         : 'background: var(--text-1); color: var(--bg-1)'
                     "
                     @mouseenter="
-                      isChecklistComplete && ($event.target.style.background = 'var(--brand-2)')
+                      isChecklistComplete &&
+                        !isAcceptButtonDisabled &&
+                        ($event.target.style.background = 'var(--brand-2)')
                     "
                     @mouseleave="
-                      isChecklistComplete && ($event.target.style.background = 'var(--brand-3)')
+                      isChecklistComplete &&
+                        !isAcceptButtonDisabled &&
+                        ($event.target.style.background = 'var(--brand-3)')
                     "
                   >
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -583,6 +688,37 @@ onMounted(() => {
                     </svg>
                     거래 수락
                   </button>
+                </div>
+
+                <!-- 현재 거래 상태 표시 -->
+                <div v-if="propertyInfo.dealStatus" class="mt-4 text-center">
+                  <p class="text-sm" style="color: var(--text-2)">
+                    현재 거래 상태:
+                    <span class="font-semibold" style="color: var(--brand-3)">
+                      {{
+                        propertyInfo.dealStatus === DEAL_STATUS.MIDDLE_DEAL
+                          ? '거래 진행 중'
+                          : propertyInfo.dealStatus
+                      }}
+                    </span>
+                  </p>
+                  <p
+                    v-if="!isChecklistComplete"
+                    class="text-xs mt-1"
+                    style="color: var(--status-2)"
+                  >
+                    ⚠️ 모든 체크리스트 항목을 완료해야 거래 수락이 가능합니다
+                  </p>
+
+                  <!-- 디버깅 정보 (개발용) -->
+                  <div class="mt-2 p-2 bg-gray-100 rounded text-xs text-left">
+                    <p><strong>디버깅 정보:</strong></p>
+                    <p>체크리스트 완료: {{ isChecklistComplete }}</p>
+                    <p>버튼 비활성화: {{ isAcceptButtonDisabled }}</p>
+                    <p>거래 상태: {{ propertyInfo.dealStatus }}</p>
+                    <p>주의사항 체크: {{ checklistItems.precautions }}</p>
+                    <p>특약사항 체크: {{ checklistItems.specialTerms }}</p>
+                  </div>
                 </div>
               </div>
             </div>
