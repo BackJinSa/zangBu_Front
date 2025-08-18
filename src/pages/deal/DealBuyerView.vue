@@ -5,6 +5,7 @@ import { getDealNotice, changeDealStatus, downloadStandardContract } from '@/api
 import { DEAL_STATUS } from '@/utils/constants'
 import Button from '@/components/common/Button.vue'
 import BackButton from '@/components/common/BackButton.vue'
+import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
@@ -61,6 +62,19 @@ const fetchPropertyInfo = async () => {
       }
 
       error.value = errorMessage
+      console.error('API 호출 실패:', apiError)
+
+      let errorMessage = '매물 정보를 불러올 수 없습니다.'
+
+      if (apiError.response?.status === 404) {
+        errorMessage = '해당 거래를 찾을 수 없습니다.'
+      } else if (apiError.response?.status === 403) {
+        errorMessage = '이 거래에 대한 접근 권한이 없습니다.'
+      } else if (apiError.response?.data?.message) {
+        errorMessage = apiError.response.data.message
+      }
+
+      error.value = errorMessage
     }
   } catch (err) {
     console.error('매물 정보 조회 실패:', err)
@@ -78,6 +92,7 @@ const viewDocument = (type) => {
     .push({
       name: 'deal-consumer-document',
       params: {
+        dealId: propertyInfo.value.dealId,
         dealId: propertyInfo.value.dealId,
         type: type,
       },
@@ -225,6 +240,60 @@ const acceptDeal = async () => {
   }
 }
 
+const chatRoomId = computed(() => String(route.query.chatRoomId || ''))
+// 거래 수락 함수
+const acceptDeal = async () => {
+  const roomId = chatRoomId.value
+  try {
+    if (!isChecklistComplete.value) {
+      alert('거래를 수락하기 전에 모든 체크리스트 항목을 확인해주세요.')
+      return
+    }
+
+    const dealData = {
+      dealId: propertyInfo.value.dealId,
+      status: DEAL_STATUS.MIDDLE_DEAL,
+    }
+
+    console.log('거래 수락 요청 데이터:', dealData)
+    console.log('현재 토큰:', localStorage.getItem('token'))
+
+    await axios.patch(`http://localhost:8080/deal/${roomId}/status`, dealData, {
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    // 성공 후 채팅방으로 이동
+    router.push({ name: 'chat-room', params: { roomId } })
+
+    //const response = await changeDealStatus(dealData)
+    //console.log('거래 수락 성공:', response.data)
+
+    // 성공 후 거래 시작 페이지로 이동
+    // startDeal()
+  } catch (err) {
+    console.error('거래 수락 실패:', err)
+
+    // 더 자세한 에러 정보 출력
+    if (err.response) {
+      console.error('응답 상태:', err.response.status)
+      console.error('응답 데이터:', err.response.data)
+      console.error('응답 헤더:', err.response.headers)
+    }
+
+    let errorMessage = '거래 수락에 실패했습니다.'
+
+    if (err.response?.status === 403) {
+      errorMessage = '권한이 없습니다. 로그인 상태를 확인해주세요.'
+    } else if (err.response?.status === 401) {
+      errorMessage = '인증이 필요합니다. 다시 로그인해주세요.'
+    } else if (err.response?.data?.message) {
+      errorMessage = err.response.data.message
+    }
+
+    alert(errorMessage)
+  }
+}
+
 const cancelDeal = () => {
   showCancelModal.value = true
 }
@@ -232,6 +301,7 @@ const cancelDeal = () => {
 const confirmCancel = () => {
   showCancelModal.value = false
   // 실제로는 API 호출하여 거래 취소 처리
+  console.log('거래 취소 처리:', propertyInfo.value.dealId)
   console.log('거래 취소 처리:', propertyInfo.value.dealId)
   // 성공 후 이전 페이지로 이동
   router.go(-1).then(() => {
@@ -319,8 +389,10 @@ onMounted(() => {
                 </div>
                 <h1 class="text-xl lg:text-3xl font-bold mb-2 lg:mb-3" style="color: var(--text-2)">
                   {{ propertyInfo.buildingName }}
+                  {{ propertyInfo.buildingName }}
                 </h1>
                 <p class="text-xs lg:text-base mb-2 leading-relaxed" style="color: var(--text-1)">
+                  {{ propertyInfo.infoBuilding }}
                   {{ propertyInfo.infoBuilding }}
                 </p>
               </div>

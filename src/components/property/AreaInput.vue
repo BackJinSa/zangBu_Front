@@ -18,14 +18,7 @@ const props = defineProps({
     type: String,
     default: '㎡',
   },
-  suggestions: {
-    type: Object,
-    default: () => ({ area: [], isRealData: false }),
-  },
-  showSuggestions: {
-    type: Boolean,
-    default: false,
-  },
+
   required: {
     type: Boolean,
     default: false,
@@ -90,11 +83,6 @@ const handleKeypress = (event) => {
     }
   }
 }
-
-// 추천 면적 선택
-const selectSuggestion = (area) => {
-  emit('update:modelValue', area)
-}
 </script>
 
 <template>
@@ -112,35 +100,6 @@ const selectSuggestion = (area) => {
         class="w-full px-4 py-3 text-base leading-6 text-text-2 bg-bg-2 border border-bg-1 rounded-lg outline-none box-border placeholder:text-text-1 placeholder:text-base focus:border-brand-3 focus:ring-1 focus:ring-brand-3 transition-colors"
       />
       <span class="text-base font-medium text-text-2">{{ unit }}</span>
-    </div>
-
-    <!-- 면적 제안 버튼들 -->
-    <div v-if="showSuggestions && suggestions.area && suggestions.area.length > 0" class="mt-2">
-      <div class="flex items-center gap-2 mb-1">
-        <p class="text-xs text-text-1">
-          {{ suggestions.isRealData ? '실제 분양 면적:' : '일반적인 면적:' }}
-        </p>
-        <span
-          v-if="suggestions.isRealData"
-          class="px-1 py-0.5 text-xs bg-green-100 text-green-700 rounded"
-        >
-          실제 데이터
-        </span>
-        <span v-else class="px-1 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
-          추정 데이터
-        </span>
-      </div>
-      <div class="flex flex-wrap gap-1">
-        <button
-          v-for="area in suggestions.area"
-          :key="area"
-          @click="selectSuggestion(area)"
-          class="px-2 py-1 text-xs bg-gray-100 hover:bg-brand-3 hover:text-white rounded transition-colors"
-          :class="{ 'bg-brand-3 text-white': modelValue === area }"
-        >
-          {{ area }}{{ unit }}
-        </button>
-      </div>
     </div>
   </div>
 </template>

@@ -388,6 +388,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getDealNotice } from '@/api/deal/deal'
+import { useChatStore } from '@/stores/chat/chat'
+import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
@@ -400,6 +402,7 @@ const isAgreed = ref(false)
 const showAgreementModal = ref(false)
 const showBackModal = ref(false)
 const showBackButton = ref(false)
+const chatStore = useChatStore()
 
 const fetchDealNotice = async () => {
   try {
@@ -473,13 +476,62 @@ const startDeal = () => {
   router.push(`/deal/seller/${dealNotice.value.building_id}`)
 }
 
-const startChat = () => {
+const isStarting = ref(false)
+const startChat = async () => {
   if (!isAgreed.value) {
     showAgreementModal.value = true
     return
   }
-  // 채팅 페이지로 이동
-  router.push(`/chat/room?buildingId=${dealNotice.value.building_id}`)
+  if (isStarting.value) return (isStarting.value = true)
+  var chatRoomId = null
+  try {
+    const chatRoom = await chatStore.createChatRoom(route.params.buildingId)
+    if (!chatRoom || !chatRoom.chatRoomId) {
+      throw new Error('채팅방을 찾을 수 없습니다.')
+    }
+    chatRoomId = chatRoom.chatRoomId
+    const dealId = await createDeal(chatRoomId)
+    // 채팅방 생성 후 채팅방으로 이동
+    router.push({ name: 'chat-room', params: { roomId: chatRoom.chatRoomId } })
+  } catch (err) {
+    console.error('채팅방/거래 생성 실패:', err)
+    if (chatRoomId) {
+      try {
+        await chatStore.deleteChatRoom(chatRoomId)
+      } catch (cleanupErr) {
+        console.warn('채팅방 정리 실패(무시 가능):', cleanupErr)
+      }
+    }
+    alert('생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.')
+  } finally {
+    isStarting.value = false
+  }
+}
+
+//거래 생성
+const createDeal = async (chatRoomId) => {
+  //const token = auth.accessToken || auth.token || auth.jwt || auth.idToken || ''
+  const token =
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZXNzaWNhLmFuZGVyc29uQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1NDI4MTkzLCJleHAiOjE3NTU0ODgxOTN9.Iuo1GI_vOyMNZfL9af7OguTA1LTsPEDp4vbROpRoFB4'
+  try {
+    const res = await axios.post(
+      `http://localhost:8080/deal`,
+      { chatRoomId },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      }
+    )
+    return res.data //dealId 반환받음
+  } catch (err) {
+    console.error('API 응답 오류(createDeal):', {
+      status: err.response?.status,
+      data: err.response?.data,
+    })
+    throw err
+  }
 }
 
 const handleBackClick = () => {

@@ -126,6 +126,7 @@
 
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue'
+import { defineProps, defineEmits, computed } from 'vue'
 
 const props = defineProps({
   property: {
@@ -295,10 +296,14 @@ const getChatButtonTooltip = () => {
 const getStatusText = (dealStatus) => {
   const userRole = props.property.userRole
 
+  const userRole = props.property.userRole
+
   switch (dealStatus) {
     case 'BEFORE_OWNER':
       return userRole === 'seller' ? '구매자 수락 대기' : '판매자 수락 대기'
+      return userRole === 'seller' ? '구매자 수락 대기' : '판매자 수락 대기'
     case 'BEFORE_CONSUMER':
+      return userRole === 'seller' ? '구매자 수락 대기' : '구매자 수락 대기'
       return userRole === 'seller' ? '구매자 수락 대기' : '구매자 수락 대기'
     case 'MIDDLE_DEAL':
       return '거래 중'
@@ -310,7 +315,10 @@ const getStatusText = (dealStatus) => {
 }
 
 // 거래 상태에 따른 설명 반환 (사용자 역할 고려)
+// 거래 상태에 따른 설명 반환 (사용자 역할 고려)
 const getStatusDescription = (dealStatus) => {
+  const userRole = props.property.userRole
+
   const userRole = props.property.userRole
 
   switch (dealStatus) {
@@ -318,7 +326,13 @@ const getStatusDescription = (dealStatus) => {
       return userRole === 'seller'
         ? '구매자의 수락을 기다리는 중입니다'
         : '판매자의 수락을 기다리는 중입니다'
+      return userRole === 'seller'
+        ? '구매자의 수락을 기다리는 중입니다'
+        : '판매자의 수락을 기다리는 중입니다'
     case 'BEFORE_CONSUMER':
+      return userRole === 'seller'
+        ? '구매자의 수락을 기다리는 중입니다'
+        : '구매자의 수락을 기다리는 중입니다'
       return userRole === 'seller'
         ? '구매자의 수락을 기다리는 중입니다'
         : '구매자의 수락을 기다리는 중입니다'
@@ -348,13 +362,18 @@ const getProgressWidth = (dealStatus) => {
 }
 
 // 거래 상태에 따른 진행 텍스트 반환 (사용자 역할 고려)
+// 거래 상태에 따른 진행 텍스트 반환 (사용자 역할 고려)
 const getProgressText = (dealStatus) => {
+  const userRole = props.property.userRole
+
   const userRole = props.property.userRole
 
   switch (dealStatus) {
     case 'BEFORE_OWNER':
       return userRole === 'seller' ? '구매자 수락 대기 중...' : '판매자 수락 대기 중...'
+      return userRole === 'seller' ? '구매자 수락 대기 중...' : '판매자 수락 대기 중...'
     case 'BEFORE_CONSUMER':
+      return userRole === 'seller' ? '구매자 수락 대기 중...' : '구매자 수락 대기 중...'
       return userRole === 'seller' ? '구매자 수락 대기 중...' : '구매자 수락 대기 중...'
     case 'MIDDLE_DEAL':
       return '거래 진행 중...'

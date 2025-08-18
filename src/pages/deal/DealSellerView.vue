@@ -475,7 +475,9 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getDealNotice } from '@/api/deal/deal'
+import { DEAL_STATUS } from '@/utils/constants'
 import BackButton from '@/components/common/BackButton.vue'
+import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
@@ -569,12 +571,38 @@ const acceptDeal = () => {
   showAcceptModal.value = true
 }
 
-const confirmAccept = () => {
+const chatRoomId = computed(() => String(route.query.chatRoomId || ''))
+const confirmAccept = async () => {
   showAcceptModal.value = false
-  // 실제로는 API 호출하여 거래 수락 처리
-  console.log('거래 수락 처리:', propertyInfo.value.deal_id)
-  // 성공 후 채팅 페이지로 이동
-  router.push(`/chat/room?dealId=${propertyInfo.value.deal_id}`)
+
+  const roomId = chatRoomId.value
+  const dealId = propertyInfo.value.deal_id
+
+  if (!roomId) {
+    alert('chatRoomId가 없습니다.')
+    return
+  }
+  if (!dealId) {
+    alert('dealId가 없습니다.')
+    return
+  }
+
+  try {
+    const dto = { dealId, status: DEAL_STATUS.BEFORE_CONSUMER } // 판매자 수락
+
+    await axios.patch(`http://localhost:8080/deal/${roomId}/status`, dto, {
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    // (선택) 방 메타 갱신 후 이동하고 싶으면:
+    //await fetchRoomMeta()
+
+    // 성공 후 채팅방으로 이동
+    router.push({ name: 'chat-room', params: { roomId } })
+  } catch (e) {
+    console.error('거래 수락 실패:', e)
+    alert('거래 수락 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+  }
 }
 
 const cancelAccept = () => {
