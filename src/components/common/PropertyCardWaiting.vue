@@ -14,10 +14,11 @@
     <!-- Property image with waiting overlay -->
     <div class="image-container">
       <img
-        :src="property.imageUrl || '/default-property.jpg'"
+        :src="authenticatedImageUrl || property.imageUrl || '/default-property.jpg'"
         :alt="property.title || 'Property Image'"
         class="property-image"
         :class="{ 'completed-image': property.dealStatusEnum === 'CLOSE_DEAL' }"
+        @error="handleImageError"
       />
       <div v-if="property.dealStatusEnum !== 'CLOSE_DEAL'" class="waiting-overlay">
         <i :class="getStatusIcon(property.dealStatusEnum)" class="overlay-icon"></i>
@@ -125,7 +126,8 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import { defineProps, defineEmits, computed, ref, onMounted, watch } from 'vue'
+import { getObject, createSignedUrl } from '@/utils/ncp-object-storage-service.js'
 
 const props = defineProps({
   property: {
@@ -150,6 +152,76 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['edit', 'cancel', 'viewDetails', 'review', 'acceptance', 'chat'])
+
+// NCP 인증 관련 상태
+const authenticatedImageUrl = ref(null)
+
+// NCP URL에서 버킷과 오브젝트 이름 추출
+const extractNcpInfo = (url) => {
+  try {
+    const urlObj = new URL(url)
+    if (urlObj.hostname === 'kr.object.ncloudstorage.com') {
+      const pathParts = urlObj.pathname.split('/').filter((part) => part)
+      if (pathParts.length >= 2) {
+        return {
+          bucketName: pathParts[0],
+          objectName: pathParts.slice(1).join('/'),
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Failed to parse NCP URL:', error)
+  }
+  return null
+}
+
+// 이미지 URL 처리
+const processImageUrl = async () => {
+  if (!props.property.imageUrl) {
+    authenticatedImageUrl.value = null
+    return
+  }
+
+  // NCP Object Storage URL인지 확인
+  if (props.property.imageUrl.includes('ncloudstorage.com')) {
+    const ncpInfo = extractNcpInfo(props.property.imageUrl)
+    if (ncpInfo) {
+      try {
+        console.log('Creating signed URL for NCP image:', ncpInfo)
+        // 서명된 URL 생성 (CORS 우회)
+        const signedUrl = createSignedUrl(ncpInfo.bucketName, ncpInfo.objectName)
+        authenticatedImageUrl.value = signedUrl
+        console.log('Successfully created signed URL:', signedUrl)
+      } catch (error) {
+        console.error('Failed to create signed URL:', error)
+        authenticatedImageUrl.value = props.property.imageUrl
+      }
+    } else {
+      authenticatedImageUrl.value = props.property.imageUrl
+    }
+  } else {
+    authenticatedImageUrl.value = props.property.imageUrl
+  }
+}
+
+// 이미지 로드 에러 처리
+const handleImageError = () => {
+  console.warn('Image failed to load:', authenticatedImageUrl.value || props.property.imageUrl)
+  authenticatedImageUrl.value = null
+}
+
+// 컴포넌트 마운트 시 이미지 URL 처리
+onMounted(() => {
+  processImageUrl()
+})
+
+// 이미지 URL 변경 시 재처리
+watch(
+  () => props.property.imageUrl,
+  () => {
+    processImageUrl()
+  }
+)
 
 // ===== 버튼 활성화/비활성화 상태 =====
 
