@@ -7,8 +7,8 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: () => ({
-      contactName: '',
-      contactPhone: '',
+      contactName: '백현빈', // 기본값 설정
+      contactPhone: '010-7511-7975', // 기본값 설정
     }),
   },
 })
