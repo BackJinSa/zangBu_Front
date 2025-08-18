@@ -59,3 +59,16 @@ export const getFilteredPropertyList = (params) => {
 export const deleteProperty = (buildingId) => {
   return api.delete(`/building/remove/${buildingId}`)
 }
+
+// 매물 수정
+export const updateProperty = (data) => {
+  const config =
+    data instanceof FormData
+      ? {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      : {}
+  return api.put('/building/update', data, config)
+}
