@@ -45,7 +45,7 @@ export const useChatStore = defineStore('chat', () => {
   // 채팅방 목록 조회 로직
   async function getChatRooms(type = 'ALL') {
     try {
-      const res = await axios.get('/chat/list', { params: { type } })
+      const res = await axios.get('/api/chat/list', { params: { type } })
       chatRooms.value = res.data.result
     } catch (err) {
       console.error('채팅방 목록 조회 실패:', err)
@@ -54,7 +54,7 @@ export const useChatStore = defineStore('chat', () => {
 
   //서버는 최신부터(DESC) 반환 → 여기서 reverse()로 ASC로 맞춤
   async function fetchMessages(lastMessageId = null, limit = 5) {
-    const { data } = await axios.get(`http://localhost:8080/chat/room/${roomId.value}`, {
+    const { data } = await axios.get(`/api/chat/room/${roomId.value}`, {
       params: { lastMessageId, limit },
     })
     const list = Array.isArray(data) ? data : []
@@ -110,7 +110,7 @@ export const useChatStore = defineStore('chat', () => {
   // 채팅방 생성 로직
   async function createChatRoom(buildingId) {
     try {
-      const res = await axios.post(`http://localhost:8080/chat/room/${buildingId}`)
+      const res = await axios.post(`/api/chat/room/${buildingId}`)
       console.log('createChatRoom result:', res.data)
       return res.data // 생성된 채팅방 ChatRoom 반환
     } catch (err) {
@@ -122,7 +122,7 @@ export const useChatStore = defineStore('chat', () => {
   //채팅방 삭제 로직
   async function deleteChatRoom(roomId) {
     try {
-      await axios.delete(`http://localhost:8080/chat/room/${roomId}`)
+      await axios.delete(`/api/chat/room/${roomId}`)
       // 성공적으로 삭제되면 목록에서 제거
       chatRooms.value = chatRooms.value.filter((r) => r.chatRoomId !== roomId)
       if (currentChat.value?.chatRoomId === roomId) {
@@ -155,7 +155,7 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     try {
-      await axios.patch(`http://localhost:8080/chat/list/exit/${id}`)
+      await axios.patch(`/api/chat/list/exit/${id}`)
 
       unsubscribeRoom(id) // STOMP 구독 해제
 
@@ -187,8 +187,7 @@ export const useChatStore = defineStore('chat', () => {
   // 읽음 처리 로직
   async function markAsRead() {
     try {
-      //await axios.put(`/chat/room/${roomId.value}/read`)
-      await axios.put(`http://localhost:8080/chat/room/${roomId.value}/read`)
+      await axios.put(`/api/chat/room/${roomId.value}/read`)
       const room = chatRooms.value.find((r) => r.chatRoomId === roomId.value)
       if (room) room.unreadCount = 0
     } catch (err) {
@@ -199,7 +198,7 @@ export const useChatStore = defineStore('chat', () => {
   //채팅방 존재하는지 확인
   async function existChatRoom(buildingId, consumerId) {
     try {
-      const res = await axios.get(`http://localhost:8080/chat/room/${buildingId}/${consumerId}`)
+      const res = await axios.get(`/api/chat/room/${buildingId}/${consumerId}`)
       return { exists: res.data.exists, chatRoomId: res.data.chatRoomId }
     } catch (err) {
       console.error('채팅방 존재 여부 확인 실패:', err)

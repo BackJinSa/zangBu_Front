@@ -39,8 +39,7 @@ export function useStomp() {
     const authStore = useAuthStore()
     //const token = authStore?.accessToken
     const token =
-      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZXNzaWNhLmFuZGVyc29uQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1NDI4MTkzLCJleHAiOjE3NTU0ODgxOTN9.Iuo1GI_vOyMNZfL9af7OguTA1LTsPEDp4vbROpRoFB4'
-
+      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huLnNtaXRoQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1MTM0ODA3LCJleHAiOjE3NTUxOTQ4MDd9.m58axbalMfl_LVaQ4VRvwyMzKJVWOgRvWl0QQQVkpRc'
     if (!token) {
       console.warn('[STOMP] JWT 토큰이 없습니다.')
     }
@@ -101,6 +100,7 @@ export function useStomp() {
       console.warn('[STOMP] 연결 전, 구독 대기:', roomId)
       return
     }
+
 
     // 중복 방지: 기존 구독 있으면 해제 후 재구독
     const prev = subscriptions.get(roomId)

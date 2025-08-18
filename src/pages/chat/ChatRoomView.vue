@@ -226,7 +226,7 @@ function mapDealStatus(raw) {
 
 async function fetchRoomMeta() {
   try {
-    const { data } = await axios.get(`http://localhost:8080/chat/room/info/${roomId.value}`)
+    const { data } = await axios.get(`/api/chat/room/info/${roomId.value}`)
     // 응답 형태가 {room: {...}} 또는 바로 {...} 둘 다 대응
     const r = data?.room ?? data ?? {}
 

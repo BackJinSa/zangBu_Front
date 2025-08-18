@@ -25,11 +25,13 @@ import { useMapStore } from '@/stores/map/map.js'
 import { useRouter, useRoute } from 'vue-router'
 import {
   getPropertyDetailById,
+  getPropertyDetailWithPublicData,
   bookmarkProperty,
   cancelBookmarkProperty,
   setPropertyNotification,
   cancelPropertyNotification,
 } from '@/api/property/property.js'
+import { getAptTrades } from '@/api/publicdata/publicdata.js'
 import { useMembership } from '@/composables/useMembership'
 import { useChatStore } from '@/stores/chat/chat'
 
@@ -233,6 +235,19 @@ const generatePropertyInfo = (property) => {
     )}억`
   }
   return '가격 정보 없음'
+}
+
+// 가격 포맷팅 함수 (실거래가용)
+const formatPrice = (price) => {
+  if (!price) return '정보 없음'
+
+  // "50000" -> "5억" 또는 "5000" -> "5000만원"
+  const numPrice = parseInt(price)
+  if (numPrice >= 10000) {
+    return `${Math.floor(numPrice / 10000)}억 ${numPrice % 10000}만원`
+  } else {
+    return `${numPrice}만원`
+  }
 }
 
 // 샘플 매물 데이터 (필터링 테스트용)
@@ -525,6 +540,7 @@ const fetchPropertyDetail = async (buildingId) => {
     console.log('매물 상세 정보 가져오기 시작:', buildingId)
     const response = await getPropertyDetailById(buildingId)
     console.log('API 응답:', response)
+
     if (response && response.data) {
       // API 응답에 isBookmarked와 isNotification이 없을 경우 기본값 설정
       const propertyData = {
@@ -534,12 +550,130 @@ const fetchPropertyDetail = async (buildingId) => {
       }
       selectedProperty.value = propertyData
       showDetail.value = true
+
+      // 실거래가 정보도 함께 불러오기
+      await fetchRealEstateData(propertyData)
     } else {
       console.warn('매물 데이터가 없습니다.')
+      // API에서 데이터가 없을 때 사용자에게 알림
+      selectedProperty.value = {
+        buildingName: `매물 ID: ${buildingId}`,
+        address: '주소 정보 없음',
+        saleType: '정보 없음',
+        propertyType: '정보 없음',
+        price: 0,
+        deposit: 0,
+        isBookmarked: false,
+        isNotification: false,
+        error: 'API에서 매물 정보를 찾을 수 없습니다.',
+      }
+      showDetail.value = true
     }
   } catch (error) {
     console.error('매물 상세 정보 가져오기 실패:', error)
-    // alert 제거하여 페이지 로딩을 방해하지 않도록 함
+
+    // API 호출 실패 시 에러 상태 표시
+    selectedProperty.value = {
+      buildingName: `매물 ID: ${buildingId}`,
+      address: '주소 정보 없음',
+      saleType: '정보 없음',
+      propertyType: '정보 없음',
+      price: 0,
+      deposit: 0,
+      isBookmarked: false,
+      isNotification: false,
+      error: `API 호출 실패: ${error.message}`,
+    }
+    showDetail.value = true
+  }
+}
+
+// 실거래가 정보 가져오기
+const fetchRealEstateData = async (propertyData) => {
+  try {
+    if (!propertyData.address) {
+      console.log('주소 정보가 없어 실거래가를 조회할 수 없습니다.')
+      return
+    }
+
+    // 주소에서 시군구 정보 추출 (예: "서울특별시 강남구" → "서울특별시 강남구")
+    const addressParts = propertyData.address.split(' ')
+    if (addressParts.length >= 2) {
+      const locataddNm = `${addressParts[0]} ${addressParts[1]}`
+      const currentDate = new Date()
+      const dealYmd = `${currentDate.getFullYear()}${String(currentDate.getMonth() + 1).padStart(
+        2,
+        '0'
+      )}`
+
+      console.log('실거래가 조회:', { locataddNm, dealYmd })
+
+      const realEstateResponse = await getAptTrades(locataddNm, dealYmd, 1, 10)
+      console.log('실거래가 응답:', realEstateResponse)
+
+      // 실거래가 정보를 selectedProperty에 추가
+      if (realEstateResponse && realEstateResponse.data) {
+        selectedProperty.value.realEstateData = realEstateResponse.data
+      }
+    }
+  } catch (error) {
+    console.error('실거래가 정보 가져오기 실패:', error)
+    // 실거래가 조회 실패는 매물 상세 정보 표시에 영향을 주지 않도록 함
+  }
+}
+
+// 매물 상세 정보 + 공공데이터 통합 조회
+const fetchPropertyDetailWithPublicData = async (buildingId) => {
+  try {
+    console.log('매물 상세 정보 + 공공데이터 통합 조회 시작:', buildingId)
+    const response = await getPropertyDetailWithPublicData(buildingId)
+    console.log('공공데이터 통합 API 응답:', response)
+
+    if (response && response.data) {
+      const data = response.data
+
+      // 기본 매물 정보 설정
+      const propertyData = {
+        ...data.buildingDetail,
+        isBookmarked: data.buildingDetail.isBookmarked ?? false,
+        isNotification: data.buildingDetail.isNotification ?? false,
+        publicDataAvailable: data.publicDataAvailable,
+        aptComplexInfo: data.aptComplexInfo,
+        errorMessage: data.errorMessage,
+      }
+
+      selectedProperty.value = propertyData
+      showDetail.value = true
+
+      // 공공데이터가 사용 가능한 경우 추가 정보 표시
+      if (data.publicDataAvailable && data.aptComplexInfo) {
+        console.log('공공데이터 정보:', data.aptComplexInfo)
+      }
+
+      // 실거래가 정보도 함께 불러오기
+      await fetchRealEstateData(propertyData)
+    } else {
+      console.warn('공공데이터 통합 API에서 데이터가 없습니다.')
+      // API에서 데이터가 없을 때 사용자에게 알림
+      selectedProperty.value = {
+        buildingName: `매물 ID: ${buildingId}`,
+        address: '주소 정보 없음',
+        saleType: '정보 없음',
+        propertyType: '정보 없음',
+        price: 0,
+        deposit: 0,
+        isBookmarked: false,
+        isNotification: false,
+        error: '공공데이터 통합 API에서 매물 정보를 찾을 수 없습니다.',
+      }
+      showDetail.value = true
+    }
+  } catch (error) {
+    console.error('공공데이터 통합 조회 실패:', error)
+
+    // API 호출 실패 시 기본 API로 대체
+    console.log('공공데이터 통합 API 실패, 기본 API로 대체')
+    await fetchPropertyDetail(buildingId)
   }
 }
 
@@ -759,13 +893,8 @@ onMounted(() => {
   // buildingId가 있으면 매물 상세 정보 가져오기
   if (props.buildingId) {
     try {
-      // buildingId로 매물 찾기
-      const property = sampleProperties.find((p) => p.buildingId === parseInt(props.buildingId))
-      if (property) {
-        showPropertyDetail(property)
-      } else {
-        console.warn('buildingId에 해당하는 매물을 찾을 수 없습니다:', props.buildingId)
-      }
+      // 새로운 공공데이터 통합 조회 API 사용
+      fetchPropertyDetailWithPublicData(parseInt(props.buildingId))
     } catch (error) {
       console.error('매물 상세 정보 가져오기 실패:', error)
     }
@@ -975,6 +1104,12 @@ onMounted(() => {
               <span class="section-icon">🏠</span>
               매물 정보
             </h3>
+
+            <!-- 에러 상태 표시 -->
+            <div v-if="selectedProperty.error" class="error-message">
+              <p class="error-text">{{ selectedProperty.error }}</p>
+              <p class="error-hint">백엔드 API 연결을 확인해주세요.</p>
+            </div>
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">등록자 유형</span>
@@ -1043,6 +1178,96 @@ onMounted(() => {
                 <span class="info-value">{{
                   selectedProperty.resFacility || '엘리베이터, 주차장'
                 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 공공데이터 정보 섹션 -->
+          <div
+            class="detail-section"
+            v-if="selectedProperty.publicDataAvailable && selectedProperty.aptComplexInfo"
+          >
+            <h3 class="section-title">
+              <span class="section-icon">📊</span>
+              공공데이터 정보
+            </h3>
+
+            <div class="info-grid">
+              <div class="info-item" v-if="selectedProperty.aptComplexInfo.length > 0">
+                <span class="info-label">아파트 단지 정보</span>
+                <span class="info-value">
+                  {{ selectedProperty.aptComplexInfo.length }}개 단지 정보 조회됨
+                </span>
+              </div>
+              <div class="info-item" v-if="selectedProperty.errorMessage">
+                <span class="info-label">공공데이터 오류</span>
+                <span class="info-value error-text">{{ selectedProperty.errorMessage }}</span>
+              </div>
+            </div>
+
+            <!-- 아파트 단지 상세 정보 -->
+            <div
+              v-if="selectedProperty.aptComplexInfo && selectedProperty.aptComplexInfo.length > 0"
+              class="apt-complex-list"
+            >
+              <h4 class="sub-section-title">주변 아파트 단지</h4>
+              <div
+                class="apt-complex-item"
+                v-for="(complex, index) in selectedProperty.aptComplexInfo.slice(0, 3)"
+                :key="index"
+              >
+                <div class="complex-name">
+                  {{ complex.kaptName || complex.complexName || `단지 ${index + 1}` }}
+                </div>
+                <div class="complex-details">
+                  <span v-if="complex.kaptCode">코드: {{ complex.kaptCode }}</span>
+                  <span v-if="complex.kaptAddr">주소: {{ complex.kaptAddr }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 실거래가 정보 섹션 -->
+          <div class="detail-section" v-if="selectedProperty.realEstateData">
+            <h3 class="section-title">
+              <span class="section-icon">🏠</span>
+              실거래가 정보
+            </h3>
+            <div class="real-estate-data">
+              <div
+                v-for="(item, index) in selectedProperty.realEstateData.reviews ||
+                selectedProperty.realEstateData"
+                :key="index"
+                class="real-estate-item"
+              >
+                <div class="item-header">
+                  <h4 class="item-title">{{ item.aptNm || item.buildingName || '이름 없음' }}</h4>
+                  <span class="deal-date" v-if="item.dealYear && item.dealMonth && item.dealDay">
+                    {{ item.dealYear }}.{{ item.dealMonth }}.{{ item.dealDay }}
+                  </span>
+                </div>
+                <div class="item-details">
+                  <div class="detail-row">
+                    <span class="detail-label">거래가:</span>
+                    <span class="detail-value">{{ formatPrice(item.dealAmount) }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">면적:</span>
+                    <span class="detail-value"
+                      >{{ item.excluUseAr || item.size || '정보 없음' }}m²</span
+                    >
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">층수:</span>
+                    <span class="detail-value">{{ item.floor || '정보 없음' }}층</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">주소:</span>
+                    <span class="detail-value">{{
+                      item.jibun || item.address || '정보 없음'
+                    }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -2090,6 +2315,38 @@ onMounted(() => {
   font-size: 14px;
 }
 
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 380px;
+  }
+
+  .detail-sidebar-left {
+    width: 380px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 350px;
+  }
+
+  .detail-sidebar-left {
+    width: 350px;
+  }
+
+  .filter-options {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .filter-button {
+    min-width: 60px;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+}
+
 @media (max-width: 768px) {
   .main-content {
     flex-direction: column;
@@ -2098,14 +2355,23 @@ onMounted(() => {
   .sidebar {
     width: 100%;
     height: auto;
-    max-height: 300px;
+    max-height: 400px;
+    order: 2;
   }
 
   .detail-sidebar-left {
     width: 100%;
-    height: calc(100vh - 97px); /* 헤더 높이만큼 뺀 높이 */
+    height: auto;
+    max-height: 60vh;
+    order: 2;
     position: relative;
     z-index: 1000;
+  }
+
+  .map-area {
+    order: 1;
+    height: 50vh;
+    min-height: 300px;
   }
 
   .filter-options {
@@ -2116,20 +2382,132 @@ onMounted(() => {
   .filter-button {
     flex: none;
     min-width: 80px;
+    margin-bottom: 4px;
   }
 
-  .map-area {
-    height: calc(100vh - 400px); /* 헤더 + 사이드바 높이만큼 뺀 높이 */
+  .price-inputs {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .price-input-container {
+    margin-bottom: 4px;
+  }
+
+  .map-controls {
+    top: 10px;
+    right: 10px;
+  }
+
+  .control-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .floating-action {
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .floating-btn {
+    width: 70px;
+    height: 70px;
+  }
+
+  .detail-header {
+    padding: 16px;
+  }
+
+  .detail-title {
+    font-size: 16px;
+  }
+
+  .detail-section {
+    padding: 16px;
+  }
+
+  .action-buttons-section {
+    padding: 16px;
+  }
+
+  .download-buttons-row {
+    flex-direction: column;
+    gap: 6px;
   }
 }
 
-@media (max-width: 1200px) {
-  .sidebar {
-    width: 380px;
+@media (max-width: 480px) {
+  .search-section {
+    padding: 12px;
+    margin-bottom: 16px;
   }
 
-  .detail-sidebar-left {
-    width: 380px;
+  .filter-section {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .filter-title {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .filter-button {
+    min-width: 70px;
+    font-size: 11px;
+    padding: 6px 6px;
+  }
+
+  .price-inputs {
+    justify-content: center;
+  }
+
+  .price-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .price-input {
+    width: 35px;
+    font-size: 12px;
+  }
+
+  .detail-header {
+    padding: 12px;
+  }
+
+  .detail-title {
+    font-size: 14px;
+  }
+
+  .detail-section {
+    padding: 12px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .info-item {
+    padding: 6px 0;
+  }
+
+  .info-label,
+  .info-value {
+    font-size: 13px;
+  }
+
+  .action-buttons-section {
+    padding: 12px;
+  }
+
+  .action-btn-download,
+  .action-btn-chat {
+    padding: 10px 12px;
+    font-size: 13px;
   }
 }
 
@@ -2157,5 +2535,154 @@ onMounted(() => {
     width: 88px;
     height: 88px;
   }
+}
+
+/* 태블릿 세로 모드 */
+@media (max-width: 768px) and (orientation: portrait) {
+  .sidebar {
+    max-height: 350px;
+  }
+
+  .detail-sidebar-left {
+    max-height: 50vh;
+  }
+
+  .map-area {
+    height: 45vh;
+  }
+}
+
+/* 태블릿 가로 모드 */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .sidebar {
+    width: 320px;
+  }
+
+  .detail-sidebar-left {
+    width: 320px;
+  }
+
+  .map-area {
+    height: calc(100vh - 97px);
+  }
+}
+
+/* 모바일 가로 모드 */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar {
+    max-height: 250px;
+  }
+
+  .detail-sidebar-left {
+    max-height: 40vh;
+  }
+
+  .map-area {
+    height: 40vh;
+  }
+}
+
+/* 실거래가 정보 스타일 */
+.real-estate-data {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.real-estate-item {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 15px;
+  background: #fafafa;
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.item-title {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.deal-date {
+  color: #666;
+  font-size: 14px;
+}
+
+.item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.detail-label {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.detail-value {
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 에러 메시지 스타일 */
+.error-message {
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.error-text {
+  color: #c33;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.error-hint {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+.apt-complex-list {
+  margin-top: 16px;
+}
+
+.apt-complex-item {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.complex-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.complex-details {
+  font-size: 12px;
+  color: #666;
+}
+
+.sub-section-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
 }
 </style>
