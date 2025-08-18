@@ -197,7 +197,6 @@ console.log('멤버email: ' + email)
 //const myUserId = await chatStore.fetchMemberIdByEmail(email)
 const myUserId = ref('')
 //const myUserId = '8h9i0j1k-1111-2222-3333-444455556673'
-console.log('멤버 ID:', myUserId)
 
 //나가기 모달
 const showModal = ref(false)
@@ -390,6 +389,7 @@ onMounted(async () => {
   connect(async () => {
     const userId = await chatStore.fetchMemberIdByEmail(email)
     myUserId.value = userId
+    console.log('사용자 ID:', myUserId.value)
     subscribeCurrentRoom()
     await chatStore.markAsRead()
   })
