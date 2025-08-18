@@ -72,36 +72,53 @@
 
       <!-- Action buttons for waiting state -->
       <div class="action-buttons">
-        <button
-          v-if="property.dealStatusEnum !== 'CLOSE_DEAL'"
-          @click="handleEdit"
-          :disabled="isWaitingForAcceptance"
-          :class="['primary-button', { 'disabled-button': isWaitingForAcceptance }]"
-          :title="getButtonTooltip()"
-        >
-          {{ getButtonText() }}
-        </button>
-        <button
-          v-if="property.dealStatusEnum !== 'CLOSE_DEAL'"
-          @click="handleCancel"
-          class="secondary-button"
-        >
-          취소하기
-        </button>
-        <button
-          v-if="property.dealStatusEnum === 'CLOSE_DEAL'"
-          @click="handleViewDetails"
-          class="primary-button completed-button"
-        >
-          거래 내역 보기
-        </button>
-        <button
-          v-if="property.dealStatusEnum === 'CLOSE_DEAL'"
-          @click="handleReview"
-          class="secondary-button completed-button"
-        >
-          리뷰 작성
-        </button>
+        <!-- 거래 진행 중일 때의 버튼들 -->
+        <template v-if="property.dealStatusEnum !== 'CLOSE_DEAL'">
+          <!-- 수락 페이지 버튼 - 거래 진행 중일 때만 표시 -->
+          <button
+            @click="handleAcceptance"
+            :class="['primary-button', { 'disabled-button': isAcceptanceButtonDisabled }]"
+            :disabled="isAcceptanceButtonDisabled"
+            :title="getAcceptanceButtonTooltip()"
+          >
+            {{ getAcceptanceButtonText() }}
+          </button>
+
+          <!-- 채팅 버튼 - 거래 진행 중일 때만 표시 -->
+          <button
+            @click="handleChat"
+            :class="['chat-button', { 'disabled-button': isChatButtonDisabled }]"
+            :disabled="isChatButtonDisabled"
+            :title="getChatButtonTooltip()"
+          >
+            {{ getChatButtonText() }}
+          </button>
+
+          <!-- 취소 버튼 - 거래 진행 중일 때만 표시 -->
+          <button @click="handleCancel" class="secondary-button" title="거래를 취소합니다">
+            취소하기
+          </button>
+        </template>
+
+        <!-- 거래 완료 상태일 때의 버튼들 -->
+        <template v-if="property.dealStatusEnum === 'CLOSE_DEAL'">
+          <!-- 거래 내역 보기 버튼 -->
+          <button
+            @click="handleViewDetails"
+            class="primary-button completed-button"
+            title="거래 내역을 확인합니다"
+          >
+            거래 내역 보기
+          </button>
+          <!-- 리뷰 작성 버튼 -->
+          <button
+            @click="handleReview"
+            class="secondary-button completed-button"
+            title="거래에 대한 리뷰를 작성합니다"
+          >
+            리뷰 작성
+          </button>
+        </template>
       </div>
     </div>
   </div>
@@ -127,53 +144,151 @@ const props = defineProps({
       dealId: null,
       userRole: '',
       dealStatusEnum: '',
+      chatRoomId: null, // 채팅방 ID 추가
     }),
   },
 })
 
-const emit = defineEmits(['edit', 'cancel', 'viewDetails', 'review'])
+const emit = defineEmits(['edit', 'cancel', 'viewDetails', 'review', 'acceptance', 'chat'])
 
-// 수락 대기 상태인지 확인
-const isWaitingForAcceptance = computed(() => {
+// ===== 버튼 활성화/비활성화 상태 =====
+
+// 수락 페이지 버튼 비활성화 여부
+const isAcceptanceButtonDisabled = computed(() => {
   const { dealStatusEnum, userRole } = props.property
+
+  // 거래 전 상태일 때 비활성화
+  if (dealStatusEnum === 'BEFORE_TRANSACTION') {
+    return true
+  }
 
   // 판매자: BEFORE_CONSUMER 상태일 때 비활성화 (구매자 수락 대기)
   if (userRole === 'seller' && dealStatusEnum === 'BEFORE_CONSUMER') {
     return true
   }
 
+  // MIDDLE_DEAL 상태에서는 거래 완료 버튼 활성화 (판매자, 구매자 모두)
+  // if (userRole === 'seller' && dealStatusEnum === 'MIDDLE_DEAL') {
+  //   return true
+  // }
+
   // 구매자: BEFORE_OWNER 상태일 때 비활성화 (판매자 수락 대기)
   if ((userRole === 'consumer' || userRole === 'buyer') && dealStatusEnum === 'BEFORE_OWNER') {
+    return true
+  }
+
+  // 거래 완료 상태일 때 비활성화
+  if (dealStatusEnum === 'CLOSE_DEAL') {
     return true
   }
 
   return false
 })
 
-// 버튼 텍스트 반환
-const getButtonText = () => {
-  if (isWaitingForAcceptance.value) {
-    return '수락 대기중'
+// 채팅 버튼 비활성화 여부
+const isChatButtonDisabled = computed(() => {
+  const { dealStatusEnum, userRole } = props.property
+
+  // 거래 완료 상태일 때 비활성화
+  if (dealStatusEnum === 'CLOSE_DEAL') {
+    return true
   }
-  return '거래 이어가기'
+
+  return false
+})
+
+// ===== 버튼 텍스트 및 툴팁 =====
+
+// 수락 페이지 버튼 텍스트
+const getAcceptanceButtonText = () => {
+  const { dealStatusEnum, userRole } = props.property
+
+  if (userRole === 'seller' && dealStatusEnum === 'BEFORE_OWNER') {
+    return '거래 수락하기'
+  }
+
+  if ((userRole === 'consumer' || userRole === 'buyer') && dealStatusEnum === 'BEFORE_CONSUMER') {
+    return '거래 수락하기'
+  }
+
+  if (dealStatusEnum === 'MIDDLE_DEAL') {
+    return '거래 완료'
+  }
+
+  // 비활성화 상태일 때는 대기 중임을 표시
+  if (isAcceptanceButtonDisabled.value) {
+    if (dealStatusEnum === 'BEFORE_TRANSACTION') {
+      return '거래 전'
+    }
+    if (userRole === 'seller' && dealStatusEnum === 'BEFORE_CONSUMER') {
+      return '구매자 수락 대기'
+    }
+    if (userRole === 'seller' && dealStatusEnum === 'MIDDLE_DEAL') {
+      return '구매자 수락 대기'
+    }
+    if ((userRole === 'consumer' || userRole === 'buyer') && dealStatusEnum === 'BEFORE_OWNER') {
+      return '판매자 수락 대기'
+    }
+  }
+
+  return '거래 수락하기'
 }
 
-// 버튼 툴팁 반환
-const getButtonTooltip = () => {
-  if (isWaitingForAcceptance.value) {
-    const { userRole, dealStatusEnum } = props.property
+// 수락 페이지 버튼 툴팁
+const getAcceptanceButtonTooltip = () => {
+  const { dealStatusEnum, userRole } = props.property
 
-    // 판매자: BEFORE_CONSUMER 상태일 때
+  if (userRole === 'seller' && dealStatusEnum === 'BEFORE_OWNER') {
+    return '구매자의 거래 요청을 수락합니다'
+  }
+
+  if ((userRole === 'consumer' || userRole === 'buyer') && dealStatusEnum === 'BEFORE_CONSUMER') {
+    return '판매자의 거래 요청을 수락합니다'
+  }
+
+  if (dealStatusEnum === 'MIDDLE_DEAL') {
+    return '거래를 완료합니다'
+  }
+
+  // 비활성화 상태일 때는 대기 중임을 표시
+  if (isAcceptanceButtonDisabled.value) {
+    if (dealStatusEnum === 'BEFORE_TRANSACTION') {
+      return '거래가 시작되지 않았습니다'
+    }
     if (userRole === 'seller' && dealStatusEnum === 'BEFORE_CONSUMER') {
       return '구매자의 수락을 기다리는 중입니다'
     }
-
-    // 구매자: BEFORE_OWNER 상태일 때
+    if (userRole === 'seller' && dealStatusEnum === 'MIDDLE_DEAL') {
+      return '구매자의 수락을 기다리는 중입니다'
+    }
     if ((userRole === 'consumer' || userRole === 'buyer') && dealStatusEnum === 'BEFORE_OWNER') {
       return '판매자의 수락을 기다리는 중입니다'
     }
   }
-  return '거래를 이어가려면 클릭하세요'
+
+  return '거래를 수락하려면 클릭하세요'
+}
+
+// 채팅 버튼 텍스트
+const getChatButtonText = () => {
+  const { dealStatusEnum, userRole } = props.property
+
+  if (dealStatusEnum === 'CLOSE_DEAL') {
+    return '채팅 불가'
+  }
+
+  return '채팅하기'
+}
+
+// 채팅 버튼 툴팁
+const getChatButtonTooltip = () => {
+  const { dealStatusEnum, userRole } = props.property
+
+  if (dealStatusEnum === 'CLOSE_DEAL') {
+    return '거래가 완료되어 채팅이 불가능합니다'
+  }
+
+  return '채팅방으로 이동합니다'
 }
 
 // 거래 상태에 따른 텍스트 반환 (사용자 역할 고려)
@@ -298,17 +413,40 @@ const getStatusIcon = (dealStatus) => {
   }
 }
 
-// Handle edit
-const handleEdit = () => {
-  // 수락 대기 상태일 때는 클릭 방지
-  if (isWaitingForAcceptance.value) {
-    console.log('수락 대기 중 - 클릭 불가')
-    return
-  }
+// Handle acceptance (거래 수락 페이지로 이동)
+const handleAcceptance = () => {
+  console.log('=== PropertyCardWaiting handleAcceptance ===')
+  console.log('거래 수락 페이지로 이동:', props.property)
 
-  console.log('=== PropertyCardWaiting handleEdit ===')
-  console.log('Emitting edit event with property:', props.property)
-  emit('edit', props.property)
+  const { dealId, userRole, dealStatusEnum } = props.property
+
+  // 사용자 역할과 거래 상태에 따라 적절한 거래 수락 페이지로 이동
+  if (userRole === 'seller' && dealStatusEnum === 'BEFORE_OWNER') {
+    // 판매자: 판매자 거래 수락 페이지
+    console.log('판매자 거래 수락 페이지로 이동')
+    emit('acceptance', props.property)
+  } else if (
+    (userRole === 'consumer' || userRole === 'buyer') &&
+    dealStatusEnum === 'MIDDLE_DEAL'
+  ) {
+    // 구매자: 구매자 거래 수락 페이지
+    console.log('구매자 거래 수락 페이지로 이동')
+    emit('acceptance', props.property)
+  } else {
+    // 기본값: acceptance 이벤트 발생
+    console.log('기본값: acceptance 이벤트 발생')
+    emit('acceptance', props.property)
+  }
+}
+
+// Handle chat (채팅방으로 이동)
+const handleChat = () => {
+  console.log('=== PropertyCardWaiting handleChat ===')
+  console.log('채팅방 이동 - chatRoomId:', props.property.chatRoomId)
+
+  // chat 이벤트를 발생시켜 부모 컴포넌트에서 처리하도록 함
+  console.log('Emitting chat event with property:', props.property)
+  emit('chat', props.property)
 }
 
 // Handle cancel
@@ -604,6 +742,49 @@ const handleReview = () => {
   background: var(--bg-1);
   color: var(--text-2);
   cursor: not-allowed;
+}
+
+/* 채팅 버튼 스타일 */
+.chat-button {
+  flex: 1;
+  height: 40px;
+  border-radius: 8px;
+  border: 2px solid #2196f3;
+  background: #2196f3;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s ease;
+}
+
+.chat-button:hover:not(:disabled) {
+  background: #1976d2;
+  border-color: #1976d2;
+  transform: translateY(-1px);
+  box-shadow: 0px 4px 8px 0px rgba(33, 150, 243, 0.3);
+}
+
+.chat-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.chat-button.disabled-button {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.chat-button.disabled-button:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .secondary-button {

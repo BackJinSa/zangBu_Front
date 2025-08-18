@@ -32,6 +32,7 @@ import DealBuyerView from '@/pages/deal/DealBuyerView.vue'
 import DealWaitingListView from '@/pages/deal/DealWaitingListView.vue'
 import DealNoticeView from '@/pages/deal/DealNoticeView.vue'
 import DealConsumerDocument from '@/pages/deal/DealConsumerDocument.vue'
+import DealCompletedView from '@/pages/deal/DealCompletedView.vue'
 
 // 문서 관련 페이지
 import DocumentView from '@/pages/document/DocumentView.vue'
@@ -220,6 +221,13 @@ const router = createRouter({
       path: '/deal/consumer/documents/:dealId/:type',
       name: 'deal-consumer-document',
       component: DealConsumerDocument,
+      props: true,
+    },
+    // 거래 완료 내역 보기
+    {
+      path: '/deal/completed/:dealId',
+      name: 'deal-completed',
+      component: DealCompletedView,
       props: true,
     },
 

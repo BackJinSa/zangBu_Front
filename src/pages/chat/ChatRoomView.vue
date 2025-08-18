@@ -132,7 +132,6 @@ import { useAuthStore } from '@/stores/auth/auth'
 import Button from '@/components/common/Button.vue'
 import PopupModal from '@/components/common/PopupModal.vue'
 
-
 const route = useRoute()
 const router = useRouter()
 const chatStore = useChatStore()
