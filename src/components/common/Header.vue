@@ -100,10 +100,10 @@
 
             <!-- 빨간 원 숫자 뱃지 -->
             <span
-              v-if="totalAllCount > 0"
+              v-if="unreadAllCount > 0"
               class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 text-[11px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center shadow-md ring-2 ring-white"
             >
-              {{ totalAllCountDisplay }}
+              {{ unreadAllCountDisplay }}
             </span>
           </button>
 
@@ -220,18 +220,11 @@
 
             <!-- 빨간 원 숫자 뱃지 -->
             <span
-              v-if="totalAllCount > 0"
+              v-if="unreadAllCount > 0"
               class="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-[3px] text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center shadow-md ring-2 ring-white"
             >
-              {{ totalAllCountDisplay }}
+              {{ unreadAllCountDisplay }}
             </span>
-          </button>
-          <button
-            v-if="isLoggedIn"
-            @click="handleLogout"
-            class="text-brand-1 text-xs font-semibold font-inter border border-brand-2 rounded px-2 py-1 hover:bg-brand-2 hover:text-white transition-colors whitespace-nowrap flex-shrink-0 h-full items-center"
-          >
-            로그아웃
           </button>
 
           <!-- Hamburger Menu Button -->
@@ -301,10 +294,22 @@ import { listenForegroundMessage, requestFcmToken } from '@/utils/fcm'
 const notificationStore = useNotificationStore()
 const authStore = useAuthStore()
 
-// 종 옆에 표시할 전체 알림 개수 (filterCounts.ALL)
-const totalAllCount = computed(() => Number(notificationStore.counts?.ALL ?? 0))
+// // 종 옆에 표시할 전체 알림 개수 (filterCounts.ALL)
+// const totalAllCount = computed(() => Number(notificationStore.counts?.ALL ?? 0))
+// const totalAllCountDisplay = computed(() =>
+//   totalAllCount.value > 99 ? '99+' : String(totalAllCount.value)
+// )
+
+// 헤더 "총 X개" 등에 사용할 전체 알림 개수 (totalCounts.ALL)
+const totalAllCount = computed(() => Number(notificationStore.totalCounts?.ALL ?? 0))
 const totalAllCountDisplay = computed(() =>
   totalAllCount.value > 99 ? '99+' : String(totalAllCount.value)
+)
+
+// 종 배지(빨간 원)에는 "읽지 않은" 개수만 표시 (unreadCounts.ALL)
+const unreadAllCount = computed(() => Number(notificationStore.unreadCounts?.ALL ?? 0))
+const unreadAllCountDisplay = computed(() =>
+  unreadAllCount.value > 99 ? '99+' : String(unreadAllCount.value)
 )
 
 // Router 인스턴스 가져오기

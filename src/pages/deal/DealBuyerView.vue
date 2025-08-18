@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getDealNotice, changeDealStatus, downloadStandardContract } from '@/api/deal/deal'
+import { getDealNotice, downloadStandardContract } from '@/api/deal/deal'
 import { DEAL_STATUS } from '@/utils/constants'
 import Button from '@/components/common/Button.vue'
 import BackButton from '@/components/common/BackButton.vue'
@@ -185,20 +185,30 @@ const acceptDeal = async () => {
     console.log('현재 거래 상태:', propertyInfo.value.dealStatus)
     console.log('현재 거래 ID:', propertyInfo.value.dealId)
 
-    const dealData = {
-      chatRoomId: propertyInfo.value.chatRoomId, // 채팅방 ID 추가
-      dealId: propertyInfo.value.dealId,
-      status: DEAL_STATUS.CLOSE_DEAL, // 거래 완료 상태로 변경
+    const roomId = propertyInfo.value.chatRoomId
+    const dealId = propertyInfo.value.dealId
+
+    if (!roomId) {
+      alert('chatRoomId가 없습니다.')
+      return
+    }
+    if (!dealId) {
+      alert('dealId가 없습니다.')
+      return
     }
 
-    console.log('거래 수락 요청 데이터:', dealData)
+    const dto = { dealId, status: DEAL_STATUS.MIDDLE_DEAL } // 구매자 수락 - 거래 진행 중 상태로 변경
+
+    console.log('거래 수락 요청 데이터:', dto)
     console.log('현재 토큰:', localStorage.getItem('token'))
 
-    const response = await changeDealStatus(dealData)
+    const response = await axios.patch(`http://localhost:8080/deal/status`, dto, {
+      headers: { 'Content-Type': 'application/json' },
+    })
     console.log('거래 수락 성공:', response.data)
 
-    // 성공 후 거래 완료 알림 및 거래 목록 페이지로 이동
-    alert('거래가 성사되었습니다!')
+    // 성공 후 거래 수락 완료 알림 및 거래 목록 페이지로 이동
+    alert('거래를 수락했습니다! 이제 거래가 진행 중입니다.')
     router.push('/deal/waiting-list').then(() => {
       // 페이지 이동 후 스크롤을 맨 위로 초기화
       window.scrollTo(0, 0)

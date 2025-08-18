@@ -588,9 +588,9 @@ const confirmAccept = async () => {
   }
 
   try {
-    const dto = { dealId, status: DEAL_STATUS.BEFORE_CONSUMER } // 판매자 수락
+    const dto = { dealId, status: DEAL_STATUS.MIDDLE_DEAL } // 판매자 수락 - 거래 진행 중 상태로 변경
 
-    await axios.patch(`http://localhost:8080/deal/${roomId}/status`, dto, {
+    await axios.patch(`http://localhost:8080/deal/status`, dto, {
       headers: { 'Content-Type': 'application/json' },
     })
 
