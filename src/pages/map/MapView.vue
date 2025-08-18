@@ -25,6 +25,7 @@ import { useMapStore } from '@/stores/map/map.js'
 import { useRouter, useRoute } from 'vue-router'
 import {
   getPropertyDetailById,
+  getPropertyDetailWithPublicData,
   bookmarkProperty,
   cancelBookmarkProperty,
   setPropertyNotification,
@@ -619,6 +620,61 @@ const fetchRealEstateData = async (propertyData) => {
   }
 }
 
+// 매물 상세 정보 + 공공데이터 통합 조회
+const fetchPropertyDetailWithPublicData = async (buildingId) => {
+  try {
+    console.log('매물 상세 정보 + 공공데이터 통합 조회 시작:', buildingId)
+    const response = await getPropertyDetailWithPublicData(buildingId)
+    console.log('공공데이터 통합 API 응답:', response)
+
+    if (response && response.data) {
+      const data = response.data
+
+      // 기본 매물 정보 설정
+      const propertyData = {
+        ...data.buildingDetail,
+        isBookmarked: data.buildingDetail.isBookmarked ?? false,
+        isNotification: data.buildingDetail.isNotification ?? false,
+        publicDataAvailable: data.publicDataAvailable,
+        aptComplexInfo: data.aptComplexInfo,
+        errorMessage: data.errorMessage,
+      }
+
+      selectedProperty.value = propertyData
+      showDetail.value = true
+
+      // 공공데이터가 사용 가능한 경우 추가 정보 표시
+      if (data.publicDataAvailable && data.aptComplexInfo) {
+        console.log('공공데이터 정보:', data.aptComplexInfo)
+      }
+
+      // 실거래가 정보도 함께 불러오기
+      await fetchRealEstateData(propertyData)
+    } else {
+      console.warn('공공데이터 통합 API에서 데이터가 없습니다.')
+      // API에서 데이터가 없을 때 사용자에게 알림
+      selectedProperty.value = {
+        buildingName: `매물 ID: ${buildingId}`,
+        address: '주소 정보 없음',
+        saleType: '정보 없음',
+        propertyType: '정보 없음',
+        price: 0,
+        deposit: 0,
+        isBookmarked: false,
+        isNotification: false,
+        error: '공공데이터 통합 API에서 매물 정보를 찾을 수 없습니다.',
+      }
+      showDetail.value = true
+    }
+  } catch (error) {
+    console.error('공공데이터 통합 조회 실패:', error)
+
+    // API 호출 실패 시 기본 API로 대체
+    console.log('공공데이터 통합 API 실패, 기본 API로 대체')
+    await fetchPropertyDetail(buildingId)
+  }
+}
+
 // 매물 상세 보기 표시
 const showPropertyDetail = (property) => {
   try {
@@ -826,13 +882,8 @@ onMounted(() => {
   // buildingId가 있으면 매물 상세 정보 가져오기
   if (props.buildingId) {
     try {
-      // buildingId로 매물 찾기
-      const property = sampleProperties.find((p) => p.buildingId === parseInt(props.buildingId))
-      if (property) {
-        showPropertyDetail(property)
-      } else {
-        console.warn('buildingId에 해당하는 매물을 찾을 수 없습니다:', props.buildingId)
-      }
+      // 새로운 공공데이터 통합 조회 API 사용
+      fetchPropertyDetailWithPublicData(parseInt(props.buildingId))
     } catch (error) {
       console.error('매물 상세 정보 가져오기 실패:', error)
     }
@@ -1116,6 +1167,51 @@ onMounted(() => {
                 <span class="info-value">{{
                   selectedProperty.resFacility || '엘리베이터, 주차장'
                 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 공공데이터 정보 섹션 -->
+          <div
+            class="detail-section"
+            v-if="selectedProperty.publicDataAvailable && selectedProperty.aptComplexInfo"
+          >
+            <h3 class="section-title">
+              <span class="section-icon">📊</span>
+              공공데이터 정보
+            </h3>
+
+            <div class="info-grid">
+              <div class="info-item" v-if="selectedProperty.aptComplexInfo.length > 0">
+                <span class="info-label">아파트 단지 정보</span>
+                <span class="info-value">
+                  {{ selectedProperty.aptComplexInfo.length }}개 단지 정보 조회됨
+                </span>
+              </div>
+              <div class="info-item" v-if="selectedProperty.errorMessage">
+                <span class="info-label">공공데이터 오류</span>
+                <span class="info-value error-text">{{ selectedProperty.errorMessage }}</span>
+              </div>
+            </div>
+
+            <!-- 아파트 단지 상세 정보 -->
+            <div
+              v-if="selectedProperty.aptComplexInfo && selectedProperty.aptComplexInfo.length > 0"
+              class="apt-complex-list"
+            >
+              <h4 class="sub-section-title">주변 아파트 단지</h4>
+              <div
+                class="apt-complex-item"
+                v-for="(complex, index) in selectedProperty.aptComplexInfo.slice(0, 3)"
+                :key="index"
+              >
+                <div class="complex-name">
+                  {{ complex.kaptName || complex.complexName || `단지 ${index + 1}` }}
+                </div>
+                <div class="complex-details">
+                  <span v-if="complex.kaptCode">코드: {{ complex.kaptCode }}</span>
+                  <span v-if="complex.kaptAddr">주소: {{ complex.kaptAddr }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -2550,5 +2646,32 @@ onMounted(() => {
   color: #666;
   font-size: 14px;
   margin: 0;
+}
+
+.apt-complex-list {
+  margin-top: 16px;
+}
+
+.apt-complex-item {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.complex-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.complex-details {
+  font-size: 12px;
+  color: #666;
+}
+
+.sub-section-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
 }
 </style>
