@@ -54,9 +54,11 @@ export const usePropertyStore = defineStore('property', () => {
     loading.value = true
     error.value = null
     try {
-      await registerProperty(data)
+      const response = await registerProperty(data)
+      return { success: true, data: response.data, status: response.status }
     } catch (err) {
       error.value = err
+      return { success: false, message: err.response?.data?.message || '매물 등록에 실패했습니다.' }
     } finally {
       loading.value = false
     }

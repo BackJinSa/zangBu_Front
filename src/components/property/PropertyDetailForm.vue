@@ -66,8 +66,15 @@ const handleImageUpload = (event) => {
     return
   }
 
-  // 파일 크기 검사 (5MB)
+  // 파일 형식 및 크기 검사
   const validFiles = files.filter((file) => {
+    // JPG 파일 형식 검사
+    if (file.type !== 'image/jpeg') {
+      alert(`${file.name}은 JPG 파일만 업로드 가능합니다.`)
+      return false
+    }
+
+    // 파일 크기 검사 (5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert(`${file.name}은 5MB를 초과합니다.`)
       return false
@@ -176,7 +183,7 @@ const handleImageError = (event) => {
         <input
           type="file"
           multiple
-          accept="image/*"
+          accept="image/jpeg"
           @change="handleImageUpload"
           class="hidden"
           id="image-upload"
@@ -187,7 +194,7 @@ const handleImageError = (event) => {
         >
           사진 선택
         </label>
-        <p class="text-sm text-text-1 mt-2">최대 5장, 각 파일 5MB 이하 (JPG, PNG)</p>
+        <p class="text-sm text-text-1 mt-2">최대 5장, 각 파일 5MB 이하 (JPG만 가능)</p>
       </div>
 
       <!-- 업로드된 이미지 미리보기 -->

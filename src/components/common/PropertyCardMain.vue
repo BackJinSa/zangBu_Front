@@ -54,10 +54,16 @@ const emit = defineEmits(['bookmark', 'click'])
 
 // Toggle bookmark
 const toggleBookmark = () => {
-  emit('bookmark', {
+  console.log('PropertyCardMain: toggleBookmark clicked')
+  console.log('Property data:', props.property)
+
+  const bookmarkData = {
     propertyId: props.property.buildingId,
     isBookmarked: !props.property.isBookmarked,
-  })
+  }
+
+  console.log('Emitting bookmark event with data:', bookmarkData)
+  emit('bookmark', bookmarkData)
 }
 
 // Handle card click
