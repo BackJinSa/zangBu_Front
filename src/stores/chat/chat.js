@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 import { useStomp } from '@/utils/useStomp'
 import { useAuthStore } from '@/stores/auth/auth'
 import axios from 'axios'
+import { a } from '../../../project/zangBu_Back/src/main/resources/assets/index-Ci5mVUka'
 
 // 보낸사람 ID 후보를 senderId로 통일
 function getSenderId(m) {
@@ -142,7 +143,6 @@ export const useChatStore = defineStore('chat', () => {
 
   async function createChatRoom(buildingId, memberId) {
     const doRequest = async (token) => {
-      // 디버깅 로그: 실제로 무엇을 붙이는지
       console.log('[createChatRoom] Using token(head)=', token?.slice(0, 12), 'len=', token?.length)
       const res = await axios.post(
         `/api/chat/room/${buildingId}`,
@@ -157,7 +157,8 @@ export const useChatStore = defineStore('chat', () => {
       return res
     }
 
-    let token = localStorage.getItem('accessToken')
+    let token = authStore.accessToken
+    console.log('[createChatRoom] authStore.accessToken:', token)
 
     // 1차 시도
     if (token) {
@@ -227,13 +228,13 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     try {
-      await axios.patchaxios.patch(
+      await axios.patch(
         `/api/chat/list/exit/${id}`,
         {}, // 본문 없음 → {}로 JSON 보냄
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${authStore.accessToken}`,
           },
           withCredentials: true, // refreshToken 쿠키 사용 시 필요
         }
