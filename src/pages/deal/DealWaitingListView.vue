@@ -16,9 +16,6 @@ import { useAuthStore } from '@/stores/auth/auth.js'
 // 상수 import
 import { DEAL_STATUS } from '@/utils/constants'
 
-// 상수 import
-import { DEAL_STATUS } from '@/utils/constants'
-
 // Vue Router 인스턴스 생성
 const router = useRouter()
 
@@ -48,7 +45,7 @@ const fetchDeals = async () => {
       /*
       try {
         await authStore.refreshAccessToken()
-
+        
         // 갱신된 토큰으로 다시 API 호출
         const response = await getDeals()
 
@@ -168,16 +165,7 @@ const filteredDeals = computed(() => {
 
   let filtered = []
 
-  console.log('=== 필터링 시작 ===')
-  console.log('활성 필터:', activeFilter.value)
-  console.log('전체 거래 수:', deals.value.length)
-  console.log('원본 거래 데이터:', deals.value)
-
-  let filtered = []
-
   if (activeFilter.value === 'all') {
-    filtered = deals.value
-    console.log('전체 필터 적용 - 결과:', filtered.length)
     filtered = deals.value
     console.log('전체 필터 적용 - 결과:', filtered.length)
   } else if (activeFilter.value === 'buying') {
@@ -219,22 +207,6 @@ const filteredDeals = computed(() => {
   console.log('=== 필터링 완료 ===')
 
   return filtered
-    // 거래 완료된 거래들
-    filtered = deals.value.filter((deal) => {
-      const isCompleted = deal.dealStatus === DEAL_STATUS.CLOSE_DEAL
-      console.log(`거래 ${deal.dealId}: dealStatus=${deal.dealStatus}, isCompleted=${isCompleted}`)
-      return isCompleted
-    })
-    console.log('완료 필터 적용 - 결과:', filtered.length)
-  } else {
-    filtered = deals.value
-    console.log('기본값 - 결과:', filtered.length)
-  }
-
-  console.log('필터링된 거래:', filtered)
-  console.log('=== 필터링 완료 ===')
-
-  return filtered
 })
 
 // ===== 필터 설정 함수 =====
@@ -244,14 +216,7 @@ const setActiveFilter = (filter) => {
   console.log('이전 필터:', activeFilter.value)
   console.log('새 필터:', filter)
 
-  console.log('=== 필터 변경 ===')
-  console.log('이전 필터:', activeFilter.value)
-  console.log('새 필터:', filter)
-
   activeFilter.value = filter
-
-  console.log('필터 변경 완료:', activeFilter.value)
-  console.log('=== 필터 변경 완료 ===')
 
   console.log('필터 변경 완료:', activeFilter.value)
   console.log('=== 필터 변경 완료 ===')
@@ -260,9 +225,6 @@ const setActiveFilter = (filter) => {
 // ===== 거래 데이터 포맷팅 함수 =====
 // PropertyCard 컴포넌트에서 사용할 수 있도록 거래 데이터를 포맷팅
 const formatDealForPropertyCard = (deal) => {
-  // 현재 로그인한 사용자 정보 가져오기
-  const currentUser = authStore.user
-
   // 현재 로그인한 사용자 정보 가져오기
   const currentUser = authStore.user
 
@@ -293,37 +255,6 @@ const formatDealForPropertyCard = (deal) => {
   }
 
   return formattedProperty
-}
-
-// 사용자 역할 결정 함수
-const determineUserRole = (deal, currentUser) => {
-  console.log('=== 사용자 역할 결정 ===')
-  console.log('거래 데이터:', deal)
-  console.log('현재 사용자:', currentUser)
-
-  // API 응답에 판매자/구매자 ID가 있는 경우
-  if (deal.sellerId && deal.buyerId) {
-    if (currentUser && deal.sellerId === currentUser.id) {
-      console.log('판매자로 판단됨')
-      return 'seller'
-    } else if (currentUser && deal.buyerId === currentUser.id) {
-      console.log('구매자로 판단됨')
-      return 'buyer'
-    }
-  }
-
-  // API 응답에 ownerId가 있는 경우
-  if (deal.ownerId) {
-    if (currentUser && deal.ownerId === currentUser.id) {
-      console.log('소유자(판매자)로 판단됨')
-      return 'seller'
-    }
-  }
-
-  // 기본값: userStatus로 판단 (임시)
-  const defaultRole = deal.userStatus === '구매중' ? 'buyer' : 'seller'
-  console.log(`기본값 사용: ${defaultRole}`)
-  return defaultRole
 }
 
 // 사용자 역할 결정 함수
@@ -415,7 +346,7 @@ const handleDealDetail = (property) => {
     // 채팅방 이동 (chatRoomId 사용)
     console.log('BEFORE_TRANSACTION -> 채팅방 이동')
     if (property.chatRoomId) {
-      router.push(`/chat/room?chatRoomId=${property.chatRoomId}`)
+      router.push(`/chat/room/${property.chatRoomId}`)
     } else {
       router.push(`/chat/room?dealId=${dealId}`)
     }
@@ -428,7 +359,7 @@ const handleDealDetail = (property) => {
       // 구매자: 판매자 거래 수락 대기 (채팅방으로 이동)
       console.log('BEFORE_OWNER + consumer -> 채팅방 이동')
       if (property.chatRoomId) {
-        router.push(`/chat/room?chatRoomId=${property.chatRoomId}`)
+        router.push(`/chat/room/${property.chatRoomId}`)
       } else {
         router.push(`/chat/room?dealId=${dealId}`)
       }
@@ -438,7 +369,7 @@ const handleDealDetail = (property) => {
       // 판매자: 구매자 거래 수락 대기 (채팅방으로 이동)
       console.log('BEFORE_CONSUMER + seller -> 채팅방 이동')
       if (property.chatRoomId) {
-        router.push(`/chat/room?chatRoomId=${property.chatRoomId}`)
+        router.push(`/chat/room/${property.chatRoomId}`)
       } else {
         router.push(`/chat/room?dealId=${dealId}`)
       }
@@ -446,7 +377,7 @@ const handleDealDetail = (property) => {
       // 구매자: 채팅방으로 이동
       console.log('BEFORE_CONSUMER + consumer -> 채팅방 이동')
       if (property.chatRoomId) {
-        router.push(`/chat/room?chatRoomId=${property.chatRoomId}`)
+        router.push(`/chat/room/${property.chatRoomId}`)
       } else {
         router.push(`/chat/room?dealId=${dealId}`)
       }
@@ -458,7 +389,7 @@ const handleDealDetail = (property) => {
       // 판매자: 거래 완료 처리 (채팅방으로 이동)
       console.log('MIDDLE_DEAL + seller -> 채팅방 이동 (거래 완료 처리)')
       if (property.chatRoomId) {
-        router.push(`/chat/room?chatRoomId=${property.chatRoomId}`)
+        router.push(`/chat/room/${property.chatRoomId}`)
       } else {
         router.push(`/chat/room?dealId=${dealId}`)
       }
@@ -475,7 +406,7 @@ const handleDealDetail = (property) => {
     // 기본값: 채팅방으로 이동
     console.log('기본값 -> 채팅방 이동')
     if (property.chatRoomId) {
-      router.push(`/chat/room?chatRoomId=${property.chatRoomId}`)
+      router.push(`/chat/room/${property.chatRoomId}`)
     } else {
       router.push(`/chat/room?dealId=${dealId}`)
     }
@@ -507,7 +438,7 @@ const handleAcceptance = (property) => {
     // 거래 전 상태: 채팅방으로 이동
     console.log('BEFORE_TRANSACTION -> 채팅방 이동')
     if (property.chatRoomId) {
-      router.push(`/chat/room?chatRoomId=${property.chatRoomId}`)
+      router.push(`/chat/room/${property.chatRoomId}`)
     } else {
       router.push(`/chat/room?dealId=${dealId}`)
     }
@@ -519,7 +450,7 @@ const handleAcceptance = (property) => {
     // 판매자: 구매자 거래 수락 대기 (채팅방으로 이동)
     console.log('BEFORE_CONSUMER + seller -> 채팅방 이동 (구매자 수락 대기)')
     if (property.chatRoomId) {
-      router.push(`/chat/room?chatRoomId=${property.chatRoomId}`)
+      router.push(`/chat/room/${property.chatRoomId}`)
     } else {
       router.push(`/chat/room?dealId=${dealId}`)
     }
@@ -530,7 +461,7 @@ const handleAcceptance = (property) => {
     // 구매자: 판매자 거래 수락 대기 (채팅방으로 이동)
     console.log('BEFORE_OWNER + consumer -> 채팅방 이동 (판매자 수락 대기)')
     if (property.chatRoomId) {
-      router.push(`/chat/room?chatRoomId=${property.chatRoomId}`)
+      router.push(`/chat/room/${property.chatRoomId}`)
     } else {
       router.push(`/chat/room?dealId=${dealId}`)
     }
@@ -548,7 +479,7 @@ const handleAcceptance = (property) => {
       // 판매자: 거래 완료 처리 (채팅방으로 이동)
       console.log('MIDDLE_DEAL + seller -> 채팅방 이동 (거래 완료 처리)')
       if (property.chatRoomId) {
-        router.push(`/chat/room?chatRoomId=${property.chatRoomId}`)
+        router.push(`/chat/room/${property.chatRoomId}`)
       } else {
         router.push(`/chat/room?dealId=${dealId}`)
       }
@@ -565,7 +496,7 @@ const handleAcceptance = (property) => {
     // 기본값: 채팅방으로 이동
     console.log('기본값 -> 채팅방 이동')
     if (property.chatRoomId) {
-      router.push(`/chat/room?chatRoomId=${property.chatRoomId}`)
+      router.push(`/chat/room/${property.chatRoomId}`)
     } else {
       router.push(`/chat/room?dealId=${dealId}`)
     }
@@ -593,7 +524,7 @@ const handleChat = (property) => {
   // chatRoomId가 있으면 채팅방으로 직접 이동
   if (chatRoomId) {
     console.log('chatRoomId로 채팅방 이동')
-    router.push(`/chat/room?chatRoomId=${chatRoomId}`)
+    router.push(`/chat/room/${chatRoomId}`)
   } else {
     // 기존 방식: dealId로 채팅방 이동
     console.log('dealId로 채팅방 이동')
