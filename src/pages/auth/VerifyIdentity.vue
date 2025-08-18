@@ -227,37 +227,39 @@ async function verifyCaptcha() {
     errorMessage.value = '보안문자를 입력해주세요.'
     return
   }
+  captchaVerified.value = true
+  errorMessage.value = ''
+}
 
-  loading.value = true
-  try {
-    const payload = {
-      sessionKey: sessionKey.value,
-      secureNo: captchaInput.value,
-    }
-    const { data } = await requestAuthStep2(payload)
-    // 기대 응답:
-    // {
-    //   "resUserNm": "",
-    //   "resUserIdentiyNo": "",
-    //   "resAuthenticity": "",        // "1" = 성공, 그 외 실패
-    //   "resAuthenticityDesc": ""     // 예: "성공", "주민번호 불일치"
-    // }
-
-    const ok = String(data?.resAuthenticity) === '1'
-    captchaVerified.value = ok
-
-    if (ok) {
-      errorMessage.value = '' // 성공이면 에러 제거
-    } else {
-      // 서버 설명이 있으면 그걸 보여주고, 없으면 기본 메시지
-      errorMessage.value = data?.resAuthenticityDesc || '보안문자 확인에 실패했어요.'
-    }
-  } catch (e) {
-    captchaVerified.value = false
-    errorMessage.value = e?.response?.data?.message || '보안문자 확인 실패'
-  } finally {
-    loading.value = false
+loading.value = true
+try {
+  const payload = {
+    sessionKey: sessionKey.value,
+    secureNo: captchaInput.value,
   }
+  const { data } = await requestAuthStep2(payload)
+  // 기대 응답:
+  // {
+  //   "resUserNm": "",
+  //   "resUserIdentiyNo": "",
+  //   "resAuthenticity": "",        // "1" = 성공, 그 외 실패
+  //   "resAuthenticityDesc": ""     // 예: "성공", "주민번호 불일치"
+  // }
+
+  const ok = String(data?.resAuthenticity) === '1'
+  captchaVerified.value = ok
+
+  if (ok) {
+    errorMessage.value = '' // 성공이면 에러 제거
+  } else {
+    // 서버 설명이 있으면 그걸 보여주고, 없으면 기본 메시지
+    errorMessage.value = data?.resAuthenticityDesc || '보안문자 확인에 실패했어요.'
+  }
+} catch (e) {
+  captchaVerified.value = false
+  errorMessage.value = e?.response?.data?.message || '보안문자 확인 실패'
+} finally {
+  loading.value = false
 }
 
 // 하단 메인 버튼
