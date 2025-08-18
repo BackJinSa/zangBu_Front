@@ -244,9 +244,9 @@ async function fetchRoomMeta() {
     consumerVisible.value = Number(r.consumerVisible ?? 1)
 
     // 내가 판매자인지 계산
-    const iAmSeller = !!myUserId && !!r.sellerId && myUserId === r.sellerId
+    const iAmSeller = myUserId.value && r.sellerId && myUserId.value === r.sellerId
     isSeller.value = iAmSeller
-    console.log('내가 판매자:', isSeller.value)
+    console.log('isSeller : ', isSeller.value)
 
     // 헤더
     buildingName.value = r.buildingName ?? ''
@@ -387,7 +387,7 @@ function subscribeCurrentRoom() {
   subscribeRoom(roomId.value, async (message) => {
     console.log('원본 메시지 수신:', message)
 
-    // ⭐ pushIncoming 하기 전에 senderId를 변환
+    // pushIncoming 하기 전에 senderId를 변환
     let processedMessage = { ...message }
 
     if (message.senderId && !message.isSystem) {

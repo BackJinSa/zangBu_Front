@@ -227,7 +227,17 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     try {
-      await axios.patch(`/api/chat/list/exit/${id}`)
+      await axios.patchaxios.patch(
+        `/api/chat/list/exit/${id}`,
+        {}, // 본문 없음 → {}로 JSON 보냄
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true, // refreshToken 쿠키 사용 시 필요
+        }
+      )
 
       unsubscribeRoom(id) // STOMP 구독 해제
 
