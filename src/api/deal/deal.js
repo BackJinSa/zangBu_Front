@@ -73,3 +73,8 @@ export const getDealNotice = (dealId) => {
 export const getConsumerDocumentUrl = (dealId, type) => {
   return api.get(`/deal/consumer/documents/${dealId}/${type}/download`)
 }
+
+// 표준 계약서 다운로드
+export const downloadStandardContract = (dealId) => {
+  return api.get(`/deal/consumer/contract/${dealId}/download`)
+}
