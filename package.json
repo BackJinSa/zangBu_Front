@@ -17,6 +17,7 @@
     "@stomp/stompjs": "^7.1.1",
     "@tosspayments/tosspayments-sdk": "^2.3.5",
     "axios": "^1.10.0",
+    "crypto-js": "^4.2.0",
     "firebase": "^12.0.0",
     "moment": "^2.30.1",
     "pinia": "^3.0.1",
