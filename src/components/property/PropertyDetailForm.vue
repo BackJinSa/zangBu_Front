@@ -7,9 +7,9 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: () => ({
-      title: '',
-      features: '',
-      description: '',
+      title: '역세권', // 기본값 설정
+      features: '엘리베이터, 주차장, 보안카메라', // 기본값 설정
+      description: '남향 어쩌구저쩌구', // 기본값 설정
       images: [],
     }),
   },

@@ -50,7 +50,6 @@ import PaymentView from '@/pages/payment/PaymentView.vue'
 import PaymentSuccessView from '@/pages/payment/PaymentSuccessView.vue'
 import PaymentFailView from '@/pages/payment/PaymentFailView.vue'
 import PaymentConfirmView from '@/pages/payment/PaymentConfirmView.vue'
-import PaymentDevView from '@/pages/payment/PaymentDevView.vue'
 
 // 가이드 페이지
 import GuideMainView from '@/pages/guide/GuideMainView.vue'
@@ -172,6 +171,12 @@ const router = createRouter({
       component: PropertyRegisterView,
       props: true,
     },
+    {
+      path: '/property/edit/',
+      name: 'property-edit',
+      component: PropertyRegisterView,
+      props: true,
+    },
 
     // 채팅 관련 라우트
     {
@@ -284,11 +289,6 @@ const router = createRouter({
       path: '/payment/confirm',
       name: 'payment-confirm',
       component: PaymentConfirmView,
-    },
-    {
-      path: '/payment/dev',
-      name: 'payment-dev',
-      component: PaymentDevView,
     },
 
     // 가이드 라우트
