@@ -67,10 +67,10 @@
                   >
                 </div>
                 <h1 class="text-xl lg:text-3xl font-bold mb-2 lg:mb-3" style="color: var(--text-2)">
-                  {{ propertyInfo.building_name }}
+                  {{ propertyInfo.buildingName }}
                 </h1>
                 <p class="text-xs lg:text-base mb-2 leading-relaxed" style="color: var(--text-1)">
-                  {{ propertyInfo.info_building }}
+                  {{ propertyInfo.infoBuilding }}
                 </p>
               </div>
               <div class="hidden lg:block">
@@ -474,10 +474,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getDealNotice } from '@/api/deal/deal'
+import { getDealNotice, changeDealStatus } from '@/api/deal/deal'
 import { DEAL_STATUS } from '@/utils/constants'
 import BackButton from '@/components/common/BackButton.vue'
-import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
@@ -514,10 +513,10 @@ const fetchPropertyInfo = async () => {
 
       // API 응답 구조에 맞게 데이터 매핑
       propertyInfo.value = {
-        deal_id: dealId,
-        building_id: response.data.buildingId,
-        building_name: response.data.buildingName,
-        info_building: response.data.infoBuilding,
+        dealId: dealId,
+        buildingId: response.data.buildingId,
+        buildingName: response.data.buildingName,
+        infoBuilding: response.data.infoBuilding,
         dealStatus: response.data.dealStatus,
         chatRoomId: response.data.chatRoomId,
       }
@@ -571,12 +570,11 @@ const acceptDeal = () => {
   showAcceptModal.value = true
 }
 
-const chatRoomId = computed(() => String(route.query.chatRoomId || ''))
 const confirmAccept = async () => {
   showAcceptModal.value = false
 
-  const roomId = chatRoomId.value
-  const dealId = propertyInfo.value.deal_id
+  const dealId = propertyInfo.value.dealId
+  const roomId = propertyInfo.value.chatRoomId
 
   if (!roomId) {
     alert('chatRoomId가 없습니다.')
@@ -588,11 +586,19 @@ const confirmAccept = async () => {
   }
 
   try {
-    const dto = { dealId, status: DEAL_STATUS.BEFORE_CONSUMER } // 판매자 수락
+    const dto = {
+      dealId,
+      chatRoomId: roomId,
+      status: DEAL_STATUS.BEFORE_CONSUMER,
+    } // 판매자 수락 - 소비자 확인 대기 상태로 변경
 
+<<<<<<< HEAD
     await axios.patch(`/api/deal/${roomId}/status`, dto, {
       headers: { 'Content-Type': 'application/json' },
     })
+=======
+    await changeDealStatus(dto)
+>>>>>>> 60387af038013524edab4624bf5384043e216278
 
     // (선택) 방 메타 갱신 후 이동하고 싶으면:
     //await fetchRoomMeta()
@@ -617,7 +623,7 @@ const cancelDeal = () => {
 const confirmCancel = () => {
   showCancelModal.value = false
   // 실제로는 API 호출하여 거래 취소 처리
-  console.log('거래 취소 처리:', propertyInfo.value.deal_id)
+  console.log('거래 취소 처리:', propertyInfo.value.dealId)
   // 성공 후 이전 페이지로 이동
   router.go(-1)
 }
@@ -647,7 +653,3 @@ onMounted(() => {
   fetchPropertyInfo()
 })
 </script>
-
-<style scoped>
-/* 추가 스타일이 필요한 경우 여기에 작성 */
-</style>

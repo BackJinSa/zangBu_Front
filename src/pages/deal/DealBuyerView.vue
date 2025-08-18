@@ -1,11 +1,10 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getDealNotice, changeDealStatus, downloadStandardContract } from '@/api/deal/deal'
+import { getDealNotice, downloadStandardContract, changeDealStatus } from '@/api/deal/deal'
 import { DEAL_STATUS } from '@/utils/constants'
 import Button from '@/components/common/Button.vue'
 import BackButton from '@/components/common/BackButton.vue'
-import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
@@ -32,8 +31,6 @@ const fetchPropertyInfo = async () => {
     // 실제 API 호출 시도
     try {
       const response = await getDealNotice(dealId)
-      console.log('거래 상세 정보 응답:', response.data)
-      console.log('응답 데이터 전체 구조:', response.data)
 
       // API 응답 구조에 맞게 데이터 매핑
       propertyInfo.value = {
@@ -45,9 +42,6 @@ const fetchPropertyInfo = async () => {
         dealStatusEnum: response.data.dealStatus, // 거래 상태 enum 추가
         chatRoomId: response.data.chatRoomId, // 채팅방 ID 추가
       }
-
-      console.log('매핑된 propertyInfo:', propertyInfo.value)
-      console.log('거래 상태 확인:', propertyInfo.value.dealStatus)
     } catch (apiError) {
       console.error('API 호출 실패:', apiError)
 
@@ -102,35 +96,20 @@ const viewAnalysisReport = () => {
 // 체크리스트 완료 여부 확인
 const isChecklistComplete = computed(() => {
   const isComplete = checklistItems.value.precautions && checklistItems.value.specialTerms
-  console.log('=== 체크리스트 상태 확인 ===')
-  console.log('주의사항 체크:', checklistItems.value.precautions)
-  console.log('특약사항 체크:', checklistItems.value.specialTerms)
-  console.log('체크리스트 완료 여부:', isComplete)
-  console.log('=== 체크리스트 상태 확인 완료 ===')
   return isComplete
 })
 
 // 거래 수락 버튼 비활성화 여부
 const isAcceptButtonDisabled = computed(() => {
-  // 디버깅용 로그
-  console.log('=== 버튼 비활성화 상태 확인 ===')
-  console.log('현재 거래 상태:', propertyInfo.value.dealStatus)
-  console.log('MIDDLE_DEAL 상태:', DEAL_STATUS.MIDDLE_DEAL)
-  console.log('상태 일치 여부:', propertyInfo.value.dealStatus === DEAL_STATUS.MIDDLE_DEAL)
-
   // 체크리스트가 완료되면 거래 상태와 관계없이 버튼 활성화
   // (거래 수락 시에만 상태 검증)
   const isDisabled = false
-  console.log('버튼 비활성화 여부:', isDisabled)
-  console.log('=== 버튼 비활성화 상태 확인 완료 ===')
-
   return isDisabled
 })
 
 // 계약 진행 함수들
 const downloadContract = async () => {
   try {
-    console.log('표준계약서 다운로드 시작')
     const dealId = propertyInfo.value.dealId
 
     const response = await downloadStandardContract(dealId)
@@ -150,8 +129,6 @@ const downloadContract = async () => {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-
-    console.log('표준계약서 다운로드 완료')
   } catch (error) {
     console.error('표준계약서 다운로드 실패:', error)
     alert('계약서 다운로드에 실패했습니다. 다시 시도해주세요.')
@@ -181,37 +158,34 @@ const acceptDeal = async () => {
       return
     }
 
-    // 현재 거래 상태 확인 (디버깅용)
-    console.log('현재 거래 상태:', propertyInfo.value.dealStatus)
-    console.log('현재 거래 ID:', propertyInfo.value.dealId)
+    const roomId = propertyInfo.value.chatRoomId
+    const dealId = propertyInfo.value.dealId
 
-    const dealData = {
-      chatRoomId: propertyInfo.value.chatRoomId, // 채팅방 ID 추가
-      dealId: propertyInfo.value.dealId,
-      status: DEAL_STATUS.CLOSE_DEAL, // 거래 완료 상태로 변경
+    if (!roomId) {
+      alert('chatRoomId가 없습니다.')
+      return
+    }
+    if (!dealId) {
+      alert('dealId가 없습니다.')
+      return
     }
 
-    console.log('거래 수락 요청 데이터:', dealData)
-    console.log('현재 토큰:', localStorage.getItem('token'))
+    const dealData = {
+      dealId,
+      status: DEAL_STATUS.MIDDLE_DEAL,
+      chatRoomId: roomId,
+    } // 구매자 수락 - 거래 진행 중 상태로 변경
 
     const response = await changeDealStatus(dealData)
-    console.log('거래 수락 성공:', response.data)
 
-    // 성공 후 거래 완료 알림 및 거래 목록 페이지로 이동
-    alert('거래가 성사되었습니다!')
-    router.push('/deal/waiting-list').then(() => {
+    // 성공 후 거래 수락 완료 알림 및 채팅방으로 이동
+    alert('거래를 수락했습니다! 이제 거래가 진행 중입니다.')
+    router.push({ name: 'chat-room', params: { roomId } }).then(() => {
       // 페이지 이동 후 스크롤을 맨 위로 초기화
       window.scrollTo(0, 0)
     })
   } catch (err) {
     console.error('거래 수락 실패:', err)
-
-    // 더 자세한 에러 정보 출력
-    if (err.response) {
-      console.error('응답 상태:', err.response.status)
-      console.error('응답 데이터:', err.response.data)
-      console.error('응답 헤더:', err.response.headers)
-    }
 
     let errorMessage = '거래 수락에 실패했습니다.'
 
@@ -236,8 +210,6 @@ const cancelDeal = () => {
 const confirmCancel = () => {
   showCancelModal.value = false
   // 실제로는 API 호출하여 거래 취소 처리
-  console.log('거래 취소 처리:', propertyInfo.value.dealId)
-  console.log('거래 취소 처리:', propertyInfo.value.dealId)
   // 성공 후 이전 페이지로 이동
   router.go(-1).then(() => {
     // 페이지 이동 후 스크롤을 맨 위로 초기화
@@ -324,10 +296,8 @@ onMounted(() => {
                 </div>
                 <h1 class="text-xl lg:text-3xl font-bold mb-2 lg:mb-3" style="color: var(--text-2)">
                   {{ propertyInfo.buildingName }}
-                  {{ propertyInfo.buildingName }}
                 </h1>
                 <p class="text-xs lg:text-base mb-2 leading-relaxed" style="color: var(--text-1)">
-                  {{ propertyInfo.infoBuilding }}
                   {{ propertyInfo.infoBuilding }}
                 </p>
               </div>
@@ -709,16 +679,6 @@ onMounted(() => {
                   >
                     ⚠️ 모든 체크리스트 항목을 완료해야 거래 수락이 가능합니다
                   </p>
-
-                  <!-- 디버깅 정보 (개발용) -->
-                  <div class="mt-2 p-2 bg-gray-100 rounded text-xs text-left">
-                    <p><strong>디버깅 정보:</strong></p>
-                    <p>체크리스트 완료: {{ isChecklistComplete }}</p>
-                    <p>버튼 비활성화: {{ isAcceptButtonDisabled }}</p>
-                    <p>거래 상태: {{ propertyInfo.dealStatus }}</p>
-                    <p>주의사항 체크: {{ checklistItems.precautions }}</p>
-                    <p>특약사항 체크: {{ checklistItems.specialTerms }}</p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -776,7 +736,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-/* 추가 스타일이 필요한 경우 여기에 작성 */
-</style>

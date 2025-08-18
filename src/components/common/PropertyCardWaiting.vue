@@ -14,10 +14,11 @@
     <!-- Property image with waiting overlay -->
     <div class="image-container">
       <img
-        :src="property.imageUrl || '/default-property.jpg'"
+        :src="authenticatedImageUrl || property.imageUrl || '/default-property.jpg'"
         :alt="property.title || 'Property Image'"
         class="property-image"
         :class="{ 'completed-image': property.dealStatusEnum === 'CLOSE_DEAL' }"
+        @error="handleImageError"
       />
       <div v-if="property.dealStatusEnum !== 'CLOSE_DEAL'" class="waiting-overlay">
         <i :class="getStatusIcon(property.dealStatusEnum)" class="overlay-icon"></i>
@@ -125,7 +126,8 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import { defineProps, defineEmits, computed, ref, onMounted, watch } from 'vue'
+import { getObject, createSignedUrl } from '@/utils/ncp-object-storage-service.js'
 
 const props = defineProps({
   property: {
@@ -149,7 +151,82 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['edit', 'cancel', 'viewDetails', 'review', 'acceptance', 'chat'])
+const emit = defineEmits([
+  'edit',
+  'cancel',
+  'viewDetails',
+  'review',
+  'acceptance',
+  'chat',
+  'completeDeal',
+])
+
+// NCP 인증 관련 상태
+const authenticatedImageUrl = ref(null)
+
+// NCP URL에서 버킷과 오브젝트 이름 추출
+const extractNcpInfo = (url) => {
+  try {
+    const urlObj = new URL(url)
+    if (urlObj.hostname === 'kr.object.ncloudstorage.com') {
+      const pathParts = urlObj.pathname.split('/').filter((part) => part)
+      if (pathParts.length >= 2) {
+        return {
+          bucketName: pathParts[0],
+          objectName: pathParts.slice(1).join('/'),
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Failed to parse NCP URL:', error)
+  }
+  return null
+}
+
+// 이미지 URL 처리
+const processImageUrl = async () => {
+  if (!props.property.imageUrl) {
+    authenticatedImageUrl.value = null
+    return
+  }
+
+  // NCP Object Storage URL인지 확인
+  if (props.property.imageUrl.includes('ncloudstorage.com')) {
+    const ncpInfo = extractNcpInfo(props.property.imageUrl)
+    if (ncpInfo) {
+      try {
+        // 서명된 URL 생성 (CORS 우회)
+        const signedUrl = createSignedUrl(ncpInfo.bucketName, ncpInfo.objectName)
+        authenticatedImageUrl.value = signedUrl
+      } catch (error) {
+        console.error('Failed to create signed URL:', error)
+        authenticatedImageUrl.value = props.property.imageUrl
+      }
+    } else {
+      authenticatedImageUrl.value = props.property.imageUrl
+    }
+  } else {
+    authenticatedImageUrl.value = props.property.imageUrl
+  }
+}
+
+// 이미지 로드 에러 처리
+const handleImageError = () => {
+  authenticatedImageUrl.value = null
+}
+
+// 컴포넌트 마운트 시 이미지 URL 처리
+onMounted(() => {
+  processImageUrl()
+})
+
+// 이미지 URL 변경 시 재처리
+watch(
+  () => props.property.imageUrl,
+  () => {
+    processImageUrl()
+  }
+)
 
 // ===== 버튼 활성화/비활성화 상태 =====
 
@@ -419,37 +496,33 @@ const getStatusIcon = (dealStatus) => {
 
 // Handle acceptance (거래 수락 페이지로 이동)
 const handleAcceptance = () => {
-  console.log('=== PropertyCardWaiting handleAcceptance ===')
-  console.log('거래 수락 페이지로 이동:', props.property)
-
   const { dealId, userRole, dealStatusEnum } = props.property
+
+  // MIDDLE_DEAL 상태일 때는 거래 완료 이벤트 발생
+  if (dealStatusEnum === 'MIDDLE_DEAL') {
+    emit('completeDeal', props.property)
+    return
+  }
 
   // 사용자 역할과 거래 상태에 따라 적절한 거래 수락 페이지로 이동
   if (userRole === 'seller' && dealStatusEnum === 'BEFORE_OWNER') {
     // 판매자: 판매자 거래 수락 페이지
-    console.log('판매자 거래 수락 페이지로 이동')
     emit('acceptance', props.property)
   } else if (
     (userRole === 'consumer' || userRole === 'buyer') &&
-    dealStatusEnum === 'MIDDLE_DEAL'
+    dealStatusEnum === 'BEFORE_CONSUMER'
   ) {
     // 구매자: 구매자 거래 수락 페이지
-    console.log('구매자 거래 수락 페이지로 이동')
     emit('acceptance', props.property)
   } else {
     // 기본값: acceptance 이벤트 발생
-    console.log('기본값: acceptance 이벤트 발생')
     emit('acceptance', props.property)
   }
 }
 
 // Handle chat (채팅방으로 이동)
 const handleChat = () => {
-  console.log('=== PropertyCardWaiting handleChat ===')
-  console.log('채팅방 이동 - chatRoomId:', props.property.chatRoomId)
-
   // chat 이벤트를 발생시켜 부모 컴포넌트에서 처리하도록 함
-  console.log('Emitting chat event with property:', props.property)
   emit('chat', props.property)
 }
 
@@ -460,15 +533,11 @@ const handleCancel = () => {
 
 // Handle view details for completed deals
 const handleViewDetails = () => {
-  console.log('=== PropertyCardWaiting handleViewDetails ===')
-  console.log('Emitting viewDetails event with property:', props.property)
   emit('viewDetails', props.property)
 }
 
 // Handle review for completed deals
 const handleReview = () => {
-  console.log('=== PropertyCardWaiting handleReview ===')
-  console.log('Emitting review event with property:', props.property)
   emit('review', props.property)
 }
 </script>
