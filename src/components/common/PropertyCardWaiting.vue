@@ -151,7 +151,15 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['edit', 'cancel', 'viewDetails', 'review', 'acceptance', 'chat'])
+const emit = defineEmits([
+  'edit',
+  'cancel',
+  'viewDetails',
+  'review',
+  'acceptance',
+  'chat',
+  'completeDeal',
+])
 
 // NCP 인증 관련 상태
 const authenticatedImageUrl = ref(null)
@@ -187,11 +195,9 @@ const processImageUrl = async () => {
     const ncpInfo = extractNcpInfo(props.property.imageUrl)
     if (ncpInfo) {
       try {
-        console.log('Creating signed URL for NCP image:', ncpInfo)
         // 서명된 URL 생성 (CORS 우회)
         const signedUrl = createSignedUrl(ncpInfo.bucketName, ncpInfo.objectName)
         authenticatedImageUrl.value = signedUrl
-        console.log('Successfully created signed URL:', signedUrl)
       } catch (error) {
         console.error('Failed to create signed URL:', error)
         authenticatedImageUrl.value = props.property.imageUrl
@@ -206,7 +212,6 @@ const processImageUrl = async () => {
 
 // 이미지 로드 에러 처리
 const handleImageError = () => {
-  console.warn('Image failed to load:', authenticatedImageUrl.value || props.property.imageUrl)
   authenticatedImageUrl.value = null
 }
 
@@ -491,37 +496,33 @@ const getStatusIcon = (dealStatus) => {
 
 // Handle acceptance (거래 수락 페이지로 이동)
 const handleAcceptance = () => {
-  console.log('=== PropertyCardWaiting handleAcceptance ===')
-  console.log('거래 수락 페이지로 이동:', props.property)
-
   const { dealId, userRole, dealStatusEnum } = props.property
+
+  // MIDDLE_DEAL 상태일 때는 거래 완료 이벤트 발생
+  if (dealStatusEnum === 'MIDDLE_DEAL') {
+    emit('completeDeal', props.property)
+    return
+  }
 
   // 사용자 역할과 거래 상태에 따라 적절한 거래 수락 페이지로 이동
   if (userRole === 'seller' && dealStatusEnum === 'BEFORE_OWNER') {
     // 판매자: 판매자 거래 수락 페이지
-    console.log('판매자 거래 수락 페이지로 이동')
     emit('acceptance', props.property)
   } else if (
     (userRole === 'consumer' || userRole === 'buyer') &&
-    dealStatusEnum === 'MIDDLE_DEAL'
+    dealStatusEnum === 'BEFORE_CONSUMER'
   ) {
     // 구매자: 구매자 거래 수락 페이지
-    console.log('구매자 거래 수락 페이지로 이동')
     emit('acceptance', props.property)
   } else {
     // 기본값: acceptance 이벤트 발생
-    console.log('기본값: acceptance 이벤트 발생')
     emit('acceptance', props.property)
   }
 }
 
 // Handle chat (채팅방으로 이동)
 const handleChat = () => {
-  console.log('=== PropertyCardWaiting handleChat ===')
-  console.log('채팅방 이동 - chatRoomId:', props.property.chatRoomId)
-
   // chat 이벤트를 발생시켜 부모 컴포넌트에서 처리하도록 함
-  console.log('Emitting chat event with property:', props.property)
   emit('chat', props.property)
 }
 
@@ -532,15 +533,11 @@ const handleCancel = () => {
 
 // Handle view details for completed deals
 const handleViewDetails = () => {
-  console.log('=== PropertyCardWaiting handleViewDetails ===')
-  console.log('Emitting viewDetails event with property:', props.property)
   emit('viewDetails', props.property)
 }
 
 // Handle review for completed deals
 const handleReview = () => {
-  console.log('=== PropertyCardWaiting handleReview ===')
-  console.log('Emitting review event with property:', props.property)
   emit('review', props.property)
 }
 </script>
