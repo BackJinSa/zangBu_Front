@@ -250,7 +250,7 @@ const router = createRouter({
       component: DocumentView,
     },
     {
-      path: '/document/analysis-report/:propertyId',
+      path: '/deal/consumer/report/:reportId',
       name: 'analysis-report',
       component: AnalysisReportView,
       props: true,
