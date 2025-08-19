@@ -111,8 +111,10 @@ const displayMarkersFromAddresses = (properties) => {
           map: map.value,
         })
 
-        // 여기에 기존의 인포윈도우 생성 및 이벤트 핸들링 로직을 추가할 수 있습니다.
-        // ... (infowindow logic from the old displayMarkers)
+        // 마커에 클릭 이벤트를 등록합니다
+        window.kakao.maps.event.addListener(marker, 'click', () => {
+          showPropertyDetail(property)
+        })
 
         markers.value.push(marker)
       } else {
@@ -260,7 +262,7 @@ const initializeKakaoMap = () => {
     // 카카오 맵 스크립트 로드 (환경변수에서 API 키를 가져옵니다)
     const KAKAO_API_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY || 'YOUR_APP_KEY'
     const script = document.createElement('script')
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_API_KEY}&autoload=false`
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_API_KEY}&autoload=false&libraries=services`
     script.onload = () => {
       window.kakao.maps.load(() => {
         initMap()
