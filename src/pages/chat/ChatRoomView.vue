@@ -185,7 +185,6 @@ console.log('멤버email: ' + email)
 
 //const myUserId = await chatStore.fetchMemberIdByEmail(email)
 const myUserId = ref('')
-//const myUserId = '8h9i0j1k-1111-2222-3333-444455556673'
 
 //나가기 모달
 const showModal = ref(false)
@@ -368,51 +367,108 @@ const handleConfirm = async () => {
 }
 
 const senderUserId = ref('')
+//////////////////////////
 // function subscribeCurrentRoom() {
 //   if (!connected.value || !roomId.value) return
-//   subscribeRoom(roomId.value, async (message /*, subscribedRoomId */) => {
-//     // 수신 즉시 스토어에 누적
-//     const normalized = chatStore.pushIncoming(message)
-//     console.log('새 메시지 수신:', normalized)
+//   subscribeRoom(roomId.value, async (message) => {
+//     console.log('원본 메시지 수신:', message)
+
+//     // 시스템 메시지일 때 키워드 감지
+//     if (message?.isSystem) {
+//       console.log('거래 상태 변경 감지 : 새로고침')
+//       await fetchRoomMeta()
+//     }
+
+//     // pushIncoming 하기 전에 senderId를 변환
+//     let processedMessage = { ...message }
+
+//     if (message.senderId && !message.isSystem) {
+//       // senderId가 email인지 확인하고 ID로 변환
+//       if (message.senderId.includes('@')) {
+//         try {
+//           const memberId = await chatStore.fetchMemberIdByEmail(message.senderId)
+//           senderUserId.value = memberId // 변환된 ID 저장
+//           processedMessage.senderId = senderUserId.value // email을 ID로 교체
+//           console.log('senderId 변환:', message.senderId, '->', senderUserId.value)
+//         } catch (error) {
+//           console.error('senderId 변환 실패:', error)
+//         }
+//       }
+//     }
+
+//     // 변환된 메시지로 스토어에 저장
+//     const normalized = chatStore.pushIncoming(processedMessage)
+//     console.log('변환된 메시지 저장:', normalized)
+
 //     // 내가 보낸 게 아니고 시스템 메시지도 아닐 때만 읽음 처리
 //     if (
 //       !normalized?.isSystem &&
 //       normalized?.senderId &&
-//       String(normalized.senderId) !== String(myUserId)
+//       String(normalized.senderId) !== String(myUserId.value)
 //     ) {
 //       chatStore.markAsRead()
 //     }
 //   })
 // }
+
+// ===== 시스템 메시지 판별 & 스로틀 =====
+function isSystemMsg(m) {
+  if (!m) return false
+  const type = String(m.type ?? '').toUpperCase()
+  if (type === 'SYSTEM') return true
+  const sid = (m.senderId ?? m.sender_id ?? m?.sender?.id ?? '').toString().toLowerCase()
+  if (sid === 'system') return true
+  return m.isSystem === true
+}
+
+let lastMetaAt = 0
+async function fetchRoomMetaThrottled() {
+  const now = Date.now()
+  if (now - lastMetaAt < 800) return
+  lastMetaAt = now
+  await fetchRoomMeta()
+}
+
 function subscribeCurrentRoom() {
   if (!connected.value || !roomId.value) return
+
+  // (선택) 혹시라도 중복 구독 막고 싶으면:
+  // unsubscribeRoom(roomId.value)
+
   subscribeRoom(roomId.value, async (message) => {
     console.log('원본 메시지 수신:', message)
 
-    // pushIncoming 하기 전에 senderId를 변환
-    let processedMessage = { ...message }
+    // [1차 감지] pushIncoming 전에 보수적으로 시스템 체크
+    if (isSystemMsg(message)) {
+      console.log('거래 상태 변경 감지(전): 메타 새로고침')
+      await fetchRoomMetaThrottled()
+    }
 
-    if (message.senderId && !message.isSystem) {
-      // senderId가 email인지 확인하고 ID로 변환
-      if (message.senderId.includes('@')) {
-        try {
-          const memberId = await chatStore.fetchMemberIdByEmail(message.senderId)
-          senderUserId.value = memberId // 변환된 ID 저장
-          processedMessage.senderId = senderUserId.value // email을 ID로 교체
-          console.log('senderId 변환:', message.senderId, '->', senderUserId.value)
-        } catch (error) {
-          console.error('senderId 변환 실패:', error)
-        }
+    // 이메일 -> ID 변환 (시스템 메시지는 제외)
+    let processedMessage = { ...message }
+    if (message?.senderId && !isSystemMsg(message) && String(message.senderId).includes('@')) {
+      try {
+        const memberId = await chatStore.fetchMemberIdByEmail(message.senderId)
+        processedMessage.senderId = memberId
+        console.log('senderId 변환:', message.senderId, '->', memberId)
+      } catch (error) {
+        console.error('senderId 변환 실패:', error)
       }
     }
 
-    // 변환된 메시지로 스토어에 저장
+    // 스토어 반영
     const normalized = chatStore.pushIncoming(processedMessage)
-    console.log('변환된 메시지 저장:', normalized)
+    console.log('정규화된 메시지:', normalized)
 
-    // 내가 보낸 게 아니고 시스템 메시지도 아닐 때만 읽음 처리
+    // [2차 감지] 정규화 후 다시 확인
+    if (isSystemMsg(normalized)) {
+      console.log('거래 상태 변경 감지(후): 메타 새로고침')
+      await fetchRoomMetaThrottled()
+    }
+
+    // 읽음 처리(내가 보낸 거/시스템 제외)
     if (
-      !normalized?.isSystem &&
+      !isSystemMsg(normalized) &&
       normalized?.senderId &&
       String(normalized.senderId) !== String(myUserId.value)
     ) {
@@ -425,14 +481,17 @@ onMounted(async () => {
   // STOMP 연결 후 구독, 기존 메시지 로드
   console.log('=== onMounted 시작 ===')
   console.log('초기 메시지 개수:', messages.value.length)
-  connect(async () => {
-    const userId = await chatStore.fetchMemberIdByEmail(email)
-    myUserId.value = userId
-    console.log('사용자 ID:', myUserId.value)
+
+  //아이디 먼저
+  myUserId.value = await chatStore.fetchMemberIdByEmail(email)
+  console.log('사용자 ID:', myUserId.value)
+
+  await fetchRoomMeta()
+
+  await connect(async () => {
     subscribeCurrentRoom()
     await chatStore.markAsRead()
   })
-  await fetchRoomMeta()
 
   // ★ 초기 메시지 로드(최신 → reverse → 아래로 쌓기)
   const loaded = await chatStore.loadInitialMessages(30)
