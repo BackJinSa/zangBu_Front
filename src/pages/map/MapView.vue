@@ -460,15 +460,12 @@ const fetchPropertyDetailWithPublicData = async (buildingId) => {
       // Codef 응답 데이터를 selectedProperty 형식에 맞게 매핑
       const propertyData = {
         buildingId: buildingId,
-        address: estate.commAddrRoadName || '주소 정보 없음',
-        buildingName: estate.resComplexName || '건물명 정보 없음',
         dataSource: 'codef_api',
-
-        // estateDetail (단지 상세 정보)
-        estateDetail: estate,
-
-        // marketPrice (시세 정보)
-        marketPrice: market,
+        ...estate, // estateDetail 객체의 모든 속성을 여기에 복사
+        ...market, // marketPrice 객체의 모든 속성을 여기에 복사
+        // 템플릿에서 사용하는 주요 값을 명시적으로 설정 (안정성 확보)
+        address: market.commAddrRoadName || market.commAddrLotNumber || '주소 정보 없음',
+        buildingName: market.resComplexName || estate.resComplexName || '건물명 정보 없음',
       }
 
       selectedProperty.value = propertyData
@@ -700,6 +697,7 @@ watch(
 )
 
 onMounted(() => {
+  console.log('MapView.vue mounted. buildingId prop:', props.buildingId)
   initializeKakaoMap()
 
   // buildingId가 있으면 매물 상세 정보 가져오기
@@ -936,7 +934,7 @@ onMounted(() => {
               <div class="info-item">
                 <span class="info-label">부동산 종류</span>
                 <span class="info-value">{{
-                  selectedProperty.resRealty || selectedProperty.propertyType
+                  selectedProperty.resType || selectedProperty.propertyType
                 }}</span>
               </div>
               <div class="info-item">
@@ -958,14 +956,6 @@ onMounted(() => {
               <div class="info-item">
                 <span class="info-label">상세 주소</span>
                 <span class="info-value">101동 1001호</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">난방</span>
-                <span class="info-value">지역난방</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">준공일자</span>
-                <span class="info-value">2019년 12월</span>
               </div>
               <div class="info-item">
                 <span class="info-label">세대수</span>
