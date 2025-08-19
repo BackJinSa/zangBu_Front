@@ -20,6 +20,7 @@ import WithdrawView from '@/pages/user/WithdrawView.vue'
 
 // 매물 관련 페이지
 import PropertyRegisterView from '@/pages/property/PropertyRegisterView.vue'
+import PropertyEditView from '@/pages/property/PropertyEditView.vue'
 
 // 채팅 관련 페이지
 import ChatListView from '@/pages/chat/ChatListView.vue'
@@ -173,10 +174,9 @@ const router = createRouter({
       props: true,
     },
     {
-      path: '/property/edit/',
+      path: '/property/edit/:id',
       name: 'property-edit',
-      component: PropertyRegisterView,
-      props: true,
+      component: PropertyEditView,
     },
 
     // 채팅 관련 라우트
