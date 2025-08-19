@@ -64,9 +64,9 @@ const handleConfirmPayment = async () => {
       console.error('멤버십 상태 확인 실패:', error)
     }
 
-    // 3초 후 멤버십 페이지로 자동 이동
+    // 3초 후 메인 페이지로 자동 이동
     setTimeout(() => {
-      router.push('/membership')
+      router.push('/')
     }, 3000)
   } catch (error) {
     console.error('결제 승인 실패:', error)
@@ -81,10 +81,6 @@ const handleConfirmPayment = async () => {
   } finally {
     loading.value = false
   }
-}
-
-const goToMembership = () => {
-  router.push('/membership')
 }
 
 const goToHome = () => {
@@ -204,13 +200,12 @@ const goToPayment = () => {
         <!-- 자동 이동 안내 -->
         <div class="w-full mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
           <p class="text-blue-700 text-sm text-center">
-            <span class="font-semibold">3초 후 멤버십 페이지로 이동합니다...</span>
+            <span class="font-semibold">3초 후 메인 페이지로 이동합니다...</span>
           </p>
         </div>
 
         <div class="w-100 button-group">
           <div class="flex" style="gap: 16px">
-            <button @click="goToMembership" class="btn w-100">멤버십 바로가기</button>
             <button @click="goToHome" class="btn w-100">홈으로 돌아가기</button>
           </div>
         </div>

@@ -68,9 +68,10 @@ export function useMembership() {
 
       // 멤버십 상태 조회
       await fetchMembershipStatus()
+      const status = membershipStatus.value || {}
 
       // 멤버십 유효성 검증
-      if (isValidMembership.value) {
+      if (status.membershipActive || status.perCaseRemaining > 0) {
         onSuccess?.()
         return { success: true, membership: membershipStatus.value }
       } else {
