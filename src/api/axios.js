@@ -24,6 +24,11 @@ api.interceptors.request.use(cfg => {
 // 요청 인터셉터
 api.interceptors.request.use(
   (config) => {
+    console.log('=== Axios 요청 인터셉터 ===')
+    console.log('요청 URL:', config.url)
+    console.log('요청 메서드:', config.method)
+    console.log('요청 헤더:', config.headers)
+
     // reissue/login 에만 Authorization 생략 (logout엔 붙임)
     const skipAuth =
       config.url?.includes('/auth/reissue') ||
@@ -33,8 +38,16 @@ api.interceptors.request.use(
 
     if (!skipAuth) {
       const at = localStorage.getItem('token')
-      if (at) config.headers.Authorization = `Bearer ${at}`
+      console.log('localStorage에서 가져온 토큰:', at)
+      if (at) {
+        config.headers.Authorization = `Bearer ${at}`
+        console.log('Authorization 헤더 설정됨:', config.headers.Authorization)
+      } else {
+        console.log('토큰이 없어서 Authorization 헤더 설정 안됨')
+      }
     }
+
+    console.log('최종 요청 헤더:', config.headers)
     return config
   },
   (error) => Promise.reject(error)
@@ -47,7 +60,7 @@ api.interceptors.response.use(
     const originalRequest = error.config || {}
     const status = error.response?.status
     const isReissue = originalRequest?.url?.includes('/auth/reissue')
-    const isLogout  = originalRequest?.url?.includes('/auth/logout')
+    const isLogout = originalRequest?.url?.includes('/auth/logout')
 
     // 로그아웃 401: 재발급 시도하지 말고 바로 정리
     if (isLogout && status === 401) {

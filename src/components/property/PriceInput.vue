@@ -71,11 +71,6 @@ const handleInput = (event) => {
 
   // 최대값 검증 - 40억 초과 시 입력 차단
   if (props.maxValue && parseInt(numericValue) > props.maxValue) {
-    console.log(
-      `🚫 가격 제한: ${parseInt(
-        numericValue
-      ).toLocaleString()}원은 최대값 ${props.maxValue.toLocaleString()}원을 초과합니다.`
-    )
     // 이전 값으로 되돌리기
     event.target.value = props.modelValue
     return

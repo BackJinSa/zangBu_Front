@@ -5,7 +5,7 @@
       <header class="bg-[var(--brand-3)] text-white flex items-center justify-between px-4 py-3">
         <!-- 좌측 영역 -->
         <div class="flex items-start gap-3">
-          <button @click="router.back()" class="text-white mt-1">
+          <button @click="router.push('/chat/list')" class="text-white mt-1">
             <i class="fas fa-arrow-left"></i>
           </button>
 
@@ -28,31 +28,63 @@
         <!-- 우측 영역 (판매자, 구매자에 따라 다르게) -->
         <div class="flex items-center gap-5">
           <!-- 판매자인 경우 거래 활성화 토글 -->
-          <div v-if="isSeller" class="flex flex-col items-center text-sm">
-            <span class="mb-1">거래 활성화</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" v-model="isActive" class="sr-only peer" />
-              <div
-                class="w-10 h-5 bg-[var(--brand-5)] peer-checked:bg-[var(--brand-2)] rounded-full transition-colors duration-300"
-              ></div>
-              <div
-                class="absolute left-0 top-0 w-5 h-5 bg-white border rounded-full transition-transform duration-300 transform peer-checked:translate-x-5"
-              ></div>
-            </label>
-          </div>
+          <template v-if="isSeller">
+            <!-- 거래 완료면 토글 대신 배지 -->
+            <span
+              v-if="statusRaw === 'CLOSE_DEAL'"
+              class="text-xs font-medium px-2 py-1 rounded bg-gray-100 text-gray-500"
+            >
+              거래 완료
+            </span>
+
+            <div v-else class="flex flex-col items-center text-sm">
+              <span class="mb-1">거래 활성화</span>
+              <label
+                class="relative inline-flex items-center cursor-pointer"
+                :class="
+                  isActive ? 'cursor-not-allowed pointer-events-none opacity-60' : 'cursor-pointer'
+                "
+              >
+                <input
+                  type="checkbox"
+                  :checked="isActive"
+                  @change="handleToggle"
+                  class="sr-only peer"
+                  :disabled="isActive"
+                />
+                <div
+                  class="w-10 h-5 bg-[var(--brand-5)] peer-checked:bg-[var(--brand-2)] rounded-full transition-colors duration-300"
+                ></div>
+                <div
+                  class="absolute left-0 top-0 w-5 h-5 bg-white border rounded-full transition-transform duration-300 transform peer-checked:translate-x-5"
+                ></div>
+              </label>
+            </div>
+          </template>
 
           <!-- 구매자인 경우 거래 상태 -->
-          <span
-            v-else
-            class="text-xs font-medium px-2 py-1 rounded"
-            :class="{
-              'bg-blue-100 text-blue-600': status === '진행',
-              'bg-yellow-100 text-yellow-600': status === '중',
-              'bg-gray-100 text-gray-500': status === '완료',
-            }"
-          >
-            거래 {{ status }}
-          </span>
+          <div v-else>
+            <router-link
+              v-if="status === '거래 시작하러 가기'"
+              :to="{ name: 'deal-buyer', params: { dealId }, query: { chatRoomId: roomId } }"
+              class="text-xs font-medium px-2 py-1 rounded bg-blue-100 text-blue-600 hover:bg-blue-200"
+            >
+              거래 시작하러 가기
+            </router-link>
+            <span
+              v-else
+              class="text-xs font-medium px-2 py-1 rounded"
+              :class="{
+                'bg-gray-100 text-gray-600': status === '거래 전',
+                'bg-blue-100 text-gray-600': status === '판매자 수락 전',
+                'bg-blue-100 text-blue-600': status === '거래 시작하러 가기',
+                'bg-yellow-100 text-yellow-600': status === '거래 중',
+                'bg-gray-100 text-gray-500': status === '거래 완료',
+              }"
+            >
+              {{ status }}
+            </span>
+          </div>
 
           <!-- 나가기 버튼 -->
           <Button
@@ -81,29 +113,37 @@
       <!-- 채팅 내용 -->
       <main ref="scrollArea" class="flex-1 overflow-y-auto px-4 py-3 space-y-4" @scroll="onScroll">
         <div v-for="(msg, index) in viewMessages" :key="index" class="flex flex-col">
-          <!-- 말풍선 -->
-          <div
-            :class="[
-              msg.isMine
-                ? 'self-end bg-[var(--brand-4)] text-gray-800'
-                : 'self-start bg-[var(--brand-5)] border text-gray-800',
-              'rounded-lg px-3 py-2 max-w-xs text-sm',
-            ]"
-          >
-            <p>{{ msg.message }}</p>
+          <!-- 시스템 메시지: 가운데 회색 배지 -->
+          <div v-if="msg.isSystem" class="self-center my-1">
+            <span class="text-[10px] md:text-xs px-2 py-1 rounded bg-gray-100 text-gray-500">
+              {{ msg.message }}
+            </span>
           </div>
 
-          <!-- 시간 -->
-          <p
-            :class="[
-              msg.isMine
-                ? 'self-end text-right text-xs text-gray-500 pr-1'
-                : 'self-start text-xs text-gray-400 pl-1',
-              'mt-1',
-            ]"
-          >
-            {{ msg.createdAt || '' }}
-          </p>
+          <!-- 일반 말풍선 -->
+          <template v-else>
+            <div
+              :class="[
+                msg.isMine
+                  ? 'self-end bg-[var(--brand-4)] text-gray-800'
+                  : 'self-start bg-[var(--brand-5)] border text-gray-800',
+                'rounded-lg px-3 py-2 max-w-xs text-sm',
+              ]"
+            >
+              <p>{{ msg.message }}</p>
+            </div>
+
+            <p
+              :class="[
+                msg.isMine
+                  ? 'self-end text-right text-xs text-gray-500 pr-1'
+                  : 'self-start text-xs text-gray-400 pl-1',
+                'mt-1',
+              ]"
+            >
+              {{ msg.createdAt || '' }}
+            </p>
+          </template>
         </div>
       </main>
 
@@ -113,11 +153,13 @@
           v-model="newMessage"
           @keyup.enter="sendMessage"
           type="text"
-          placeholder="메시지를 입력하세요..."
+          :placeholder="getPlaceholder"
+          :disabled="isInputDisabled"
           class="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none"
         />
         <button
           @click="sendMessage"
+          :disabled="isInputDisabled"
           class="w-10 h-10 flex items-center justify-center bg-[var(--brand-3)] text-white rounded-lg hover:bg-[var(--brand-2)]"
         >
           <i class="fas fa-paper-plane text-base"></i>
@@ -145,76 +187,128 @@ const authStore = useAuthStore()
 const { connect, subscribeRoom, unsubscribeRoom, disconnect, connected } = useStomp()
 const roomId = computed(() => String(route.params.roomId || ''))
 //const myUserId = computed(() => authStore.userId || authStore.memberId || '')
-const myUserId = '1a2b3c4d-1111-2222-3333-444455556666'
+const myUserId = '8h9i0j1k-1111-2222-3333-444455556673'
 
 //나가기 모달
 const showModal = ref(false)
 const leaving = ref(false)
 
 const isSeller = ref(false) // 'BUYER' or 'SELLER'
-const isActive = ref(true) // 거래 활성화 toggle
-const status = ref('중') // 거래 상태 (구매자용)
+const isActive = ref(false) // 거래 활성화 toggle
+const statusRaw = ref('') // 거래 상태 원본 값: 'BEFORE_TRANSACTION', 'BEFORE_OWNER', 'BEFORE_CONSUMER', 'MIDDLE_DEAL', 'CLOSE_DEAL' 등
+const status = ref('') // 거래 상태 : '거래 전', '거래 중', '거래 완료' 등
 
 const otherNickname = ref('') //대화 상대방 닉네임
 const buildingName = ref('')
 const sellerType = ref('') // or '세입자'
+const sellerVisible = ref(1) // 1: 보임, 0: 나감
+const consumerVisible = ref(1) // 1: 보임, 0: 나감
+const dealId = ref('')
 
-//////////////////////////
 function mapSellerType(raw) {
   const v = String(raw || '').toUpperCase()
   if (v === 'OWNER') return '집주인'
   if (v === 'TENANT') return '세입자'
-  if (v === 'AGENCY' || v === 'AGENT' || v === 'BROKER') return '중개사'
   return raw || ''
 }
 
 function mapDealStatus(raw) {
-  if (!raw) return '중'
+  if (!raw) return '거래 전'
   const v = String(raw).toUpperCase()
-  if (['IN_PROGRESS', 'PROGRESS', 'ONGOING'].includes(v)) return '진행'
-  if (['COMPLETE', 'COMPLETED', 'DONE', '완료'].includes(v)) return '완료'
-  if (['PENDING', 'HOLD', '중'].includes(v)) return '중'
+  if (['BEFORE_TRANSACTION'].includes(v)) return '거래 전'
+  if (['BEFORE_OWNER'].includes(v)) return '판매자 수락 전'
+  if (['BEFORE_CONSUMER'].includes(v)) return '거래 시작하러 가기'
+  if (['MIDDLE_DEAL'].includes(v)) return '거래 중'
+  if (['CLOSE_DEAL'].includes(v)) return '거래 완료'
+
   return String(raw) // 그대로 표시
 }
 
 async function fetchRoomMeta() {
   try {
-    const { data } = await axios.get(`http://localhost:8080/chat/room/info/${roomId.value}`)
+    const { data } = await axios.get(`/api/chat/room/info/${roomId.value}`)
     // 응답 형태가 {room: {...}} 또는 바로 {...} 둘 다 대응
     const r = data?.room ?? data ?? {}
 
     //const myId = myUserId.value
     const myId = myUserId
 
+    sellerVisible.value = Number(r.sellerVisible ?? 1)
+    consumerVisible.value = Number(r.consumerVisible ?? 1)
+
     // 내가 판매자인지 계산
     const iAmSeller = !!myId && !!r.sellerId && myId === r.sellerId
     isSeller.value = iAmSeller
-    console.log('myId: ', myId, 'sellerId: ', r.sellerId, 'isSeller: ', isSeller.value)
 
     // 헤더
     buildingName.value = r.buildingName ?? ''
     sellerType.value = mapSellerType(r.sellerType)
     otherNickname.value = iAmSeller ? r.consumerNickname ?? '' : r.sellerNickname ?? ''
-    console.log('consumerNickname: ' + r.consumerNickname, '  sellerNickname: ' + r.sellerNickname)
-    console.log('상대방 닉네임: ' + otherNickname.value)
 
-    // 거래 상태/활성화
-    const dealStatusRaw = r.status ?? null
-    status.value = mapDealStatus(dealStatusRaw)
-    // 완료가 아니면 활성으로 간주(백엔드에 전용 필드가 있다면 그걸 사용)
-    isActive.value = !(
-      String(dealStatusRaw ?? '').toUpperCase() === 'COMPLETE' || dealStatusRaw === '완료'
-    )
+    // 거래 활성화 토글 관련
+    const raw = String(r.status ?? '').toUpperCase()
+    statusRaw.value = raw
+    status.value = mapDealStatus(raw)
 
-    console.log('myId:', myUserId, typeof myUserId, (myUserId || '').length)
-    console.log('sellerUUID cand:', r.sellerId)
-    console.log('consumerUUID cand:', r.consumerId)
-    console.log('myUserId: ', myUserId, 'r.sellerId: ', r.sellerId)
+    // 거래 활성화 초기 상태(요구사항대로)
+    isActive.value = ['BEFORE_CONSUMER', 'MIDDLE_DEAL'].includes(statusRaw.value)
+
+    dealId.value = r.dealId || '' // 거래 ID
   } catch (e) {
-    console.error('방 메타 로딩 실패:', e)
+    console.error('방 로딩 실패:', e)
   }
 }
-/////////////////////
+
+watch(statusRaw, (v) => {
+  if (['BEFORE_TRANSACTION', 'BEFORE_OWNER'].includes(v)) {
+    isActive.value = false
+  } else if (['BEFORE_CONSUMER', 'MIDDLE_DEAL'].includes(v)) {
+    isActive.value = true
+  } else {
+    // CLOSE_DEAL 등
+    isActive.value = false
+  }
+})
+
+// 토글 클릭 핸들러
+function handleToggle(e) {
+  const checked = e.target.checked
+
+  // 활성화가 꺼진 상태(= BEFORE_TRANSACTION/BEFORE_OWNER)에서만 클릭 가능
+  if (['BEFORE_TRANSACTION', 'BEFORE_OWNER'].includes(statusRaw.value) && checked) {
+    if (!dealId.value) {
+      console.warn('dealId 없음: /deal/seller 경로로 이동 불가')
+      return
+    }
+    router.push({
+      name: 'deal-seller',
+      params: {
+        dealId: dealId.value,
+      },
+      query: {
+        chatRoomId: roomId.value, // 채팅방 id 전달
+      },
+    })
+  }
+}
+
+const getPlaceholder = computed(() => {
+  if (isSeller.value && consumerVisible.value === 0) {
+    return '구매자가 채팅방을 나갔습니다.'
+  }
+  if (!isSeller.value && sellerVisible.value === 0) {
+    return '판매자가 채팅방을 나갔습니다.'
+  }
+  return '메시지를 입력하세요...'
+})
+
+const isInputDisabled = computed(() => {
+  // 상대방이 나간 경우에만 입력 막기
+  return (
+    (isSeller.value && consumerVisible.value === 0) ||
+    (!isSeller.value && sellerVisible.value === 0)
+  )
+})
 
 const messages = computed(() => chatStore.messages)
 
@@ -223,7 +317,7 @@ const viewMessages = computed(() =>
   messages.value.map((m) => ({
     ...m,
     //isMine: m.senderId === myUserId.value,
-    isMine: m.senderId === myUserId,
+    isMine: !m.isSystem && m.senderId === myUserId,
   }))
 )
 
@@ -269,10 +363,14 @@ function subscribeCurrentRoom() {
   if (!connected.value || !roomId.value) return
   subscribeRoom(roomId.value, (message /*, subscribedRoomId */) => {
     // 수신 즉시 스토어에 누적
-    chatStore.messages.push(message)
-    // 내가 보낸 게 아니면 읽음 처리
+    const normalized = chatStore.pushIncoming(message)
+    // 내가 보낸 게 아니고 시스템 메시지도 아닐 때만 읽음 처리
     //if (message?.senderId && message.senderId !== myUserId.value) {
-    if (message?.senderId && message.senderId !== myUserId) {
+    if (
+      !normalized?.isSystem &&
+      normalized?.senderId &&
+      String(normalized.senderId) !== String(myUserId)
+    ) {
       chatStore.markAsRead()
     }
   })
@@ -329,6 +427,10 @@ onUnmounted(() => {
 
 const newMessage = ref('')
 const sendMessage = async () => {
+  if (isInputDisabled.value) {
+    alert(getPlaceholder.value) // 선택: 안내 메시지
+    return
+  }
   const text = newMessage.value.trim()
   if (!text) return
   await chatStore.sendMessage(text) // 스토어가 publish & 로컬 목록 반영

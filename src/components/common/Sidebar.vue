@@ -4,13 +4,13 @@
     v-if="isOpen"
     :class="[
       'bg-white shadow-lg',
-      // 데스크탑에서는 absolute로 헤더 아래에 오버레이, 모바일에서는 오른쪽에서 슬라이드
-      'lg:absolute lg:top-24 lg:right-0 lg:w-full lg:h-auto lg:z-50 lg:shadow-xl lg:border lg:border-gray-200',
+      // 데스크탑에서는 완전히 숨김, 모바일에서는 오른쪽에서 슬라이드
+      'lg:hidden',
       'fixed top-0 right-0 w-80 h-screen z-50',
-      // 데스크탑에서는 애니메이션 없음, 모바일에서는 transition 적용
-      'lg:transition-none transition-all duration-300',
-      // 데스크탑에서는 항상 보임, 모바일에서는 오른쪽에서 왼쪽으로
-      isOpen ? 'lg:translate-y-0 translate-x-0' : 'lg:translate-y-0 translate-x-full',
+      // 모바일에서만 transition 적용
+      'transition-all duration-300',
+      // 모바일에서만 오른쪽에서 왼쪽으로
+      isOpen ? 'translate-x-0' : 'translate-x-full',
     ]"
   >
     <!-- 헤더 영역 -->
@@ -125,8 +125,7 @@ const typeAMenuItems = computed(() => {
     { id: 'map', label: '지도', action: 'navigate' },
     { id: 'chat', label: '채팅', action: 'navigate' },
     { id: 'trade', label: '거래', action: 'navigate' },
-    { id: 'property-search', label: '매물 찾기', action: 'navigate' },
-    { id: 'property-register', label: '매물 올리기', action: 'navigate' },
+    { id: 'property-register', label: '매물 등록', action: 'navigate' },
   ]
 
   // 로그인 상태에 따라 마이페이지 또는 로그인 버튼 추가

@@ -15,34 +15,58 @@
       </div>
 
       <!-- Main Content Section -->
-      <div class="flex-1 flex justify-between items-center ml-4">
-        <!-- Search Bar -->
-        <div class="flex-1 max-w-2xl mx-4 md:mx-6">
-          <div class="relative">
-            <div class="flex items-center bg-zinc-100 rounded-lg px-3 py-2">
-              <i class="fas fa-search text-neutral-600 text-base mr-2"></i>
-              <input
-                ref="searchInputRef"
-                v-model="searchQuery"
-                @keyup.enter="handleSearch"
-                @input="handleSearchInput"
-                type="text"
-                placeholder="지역, 매물명, 지하철역으로 검색"
-                class="flex-1 bg-transparent text-text-1 text-sm md:text-base font-normal font-inter placeholder-text-1 outline-none ml-2"
-              />
-              <button
-                v-if="searchQuery"
-                @click="clearSearch"
-                class="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-          </div>
+      <div class="flex-1 flex items-center ml-4">
+        <!-- Navigation Buttons - Centered -->
+        <div class="flex-1 flex justify-center items-center gap-4">
+          <button
+            @click="handleNavigation('map')"
+            class="px-4 py-2 text-green-900 hover:text-brand-1 hover:underline hover:underline-offset-8 hover:decoration-brand-1 hover:decoration-2 transition-all duration-200 font-medium"
+          >
+            지도
+          </button>
+          <button
+            @click="handleNavigation('chat')"
+            class="px-4 py-2 text-green-900 hover:text-brand-1 hover:underline hover:underline-offset-8 hover:decoration-brand-1 hover:decoration-2 transition-all duration-200 font-medium"
+          >
+            채팅
+          </button>
+          <button
+            @click="handleNavigation('trade')"
+            class="px-4 py-2 text-green-900 hover:text-brand-1 hover:underline hover:underline-offset-8 hover:decoration-brand-1 hover:decoration-2 transition-all duration-200 font-medium"
+          >
+            거래
+          </button>
+          <button
+            @click="handleNavigation('property-register')"
+            class="px-4 py-2 text-green-900 hover:text-brand-1 hover:underline hover:underline-offset-8 hover:decoration-brand-1 hover:decoration-2 transition-all duration-200 font-medium"
+          >
+            매물 등록
+          </button>
+          <button
+            v-if="isLoggedIn"
+            @click="handleNavigation('mypage')"
+            class="px-4 py-2 text-green-900 hover:text-brand-1 hover:underline hover:underline-offset-8 hover:decoration-brand-1 hover:decoration-2 transition-all duration-200 font-medium"
+          >
+            마이페이지
+          </button>
+          <button
+            v-if="isLoggedIn"
+            @click="handleLogout"
+            class="px-4 py-2 text-green-900 hover:text-brand-1 hover:underline hover:underline-offset-8 hover:decoration-brand-1 hover:decoration-2 transition-all duration-200 font-medium"
+          >
+            로그아웃
+          </button>
+          <button
+            v-else
+            @click="handleNavigation('login')"
+            class="px-4 py-2 text-green-900 hover:text-brand-1 hover:underline hover:underline-offset-8 hover:decoration-brand-1 hover:decoration-2 transition-all duration-200 font-medium"
+          >
+            로그인
+          </button>
         </div>
 
         <!-- User Profile Section -->
-        <div class="flex items-center gap-3 md:gap-4">
+        <div class="flex items-center gap-3 md:gap-4 ml-4">
           <button
             @click="isLoggedIn ? handleNavigation('mypage') : handleNavigation('login')"
             class="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity cursor-pointer"
@@ -100,17 +124,17 @@
 
             <!-- 빨간 원 숫자 뱃지 -->
             <span
-              v-if="totalAllCount > 0"
+              v-if="unreadAllCount > 0"
               class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 text-[11px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center shadow-md ring-2 ring-white"
             >
-              {{ totalAllCountDisplay }}
+              {{ unreadAllCountDisplay }}
             </span>
           </button>
 
           <!-- Hamburger Menu Button for Desktop -->
           <button
             @click="toggleSidebar"
-            class="w-10 h-10 flex items-center justify-center text-green-900 hover:text-brand-1 transition-colors"
+            class="hidden lg:hidden w-10 h-10 flex items-center justify-center text-green-900 hover:text-brand-1 transition-colors"
           >
             <svg
               class="w-6 h-6 transition-all duration-300 ease-in-out"
@@ -155,15 +179,8 @@
           />
         </div>
 
-        <!-- Right Icons: Search, User, Notification, Hamburger -->
+        <!-- Right Icons: User, Notification, Hamburger -->
         <div class="flex items-center gap-2 sm:gap-3 h-10">
-          <!-- Search Button (Mobile only) -->
-          <button
-            @click="handleSearchIconClick"
-            class="lg:hidden w-10 h-10 flex items-center justify-center text-green-900 hover:text-brand-1 transition-colors"
-          >
-            <i class="fas fa-search text-sm"></i>
-          </button>
           <button
             @click="isLoggedIn ? handleNavigation('mypage') : handleNavigation('login')"
             class="flex items-center gap-1 h-full hover:opacity-80 transition-opacity"
@@ -220,18 +237,11 @@
 
             <!-- 빨간 원 숫자 뱃지 -->
             <span
-              v-if="totalAllCount > 0"
+              v-if="unreadAllCount > 0"
               class="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-[3px] text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center shadow-md ring-2 ring-white"
             >
-              {{ totalAllCountDisplay }}
+              {{ unreadAllCountDisplay }}
             </span>
-          </button>
-          <button
-            v-if="isLoggedIn"
-            @click="handleLogout"
-            class="text-brand-1 text-xs font-semibold font-inter border border-brand-2 rounded px-2 py-1 hover:bg-brand-2 hover:text-white transition-colors whitespace-nowrap flex-shrink-0 h-full items-center"
-          >
-            로그아웃
           </button>
 
           <!-- Hamburger Menu Button -->
@@ -276,13 +286,6 @@
       @close="closeSidebar"
       @menu-click="handleSidebarMenuClick"
     />
-
-    <!-- Search Modal -->
-    <SearchModal
-      :is-open="isSearchModalOpen"
-      @close="closeSearchModal"
-      @search="handleSearchFromModal"
-    />
   </header>
 </template>
 
@@ -290,7 +293,6 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Sidebar from './Sidebar.vue'
-import SearchModal from './SearchModal.vue'
 import { useNotificationStore } from '@/stores/notification/notification'
 import { useAuthStore } from '@/stores/auth/auth'
 
@@ -301,10 +303,22 @@ import { listenForegroundMessage, requestFcmToken } from '@/utils/fcm'
 const notificationStore = useNotificationStore()
 const authStore = useAuthStore()
 
-// 종 옆에 표시할 전체 알림 개수 (filterCounts.ALL)
-const totalAllCount = computed(() => Number(notificationStore.counts?.ALL ?? 0))
+// // 종 옆에 표시할 전체 알림 개수 (filterCounts.ALL)
+// const totalAllCount = computed(() => Number(notificationStore.counts?.ALL ?? 0))
+// const totalAllCountDisplay = computed(() =>
+//   totalAllCount.value > 99 ? '99+' : String(totalAllCount.value)
+// )
+
+// 헤더 "총 X개" 등에 사용할 전체 알림 개수 (totalCounts.ALL)
+const totalAllCount = computed(() => Number(notificationStore.totalCounts?.ALL ?? 0))
 const totalAllCountDisplay = computed(() =>
   totalAllCount.value > 99 ? '99+' : String(totalAllCount.value)
+)
+
+// 종 배지(빨간 원)에는 "읽지 않은" 개수만 표시 (unreadCounts.ALL)
+const unreadAllCount = computed(() => Number(notificationStore.unreadCounts?.ALL ?? 0))
+const unreadAllCountDisplay = computed(() =>
+  unreadAllCount.value > 99 ? '99+' : String(unreadAllCount.value)
 )
 
 // Router 인스턴스 가져오기
@@ -350,10 +364,7 @@ watch(
 )
 
 // Reactive data
-const searchQuery = ref('')
-const searchInputRef = ref(null)
 const isSidebarOpen = ref(false)
-const isSearchModalOpen = ref(false)
 
 // 로그인 상태 확인
 const isLoggedIn = computed(() => {
@@ -370,8 +381,7 @@ const sidebarMenuItems = computed(() => {
     { id: 'map', label: '지도', action: 'navigate' },
     { id: 'chat', label: '채팅', action: 'navigate' },
     { id: 'trade', label: '거래', action: 'navigate' },
-    { id: 'property-search', label: '매물 찾기', action: 'navigate' },
-    { id: 'property-register', label: '매물 올리기', action: 'navigate' },
+    { id: 'property-register', label: '매물 등록', action: 'navigate' },
   ]
 
   // 로그인 상태에 따라 마이페이지 또는 로그인/로그아웃 버튼 추가
@@ -412,9 +422,6 @@ const handleNavigation = (route) => {
     case 'trade':
       router.push('/deal/waitinglist')
       break
-    case 'property-search':
-      router.push('/property/search')
-      break
     case 'property-register':
       router.push('/property/register')
       break
@@ -448,37 +455,6 @@ const handleSidebarMenuClick = (item) => {
   }
 
   closeSidebar()
-}
-
-// Search methods
-const handleSearch = () => {
-  if (searchQuery.value.trim()) {
-    console.log('검색 실행:', searchQuery.value)
-  }
-}
-
-const handleSearchInput = () => {
-  console.log('검색 입력:', searchQuery.value)
-}
-
-const clearSearch = () => {
-  searchQuery.value = ''
-  console.log('검색어 초기화')
-}
-
-const handleSearchIconClick = () => {
-  console.log('검색 버튼 클릭 - 검색 모달 열기')
-  isSearchModalOpen.value = true
-}
-
-const closeSearchModal = () => {
-  isSearchModalOpen.value = false
-}
-
-const handleSearchFromModal = (searchTerm) => {
-  console.log('모달에서 검색 실행:', searchTerm)
-  // 검색 페이지로 이동하거나 검색 결과 페이지로 이동
-  router.push(`/property/search?q=${encodeURIComponent(searchTerm)}`)
 }
 </script>
 
