@@ -4,8 +4,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 // API 및 컴포넌트 import
-import { getDeals } from '@/api/deal/deal.js'
-import axios from 'axios'
+import { getDeals, changeDealStatus } from '@/api/deal/deal.js'
 import PropertyCardWaiting from '@/components/common/PropertyCardWaiting.vue'
 import Button from '@/components/common/Button.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -76,30 +75,9 @@ const fetchDeals = async () => {
     }
 
     // 실제 API 호출
-    console.log('=== API 호출 시작 ===')
-    console.log('현재 토큰:', localStorage.getItem('token'))
-    console.log('현재 사용자:', localStorage.getItem('user'))
-    console.log('API 엔드포인트: /deal/waitinglist')
-
     let response
     try {
-      console.log('getDeals 함수 호출 직전')
-
-      // 직접 axios 호출로 테스트
-      console.log('직접 axios 호출 시도')
-      const directResponse = await axios.get('/api/deal/waitinglist', {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      })
-      console.log('직접 axios 호출 성공:', directResponse)
-
       response = await getDeals()
-      console.log('getDeals 함수 호출 완료')
-      console.log('API 응답 성공:', response)
-      console.log('응답 데이터:', response.data)
-      console.log('응답 상태:', response.status)
     } catch (apiError) {
       console.error('getDeals API 호출 실패:', apiError)
       throw apiError
@@ -120,12 +98,6 @@ const fetchDeals = async () => {
       deals.value = []
     }
   } catch (err) {
-    console.log('=== API 호출 실패 ===')
-    console.log('에러 객체:', err)
-    console.log('에러 응답:', err.response)
-    console.log('에러 상태:', err.response?.status)
-    console.log('에러 메시지:', err.message)
-
     // 401 Unauthorized 에러인 경우 로그인 페이지로 이동
     if (err.response?.status === 401) {
       showLoginRequiredPopup()
@@ -192,53 +164,33 @@ const handleLoginModalClose = () => {
 // ===== 필터링된 거래 목록 계산 =====
 // 활성화된 필터에 따라 거래 목록을 동적으로 필터링
 const filteredDeals = computed(() => {
-  console.log('=== 필터링 시작 ===')
-  console.log('활성 필터:', activeFilter.value)
-  console.log('전체 거래 수:', deals.value.length)
-  console.log('원본 거래 데이터:', deals.value)
-
   let filtered = []
 
   if (activeFilter.value === 'all') {
     filtered = deals.value
-    console.log('전체 필터 적용 - 결과:', filtered.length)
   } else if (activeFilter.value === 'buying') {
     // 구매자 관점에서 볼 수 있는 거래들 (거래 완료 제외)
     filtered = deals.value.filter((deal) => {
       const isBuying = deal.userStatus === '구매중'
       const isNotCompleted = deal.dealStatus !== DEAL_STATUS.CLOSE_DEAL
-      console.log(
-        `거래 ${deal.dealId}: userStatus=${deal.userStatus}, dealStatus=${deal.dealStatus}, isBuying=${isBuying}, isNotCompleted=${isNotCompleted}`
-      )
       return isBuying && isNotCompleted
     })
-    console.log('구매중 필터 적용 (거래 완료 제외) - 결과:', filtered.length)
   } else if (activeFilter.value === 'selling') {
     // 판매자 관점에서 볼 수 있는 거래들 (거래 완료 제외)
     filtered = deals.value.filter((deal) => {
       const isSelling = deal.userStatus === '판매중'
       const isNotCompleted = deal.dealStatus !== DEAL_STATUS.CLOSE_DEAL
-      console.log(
-        `거래 ${deal.dealId}: userStatus=${deal.userStatus}, dealStatus=${deal.dealStatus}, isSelling=${isSelling}, isNotCompleted=${isNotCompleted}`
-      )
       return isSelling && isNotCompleted
     })
-    console.log('판매중 필터 적용 (거래 완료 제외) - 결과:', filtered.length)
   } else if (activeFilter.value === 'completed') {
     // 거래 완료된 거래들
     filtered = deals.value.filter((deal) => {
       const isCompleted = deal.dealStatus === DEAL_STATUS.CLOSE_DEAL
-      console.log(`거래 ${deal.dealId}: dealStatus=${deal.dealStatus}, isCompleted=${isCompleted}`)
       return isCompleted
     })
-    console.log('완료 필터 적용 - 결과:', filtered.length)
   } else {
     filtered = deals.value
-    console.log('기본값 - 결과:', filtered.length)
   }
-
-  console.log('필터링된 거래:', filtered)
-  console.log('=== 필터링 완료 ===')
 
   return filtered
 })
@@ -246,14 +198,7 @@ const filteredDeals = computed(() => {
 // ===== 필터 설정 함수 =====
 // 사용자가 선택한 필터를 활성화
 const setActiveFilter = (filter) => {
-  console.log('=== 필터 변경 ===')
-  console.log('이전 필터:', activeFilter.value)
-  console.log('새 필터:', filter)
-
   activeFilter.value = filter
-
-  console.log('필터 변경 완료:', activeFilter.value)
-  console.log('=== 필터 변경 완료 ===')
 }
 
 // ===== 거래 데이터 포맷팅 함수 =====
@@ -290,17 +235,11 @@ const formatDealForPropertyCard = (deal) => {
 
 // 사용자 역할 결정 함수
 const determineUserRole = (deal, currentUser) => {
-  console.log('=== 사용자 역할 결정 ===')
-  console.log('거래 데이터:', deal)
-  console.log('현재 사용자:', currentUser)
-
   // API 응답에 판매자/구매자 ID가 있는 경우
   if (deal.sellerId && deal.buyerId) {
     if (currentUser && deal.sellerId === currentUser.id) {
-      console.log('판매자로 판단됨')
       return 'seller'
     } else if (currentUser && deal.buyerId === currentUser.id) {
-      console.log('구매자로 판단됨')
       return 'buyer'
     }
   }
@@ -308,14 +247,12 @@ const determineUserRole = (deal, currentUser) => {
   // API 응답에 ownerId가 있는 경우
   if (deal.ownerId) {
     if (currentUser && deal.ownerId === currentUser.id) {
-      console.log('소유자(판매자)로 판단됨')
       return 'seller'
     }
   }
 
   // 기본값: userStatus로 판단 (임시)
   const defaultRole = deal.userStatus === '구매중' ? 'buyer' : 'seller'
-  console.log(`기본값 사용: ${defaultRole}`)
   return defaultRole
 }
 
@@ -361,21 +298,13 @@ const mapDealStatus = (apiDealStatus) => {
 // ===== 거래 상세 페이지 이동 처리 =====
 // PropertyCard에서 버튼 클릭 시 호출
 const handleDealDetail = (property) => {
-  console.log('=== 버튼 클릭 ===')
-  console.log('거래 정보:', property)
-
   const dealId = property.dealId
   const dealStatus = property.dealStatusEnum
   const userRole = property.userRole
 
-  console.log('dealId:', dealId)
-  console.log('dealStatus:', dealStatus)
-  console.log('userRole:', userRole)
-
   // dealStatus와 사용자 역할에 따른 분기 처리
   if (dealStatus === DEAL_STATUS.BEFORE_TRANSACTION) {
-    // 채팅방 이동 (chatRoomId 사용)
-    console.log('BEFORE_TRANSACTION -> 채팅방 이동')
+    // 거래 전 상태: 채팅방 이동
     if (property.chatRoomId) {
       router.push(`/chat/room/${property.chatRoomId}`)
     } else {
@@ -383,12 +312,10 @@ const handleDealDetail = (property) => {
     }
   } else if (dealStatus === DEAL_STATUS.BEFORE_OWNER) {
     if (userRole === 'seller') {
-      // 판매자 거래 수락 페이지 이동
-      console.log('BEFORE_OWNER + seller -> 판매자 거래 수락 페이지')
-      router.push(`/deal/seller/${dealId}`)
+      // 판매자: 판매자 거래 수락 페이지 이동
+      router.push(`/deal/seller/${dealId}?chatRoomId=${property.chatRoomId}`)
     } else {
       // 구매자: 판매자 거래 수락 대기 (채팅방으로 이동)
-      console.log('BEFORE_OWNER + consumer -> 채팅방 이동')
       if (property.chatRoomId) {
         router.push(`/chat/room/${property.chatRoomId}`)
       } else {
@@ -398,44 +325,25 @@ const handleDealDetail = (property) => {
   } else if (dealStatus === DEAL_STATUS.BEFORE_CONSUMER) {
     if (userRole === 'seller') {
       // 판매자: 구매자 거래 수락 대기 (채팅방으로 이동)
-      console.log('BEFORE_CONSUMER + seller -> 채팅방 이동')
       if (property.chatRoomId) {
         router.push(`/chat/room/${property.chatRoomId}`)
       } else {
         router.push(`/chat/room?dealId=${dealId}`)
       }
     } else {
-      // 구매자: 채팅방으로 이동
-      console.log('BEFORE_CONSUMER + consumer -> 채팅방 이동')
-      if (property.chatRoomId) {
-        router.push(`/chat/room/${property.chatRoomId}`)
-      } else {
-        router.push(`/chat/room?dealId=${dealId}`)
-      }
+      // 구매자: 구매자 거래 수락 페이지 이동
+      router.push(`/deal/buyer/${dealId}`)
     }
   } else if (dealStatus === DEAL_STATUS.MIDDLE_DEAL) {
     // 거래 진행 중: 거래 완료 처리
-    console.log('MIDDLE_DEAL -> 거래 완료 처리')
-    if (userRole === 'seller') {
-      // 판매자: 거래 완료 처리 (채팅방으로 이동)
-      console.log('MIDDLE_DEAL + seller -> 채팅방 이동 (거래 완료 처리)')
-      if (property.chatRoomId) {
-        router.push(`/chat/room/${property.chatRoomId}`)
-      } else {
-        router.push(`/chat/room?dealId=${dealId}`)
-      }
-    } else {
-      // 구매자: 거래 완료 처리 (구매자 거래 수락 페이지)
-      console.log('MIDDLE_DEAL + consumer -> 구매자 거래 수락 페이지 (거래 완료)')
-      router.push(`/deal/buyer/${dealId}`)
-    }
+    // 거래 완료 함수 호출 (페이지 이동 없이 상태만 변경)
+    handleCompleteDeal(property)
+    return
   } else if (dealStatus === DEAL_STATUS.CLOSE_DEAL) {
-    // 거래 이력 보기
-    console.log('CLOSE_DEAL -> 거래 이력 보기')
+    // 거래 완료: 거래 이력 보기
     router.push(`/deal/completed/${dealId}`)
   } else {
     // 기본값: 채팅방으로 이동
-    console.log('기본값 -> 채팅방 이동')
     if (property.chatRoomId) {
       router.push(`/chat/room/${property.chatRoomId}`)
     } else {
@@ -450,24 +358,54 @@ const handleDealDetail = (property) => {
   })
 }
 
-// ===== 거래 수락 처리 =====
-// 거래 수락 페이지로 이동하는 함수
-const handleAcceptance = (property) => {
-  console.log('=== 거래 수락 처리 ===')
-  console.log('거래 정보:', property)
-
+// ===== 거래 완료 처리 =====
+// 거래 완료 버튼 클릭 시 상태를 CLOSE_DEAL로 변경
+const handleCompleteDeal = async (property) => {
   const dealId = property.dealId
   const userRole = property.userRole
   const dealStatus = property.dealStatusEnum
 
-  console.log('dealId:', dealId)
-  console.log('userRole:', userRole)
-  console.log('dealStatus:', dealStatus)
+  // MIDDLE_DEAL 상태에서만 거래 완료 가능
+  if (dealStatus !== DEAL_STATUS.MIDDLE_DEAL) {
+    return
+  }
+
+  try {
+    // 거래 상태를 CLOSE_DEAL로 변경
+    const response = await changeDealStatus({
+      chatRoomId: property.chatRoomId,
+      dealId: dealId,
+      status: DEAL_STATUS.CLOSE_DEAL,
+    })
+
+    // 성공적으로 상태가 변경되면 거래 목록을 다시 불러옴
+    await fetchDeals()
+
+    // 성공 메시지 표시 (선택사항)
+    // TODO: 토스트 메시지나 알림 표시
+  } catch (error) {
+    console.error('거래 완료 처리 실패:', error)
+
+    // 백엔드에서 상태 변경은 성공했을 수 있으므로 거래 목록을 새로고침 시도
+    // 404 에러가 발생해도 실제로는 상태가 변경되었을 수 있음
+    try {
+      await fetchDeals()
+    } catch (refreshError) {
+      console.error('거래 목록 새로고침 실패:', refreshError)
+    }
+  }
+}
+
+// ===== 거래 수락 처리 =====
+// 거래 수락 페이지로 이동하는 함수
+const handleAcceptance = (property) => {
+  const dealId = property.dealId
+  const userRole = property.userRole
+  const dealStatus = property.dealStatusEnum
 
   // 사용자 역할과 거래 상태에 따라 적절한 거래 수락 페이지로 이동
   if (dealStatus === DEAL_STATUS.BEFORE_TRANSACTION) {
     // 거래 전 상태: 채팅방으로 이동
-    console.log('BEFORE_TRANSACTION -> 채팅방 이동')
     if (property.chatRoomId) {
       router.push(`/chat/room/${property.chatRoomId}`)
     } else {
@@ -475,11 +413,9 @@ const handleAcceptance = (property) => {
     }
   } else if (userRole === 'seller' && dealStatus === DEAL_STATUS.BEFORE_OWNER) {
     // 판매자: 판매자 거래 수락 페이지
-    console.log('BEFORE_OWNER + seller -> 판매자 거래 수락 페이지')
-    router.push(`/deal/seller/${dealId}`)
+    router.push(`/deal/seller/${dealId}?chatRoomId=${property.chatRoomId}`)
   } else if (userRole === 'seller' && dealStatus === DEAL_STATUS.BEFORE_CONSUMER) {
     // 판매자: 구매자 거래 수락 대기 (채팅방으로 이동)
-    console.log('BEFORE_CONSUMER + seller -> 채팅방 이동 (구매자 수락 대기)')
     if (property.chatRoomId) {
       router.push(`/chat/room/${property.chatRoomId}`)
     } else {
@@ -490,7 +426,6 @@ const handleAcceptance = (property) => {
     dealStatus === DEAL_STATUS.BEFORE_OWNER
   ) {
     // 구매자: 판매자 거래 수락 대기 (채팅방으로 이동)
-    console.log('BEFORE_OWNER + consumer -> 채팅방 이동 (판매자 수락 대기)')
     if (property.chatRoomId) {
       router.push(`/chat/room/${property.chatRoomId}`)
     } else {
@@ -501,31 +436,17 @@ const handleAcceptance = (property) => {
     dealStatus === DEAL_STATUS.BEFORE_CONSUMER
   ) {
     // 구매자: 구매자 거래 수락 페이지
-    console.log('BEFORE_CONSUMER + consumer -> 구매자 거래 수락 페이지')
     router.push(`/deal/buyer/${dealId}`)
   } else if (dealStatus === DEAL_STATUS.MIDDLE_DEAL) {
     // 거래 진행 중: 거래 완료 처리
-    console.log('MIDDLE_DEAL -> 거래 완료 처리')
-    if (userRole === 'seller') {
-      // 판매자: 거래 완료 처리 (채팅방으로 이동)
-      console.log('MIDDLE_DEAL + seller -> 채팅방 이동 (거래 완료 처리)')
-      if (property.chatRoomId) {
-        router.push(`/chat/room/${property.chatRoomId}`)
-      } else {
-        router.push(`/chat/room?dealId=${dealId}`)
-      }
-    } else {
-      // 구매자: 거래 완료 처리 (구매자 거래 수락 페이지)
-      console.log('MIDDLE_DEAL + consumer -> 구매자 거래 수락 페이지 (거래 완료)')
-      router.push(`/deal/buyer/${dealId}`)
-    }
+    // 거래 완료 함수 호출 (페이지 이동 없이 상태만 변경)
+    handleCompleteDeal(property)
+    return
   } else if (dealStatus === DEAL_STATUS.CLOSE_DEAL) {
     // 거래 완료: 거래 이력 보기
-    console.log('CLOSE_DEAL -> 거래 이력 보기')
     router.push(`/deal/completed/${dealId}`)
   } else {
     // 기본값: 채팅방으로 이동
-    console.log('기본값 -> 채팅방 이동')
     if (property.chatRoomId) {
       router.push(`/chat/room/${property.chatRoomId}`)
     } else {
@@ -543,22 +464,20 @@ const handleAcceptance = (property) => {
 // ===== 채팅 처리 =====
 // 채팅방으로 이동하는 함수
 const handleChat = (property) => {
-  console.log('=== 채팅 처리 ===')
-  console.log('거래 정보:', property)
-
   const dealId = property.dealId
   const chatRoomId = property.chatRoomId
+  const dealStatus = property.dealStatusEnum
 
-  console.log('dealId:', dealId)
-  console.log('chatRoomId:', chatRoomId)
+  // CLOSE_DEAL 상태에서는 채팅 비활성화
+  if (dealStatus === DEAL_STATUS.CLOSE_DEAL) {
+    return
+  }
 
   // chatRoomId가 있으면 채팅방으로 직접 이동
   if (chatRoomId) {
-    console.log('chatRoomId로 채팅방 이동')
     router.push(`/chat/room/${chatRoomId}`)
   } else {
     // 기존 방식: dealId로 채팅방 이동
-    console.log('dealId로 채팅방 이동')
     router.push(`/chat/room?dealId=${dealId}`)
   }
 
@@ -668,6 +587,7 @@ onMounted(() => {
                   :property="formatDealForPropertyCard(deal)"
                   @edit="handleDealDetail"
                   @acceptance="handleAcceptance"
+                  @completeDeal="handleCompleteDeal"
                   @chat="handleChat"
                   @viewDetails="handleViewDetails"
                   @review="handleReview"
@@ -747,6 +667,7 @@ onMounted(() => {
               :property="formatDealForPropertyCard(deal)"
               @edit="handleDealDetail"
               @acceptance="handleAcceptance"
+              @completeDeal="handleCompleteDeal"
               @chat="handleChat"
               @viewDetails="handleViewDetails"
               @review="handleReview"
