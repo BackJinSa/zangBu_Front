@@ -270,13 +270,14 @@ watch(statusRaw, (v) => {
 // 토글 클릭 핸들러
 function handleToggle(e) {
   const checked = e.target.checked
-
+  console.log('거래 활성화 토글 클릭: dealId', dealId.value)
   // 활성화가 꺼진 상태(= BEFORE_TRANSACTION/BEFORE_OWNER)에서만 클릭 가능
   if (['BEFORE_TRANSACTION', 'BEFORE_OWNER'].includes(statusRaw.value) && checked) {
     if (!dealId.value) {
       console.warn('dealId 없음: /deal/seller 경로로 이동 불가')
       return
     }
+
     router.push({
       name: 'deal-seller',
       params: {

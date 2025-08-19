@@ -600,7 +600,7 @@ const confirmAccept = async () => {
     // 성공 후 채팅방으로 이동
     router.push({ name: 'chat-room', params: { roomId } })
   } catch (e) {
-    console.error('거래 수락 실패:', e)
+    console.error('거래 수락 실패:', e?.response?.status, e?.response?.data)
     alert('거래 수락 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.')
   }
 }
