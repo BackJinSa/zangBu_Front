@@ -226,7 +226,7 @@ const handlePayment = async () => {
       failUrl: `${window.location.origin}/payment/fail`,
       customerEmail: paymentInfo.customerEmail,
       customerName: paymentInfo.customerName,
-      customerMobilePhone: paymentInfo.customerMobilePhone,
+      customerMobilePhone: paymentInfo.customerMobilePhone.replace(/-/g, ''),
     }
     console.log('토스페이먼츠 결제 요청 정보:', paymentRequest)
 
