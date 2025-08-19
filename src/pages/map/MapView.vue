@@ -73,6 +73,14 @@ const searchQuery = computed({
 
 const filteredProperties = computed(() => mapStore.filteredProperties)
 
+const facilityList = computed(() => {
+  const facilityString = selectedProperty.value?.resFacility || '엘리베이터, 주차장'
+  return facilityString
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item)
+})
+
 // 카카오 맵 초기화
 const initMap = () => {
   if (window.kakao && window.kakao.maps) {
@@ -111,8 +119,10 @@ const displayMarkersFromAddresses = (properties) => {
           map: map.value,
         })
 
-        // 여기에 기존의 인포윈도우 생성 및 이벤트 핸들링 로직을 추가할 수 있습니다.
-        // ... (infowindow logic from the old displayMarkers)
+        // 마커에 클릭 이벤트를 등록합니다
+        window.kakao.maps.event.addListener(marker, 'click', () => {
+          showPropertyDetail(property)
+        })
 
         markers.value.push(marker)
       } else {
@@ -260,7 +270,7 @@ const initializeKakaoMap = () => {
     // 카카오 맵 스크립트 로드 (환경변수에서 API 키를 가져옵니다)
     const KAKAO_API_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY || 'YOUR_APP_KEY'
     const script = document.createElement('script')
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_API_KEY}&autoload=false`
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_API_KEY}&autoload=false&libraries=services`
     script.onload = () => {
       window.kakao.maps.load(() => {
         initMap()
@@ -458,15 +468,12 @@ const fetchPropertyDetailWithPublicData = async (buildingId) => {
       // Codef 응답 데이터를 selectedProperty 형식에 맞게 매핑
       const propertyData = {
         buildingId: buildingId,
-        address: estate.commAddrRoadName || '주소 정보 없음',
-        buildingName: estate.resComplexName || '건물명 정보 없음',
         dataSource: 'codef_api',
-
-        // estateDetail (단지 상세 정보)
-        estateDetail: estate,
-
-        // marketPrice (시세 정보)
-        marketPrice: market,
+        ...estate, // estateDetail 객체의 모든 속성을 여기에 복사
+        ...market, // marketPrice 객체의 모든 속성을 여기에 복사
+        // 템플릿에서 사용하는 주요 값을 명시적으로 설정 (안정성 확보)
+        address: market.commAddrRoadName || market.commAddrLotNumber || '주소 정보 없음',
+        buildingName: market.resComplexName || estate.resComplexName || '건물명 정보 없음',
       }
 
       selectedProperty.value = propertyData
@@ -698,6 +705,7 @@ watch(
 )
 
 onMounted(() => {
+  console.log('MapView.vue mounted. buildingId prop:', props.buildingId)
   initializeKakaoMap()
 
   // buildingId가 있으면 매물 상세 정보 가져오기
@@ -934,7 +942,7 @@ onMounted(() => {
               <div class="info-item">
                 <span class="info-label">부동산 종류</span>
                 <span class="info-value">{{
-                  selectedProperty.resRealty || selectedProperty.propertyType
+                  selectedProperty.resType || selectedProperty.propertyType
                 }}</span>
               </div>
               <div class="info-item">
@@ -958,14 +966,6 @@ onMounted(() => {
                 <span class="info-value">101동 1001호</span>
               </div>
               <div class="info-item">
-                <span class="info-label">난방</span>
-                <span class="info-value">지역난방</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">준공일자</span>
-                <span class="info-value">2019년 12월</span>
-              </div>
-              <div class="info-item">
                 <span class="info-label">세대수</span>
                 <span class="info-value">{{
                   selectedProperty.resCompositionCnt || '1200세대'
@@ -983,11 +983,15 @@ onMounted(() => {
                   selectedProperty.resHeatingSystem || '지역난방'
                 }}</span>
               </div>
-              <div class="info-item">
+              <div class="info-item facility-info">
                 <span class="info-label">시설</span>
-                <span class="info-value">{{
-                  selectedProperty.resFacility || '엘리베이터, 주차장'
-                }}</span>
+                <div class="info-value">
+                  <div class="facility-tags">
+                    <span v-for="item in facilityList" :key="item" class="facility-tag">
+                      {{ item }}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -2510,5 +2514,41 @@ onMounted(() => {
 .price-neutral {
   color: #7f8c8d;
   font-weight: bold;
+}
+
+.facility-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.facility-tag {
+  background-color: #e0e0e0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #333;
+}
+
+/* 시설 정보 스타일 */
+.facility-info .info-value {
+  flex: 1;
+  text-align: right;
+}
+
+.facility-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.facility-tag {
+  background-color: #e9ecef;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #495057;
+  font-weight: 500;
 }
 </style>

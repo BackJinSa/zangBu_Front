@@ -67,3 +67,12 @@ export const getComplexNoWithToken = (data, accessToken) => {
     },
   })
 }
+
+/**
+ * 건물 ID로 단지 상세 정보 조회 API
+ * @param {number} buildingId - 건물 ID
+ * @returns {Promise} API 응답
+ */
+export const getComplexDetailByBuildingId = (buildingId) => {
+  return api.get(`/codef/complex/detail/${buildingId}`)
+}
