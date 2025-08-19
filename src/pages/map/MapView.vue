@@ -73,6 +73,14 @@ const searchQuery = computed({
 
 const filteredProperties = computed(() => mapStore.filteredProperties)
 
+const facilityList = computed(() => {
+  const facilityString = selectedProperty.value?.resFacility || '엘리베이터, 주차장'
+  return facilityString
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item)
+})
+
 // 카카오 맵 초기화
 const initMap = () => {
   if (window.kakao && window.kakao.maps) {
@@ -975,11 +983,15 @@ onMounted(() => {
                   selectedProperty.resHeatingSystem || '지역난방'
                 }}</span>
               </div>
-              <div class="info-item">
+              <div class="info-item facility-info">
                 <span class="info-label">시설</span>
-                <span class="info-value">{{
-                  selectedProperty.resFacility || '엘리베이터, 주차장'
-                }}</span>
+                <div class="info-value">
+                  <div class="facility-tags">
+                    <span v-for="item in facilityList" :key="item" class="facility-tag">
+                      {{ item }}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -2502,5 +2514,41 @@ onMounted(() => {
 .price-neutral {
   color: #7f8c8d;
   font-weight: bold;
+}
+
+.facility-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.facility-tag {
+  background-color: #e0e0e0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #333;
+}
+
+/* 시설 정보 스타일 */
+.facility-info .info-value {
+  flex: 1;
+  text-align: right;
+}
+
+.facility-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.facility-tag {
+  background-color: #e9ecef;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #495057;
+  font-weight: 500;
 }
 </style>
