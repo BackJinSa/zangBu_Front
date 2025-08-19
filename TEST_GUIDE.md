@@ -12,7 +12,7 @@ npm run dev
 
 ```bash
 # 카카오 맵 API 키 (실제 지도 표시용)
-VITE_KAKAO_MAP_API_KEY=129c959c600161cee63e769602aae08f
+VITE_KAKAO_MAP_API_KEY=your_api_key_here
 
 # Mock API 사용 (백엔드 없이 테스트)
 VITE_USE_MOCK_API=true

@@ -775,7 +775,7 @@ const goToChat = async () => {
   const user = ref(JSON.parse(localStorage.getItem('user')))
   console.log('goToChat에서 email: ' + user.value.email)
 
-  const consumerId = await fetchMemberIdByEmail(user.value.email)
+  const consumerId = await chatStore.fetchMemberIdByEmail(user.value.email)
   const { exists, chatRoomId } = await chatStore.existChatRoom(props.buildingId, consumerId)
 
   //채팅방 존재하면 해당 채팅방으로 이동, 존재하지 않으면 거래 안내페이지로 이동
