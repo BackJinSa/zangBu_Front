@@ -38,11 +38,11 @@ export const useMapStore = defineStore('map', () => {
   const mapLevel = ref(8)
 
   // 액션
-  const fetchProperties = async (propertyList) => {
+  const fetchProperties = async () => {
     try {
       error.value = null
 
-      const response = await getMapList(propertyList)
+      const response = await getMapList();
       properties.value = response
       filteredProperties.value = response
 
