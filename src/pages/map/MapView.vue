@@ -25,7 +25,6 @@ import { useMapStore } from '@/stores/map/map.js'
 import { useRouter, useRoute } from 'vue-router'
 import {
   getPropertyDetailById,
-  getPropertyDetailWithPublicData,
   bookmarkProperty,
   cancelBookmarkProperty,
   setPropertyNotification,
@@ -39,7 +38,6 @@ import {
 } from '@/api/publicdata/publicdata.js'
 import { useMembership } from '@/composables/useMembership'
 import { useChatStore } from '@/stores/chat/chat'
-import { useCodefStore } from '@/stores/codef/codef.js'
 
 // Props 정의
 const props = defineProps({
@@ -54,7 +52,6 @@ const mapStore = useMapStore()
 const router = useRouter()
 const route = useRoute()
 const chatStore = useChatStore()
-const codefStore = useCodefStore()
 
 // 상세 보기 상태
 const showDetail = ref(false)
@@ -206,37 +203,6 @@ const loadPropertyWithPublicData = async (buildingId) => {
   }
 }
 
-// 🆕 주소로 공공데이터 조회하는 함수
-const loadPublicDataByAddress = async (address) => {
-  try {
-    console.log('🌐 주소로 공공데이터 조회 중...', address)
-
-    const publicData = await getCompleteAptInfo(address)
-
-    if (publicData.success) {
-      console.log('✅ 공공데이터 조회 성공:', publicData)
-      return publicData
-    } else {
-      console.error('❌ 공공데이터 조회 실패:', publicData.message)
-      return null
-    }
-  } catch (error) {
-    console.error('❌ 공공데이터 조회 중 오류:', error)
-    return null
-  }
-}
-
-// 매물명을 buildingId로 매핑하는 함수
-const getBuildingIdByName = (buildingName) => {
-  const property = mapStore.properties.find((p) => p.buildingName === buildingName)
-  const buildingId = property ? property.buildingId : null
-
-  // 디버깅용 로그
-  console.log('매물명 매핑:', { buildingName, buildingId })
-
-  return buildingId
-}
-
 // 매물 데이터 로드
 const loadProperties = async () => {
   try {
@@ -375,6 +341,7 @@ const fetchPropertyDetail = async (buildingId) => {
       // API 응답에 isBookmarked와 isNotification이 없을 경우 기본값 설정
       const propertyData = {
         ...response.data,
+        buildingId: buildingId, // buildingId를 명시적으로 추가
         isBookmarked: response.data.isBookmarked ?? false,
         isNotification: response.data.isNotification ?? false,
       }
@@ -449,47 +416,6 @@ const fetchRealEstateData = async (propertyData) => {
   } catch (error) {
     console.error('실거래가 정보 가져오기 실패:', error)
     // 실거래가 조회 실패는 매물 상세 정보 표시에 영향을 주지 않도록 함
-  }
-}
-
-// 매물 상세 정보 + 공공데이터 통합 조회
-const fetchPropertyDetailWithPublicData = async (buildingId) => {
-  try {
-    console.log('CODEF API로 매물 상세 정보 조회 시작:', buildingId)
-    const result = await codefStore.fetchComplexDetailByBuildingId(buildingId)
-
-    if (result.success && result.data) {
-      const codefData = result.data.data // { estateDetail: {...}, marketPrice: {...} }
-      console.log('CODEF API 응답 데이터:', codefData)
-
-      const estate = codefData.estateDetail || {}
-      const market = codefData.marketPrice || {}
-
-      // Codef 응답 데이터를 selectedProperty 형식에 맞게 매핑
-      const propertyData = {
-        buildingId: buildingId,
-        dataSource: 'codef_api',
-        ...estate, // estateDetail 객체의 모든 속성을 여기에 복사
-        ...market, // marketPrice 객체의 모든 속성을 여기에 복사
-        // 템플릿에서 사용하는 주요 값을 명시적으로 설정 (안정성 확보)
-        address: market.commAddrRoadName || market.commAddrLotNumber || '주소 정보 없음',
-        buildingName: market.resComplexName || estate.resComplexName || '건물명 정보 없음',
-      }
-
-      selectedProperty.value = propertyData
-      showDetail.value = true
-    } else {
-      throw new Error(result.error || 'Codef API에서 데이터를 가져오지 못했습니다.')
-    }
-  } catch (error) {
-    console.error('codef API 통합 조회 실패:', error)
-
-    selectedProperty.value = {
-      buildingName: `매물 ID: ${buildingId}`,
-      address: '주소 정보 없음',
-      error: `API 호출 실패: ${error.message}`,
-    }
-    showDetail.value = true
   }
 }
 
