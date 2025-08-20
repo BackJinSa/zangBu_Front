@@ -160,9 +160,26 @@ const handleAreaInput = (event) => {
 }
 
 // 가격 입력 처리
+// 40억 초과 상태 저장
+const isPriceOverLimit = ref(false)
+
 const handlePriceInput = (event) => {
   const value = event.target.value
-  const formattedValue = formatNumber(value)
+  const numericValue = removeCommas(value)
+
+  // 40억 초과 체크
+  if (parseInt(numericValue) > 4000000000) {
+    // 입력을 차단하고 이전 값으로 되돌림
+    event.target.value = formData.value.price || ''
+    // 40억 초과 상태를 true로 설정 (에러 메시지 표시용)
+    isPriceOverLimit.value = true
+    return
+  }
+
+  // 정상 입력 시 40억 초과 상태 해제
+  isPriceOverLimit.value = false
+
+  const formattedValue = formatNumber(numericValue)
 
   // 포맷된 값으로 입력 필드 업데이트
   event.target.value = formattedValue
@@ -246,21 +263,79 @@ const handleAreaKeypress = (event) => {
   }
 }
 
+// 실제 주민등록번호 저장
+const realIdentityValue = ref('')
+// 화면 표시용 마스킹된 값
+const displayIdentityValue = ref('')
+
 // 주민등록번호 입력 처리
 const handleIdentityInput = (event) => {
-  const value = event.target.value
-  const numericValue = value.replace(/[^\d]/g, '') // 숫자만 허용
-  let formattedValue = numericValue
+  event.preventDefault() // 기본 입력 이벤트 차단
 
-  // 주민등록번호 형식으로 포맷팅 (000000-0000000)
-  if (numericValue.length > 6) {
-    formattedValue = numericValue.slice(0, 6) + '-' + numericValue.slice(6, 13)
+  const input = event.target
+  const newChar = event.data // 새로 입력된 문자
+
+  if (!newChar || !/\d/.test(newChar)) return // 숫자가 아니면 무시
+
+  // 현재 실제 값에 숫자 추가
+  const currentReal = realIdentityValue.value.replace(/[^\d]/g, '')
+  if (currentReal.length >= 13) return // 13자리 초과 방지
+
+  const newReal = currentReal + newChar
+  realIdentityValue.value = newReal
+
+  // 실제 저장값 업데이트 (하이픈 포함)
+  if (newReal.length > 6) {
+    formData.value.identity = newReal.slice(0, 6) + '-' + newReal.slice(6, 13)
+  } else {
+    formData.value.identity = newReal
   }
 
-  // 포맷된 값으로 입력 필드 업데이트
-  event.target.value = formattedValue
-  formData.value.identity = formattedValue
+  // 화면 표시값 생성 (마스킹)
+  if (newReal.length <= 6) {
+    displayIdentityValue.value = newReal
+  } else {
+    const front = newReal.slice(0, 6)
+    const back = newReal.slice(6)
+    displayIdentityValue.value = front + '-' + '●'.repeat(back.length)
+  }
+
+  // 화면에 마스킹된 값 표시
+  input.value = displayIdentityValue.value
+
   emit('update:modelValue', { ...formData.value })
+}
+
+// 백스페이스 처리
+const handleIdentityKeydown = (event) => {
+  if (event.key === 'Backspace') {
+    event.preventDefault()
+
+    const currentReal = realIdentityValue.value.replace(/[^\d]/g, '')
+    if (currentReal.length > 0) {
+      const newReal = currentReal.slice(0, -1)
+      realIdentityValue.value = newReal
+
+      // 실제 저장값 업데이트
+      if (newReal.length > 6) {
+        formData.value.identity = newReal.slice(0, 6) + '-' + newReal.slice(6, 13)
+      } else {
+        formData.value.identity = newReal
+      }
+
+      // 화면 표시값 생성
+      if (newReal.length <= 6) {
+        displayIdentityValue.value = newReal
+      } else {
+        const front = newReal.slice(0, 6)
+        const back = newReal.slice(6)
+        displayIdentityValue.value = front + '-' + '●'.repeat(back.length)
+      }
+
+      event.target.value = displayIdentityValue.value
+      emit('update:modelValue', { ...formData.value })
+    }
+  }
 }
 
 // 주민등록번호 입력 키 제한 (숫자만 허용)
@@ -301,6 +376,11 @@ const identityError = computed(() => {
 
 // 가격 유효성 검사
 const priceError = computed(() => {
+  // 40억 초과 시도한 경우 에러 메시지 표시
+  if (isPriceOverLimit.value) {
+    return '매매가는 40억 원을 초과할 수 없습니다'
+  }
+
   if (!formData.value.price) return ''
   const price = parseInt(removeCommas(formData.value.price))
   if (price > 4000000000) {
@@ -933,11 +1013,12 @@ const updateBuildingHo = (value) => {
     <div v-if="!isEditMode">
       <label class="block text-sm font-medium text-text-2 mb-3">주민등록번호</label>
       <input
-        :value="formData.identity"
+        :value="displayIdentityValue || formData.identity"
         @input="handleIdentityInput"
+        @keydown="handleIdentityKeydown"
         @keypress="handleIdentityKeypress"
         type="text"
-        placeholder="예) 901231-1234567"
+        placeholder="예) 901231-●●●●●●●"
         maxlength="14"
         class="w-full px-4 py-3 text-base leading-6 text-text-2 bg-bg-2 border border-bg-1 rounded-lg outline-none box-border placeholder:text-text-1 placeholder:text-base focus:border-brand-3 focus:ring-1 focus:ring-brand-3 transition-colors"
       />
