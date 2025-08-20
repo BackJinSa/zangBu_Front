@@ -370,51 +370,37 @@ const delay = (ms = 500) => new Promise(resolve => setTimeout(resolve, ms))
 
 // 건물 정보 조회
 export const getBuildingInfo = async (buildingId) => {
-  // Mock 데이터 사용
-  await delay(300)
-
-  const buildingInfo = mockBuildingData[buildingId]
-  if (!buildingInfo) {
-    throw new Error('건물 정보를 찾을 수 없습니다.')
+  try {
+    const response = await api.get(`/review/building/${buildingId}`)
+    return response
+  } catch (error) {
+    console.error('Building info fetch failed:', error)
+    throw error
   }
-
-  return { data: buildingInfo }
 }
 
 // 특정 건물의 리뷰 목록 조회 (페이지네이션 포함)
 export const getReviewsByBuilding = async (buildingId, page = 1, size = 5) => {
-  // Mock 데이터 사용
-  await delay(500)
-
-  const reviews = mockReviewsData[buildingId] || []
-  const total = reviews.length
-  const startIndex = (page - 1) * size
-  const endIndex = startIndex + size
-  const paginatedReviews = reviews.slice(startIndex, endIndex)
-  const hasNext = endIndex < total
-  const latestReviewRank = reviews.length > 0 ? reviews[0].rank : null
-
-  return {
-    data: {
-      total,
-      reviews: paginatedReviews,
-      hasNext,
-      latestReviewRank
-    }
+  try {
+    const response = await api.get(`/review/${buildingId}`, {
+      params: { page, size }
+    })
+    return response
+  } catch (error) {
+    console.error('Failed to fetch reviews:', error)
+    throw error
   }
 }
 
 // 리뷰 상세 조회
 export const getReviewDetail = async (reviewId) => {
-  // Mock 데이터 사용
-  await delay(300)
-
-  const reviewDetail = mockReviewDetails[reviewId]
-  if (!reviewDetail) {
-    throw new Error('리뷰를 찾을 수 없습니다.')
+  try {
+    const response = await api.get(`/review/detail/${reviewId}`)
+    return response
+  } catch (error) {
+    console.error('Failed to fetch review details:', error)
+    throw error
   }
-
-  return { data: reviewDetail }
 }
 
 /**
