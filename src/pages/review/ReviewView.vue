@@ -54,6 +54,13 @@ const goBack = () => {
 
 // 글쓰기 페이지로 이동
 const goToWrite = () => {
+  // 현재 건물 정보를 store에 저장하여 ReviewWriteView에서 사용할 수 있도록 함
+  if (reviewStore.buildingInfo) {
+    reviewStore.setBuildingInfo(reviewStore.buildingInfo)
+    console.log('건물 정보를 store에 저장했습니다:', reviewStore.buildingInfo)
+  } else {
+    console.log('저장할 건물 정보가 없습니다.')
+  }
   router.push(`/review/write/${buildingId.value}`)
 }
 

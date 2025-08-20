@@ -12,6 +12,7 @@ const buildingId = route.params.buildingId
 
 // 건물명을 동적으로 가져오기
 const buildingName = computed(() => {
+  // store에 이미 건물 정보가 있으면 사용, 없으면 '로딩 중...' 표시
   return reviewStore.buildingInfo?.buildingName || '로딩 중...'
 })
 
@@ -131,8 +132,16 @@ const submitReview = async () => {
 onMounted(async () => {
   if (buildingId) {
     try {
-      // 건물 정보 조회
-      await reviewStore.getBuildingInfoById(buildingId)
+      // store에 이미 건물 정보가 있는지 확인
+      if (
+        !reviewStore.buildingInfo?.buildingName ||
+        reviewStore.buildingInfo.buildingName === '로딩 중...'
+      ) {
+        // 건물 정보가 없거나 기본값인 경우에만 API 호출
+        await reviewStore.getBuildingInfoById(buildingId)
+      } else {
+        console.log('이미 store에 건물 정보가 있습니다:', reviewStore.buildingInfo)
+      }
     } catch (error) {
       console.error('건물 정보 조회 실패:', error)
     }
