@@ -926,10 +926,6 @@ const getBarRangeStyle = (lower, upper) => {
             </div>
             <div class="info-grid">
               <div class="info-item">
-                <span class="info-label">등록자 유형</span>
-                <span class="info-value">{{ selectedProperty.sellerType }}</span>
-              </div>
-              <div class="info-item">
                 <span class="info-label">매매 종류</span>
                 <span class="info-value">{{ selectedProperty.saleType }}</span>
               </div>
