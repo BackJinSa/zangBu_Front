@@ -43,7 +43,7 @@ export const useReviewStore = defineStore('review', () => {
       const response = await getReviewsByBuilding(buildingId, page, size)
 
       if (response.data) {
-        reviews.value = response.data.reviews || []
+        reviews.value = response.data.list || []
         pagination.value = {
           total: response.data.total || 0,
           hasNext: response.data.hasNext || false,
@@ -51,8 +51,15 @@ export const useReviewStore = defineStore('review', () => {
           pageSize: size
         }
         // 최신 리뷰 별점 정보 저장
-        if (response.data.latestReviewRank) {
-          reviewStats.value.latestReviewRank = response.data.latestReviewRank
+        if (response.data.latestRank) {
+          reviewStats.value.latestRank = response.data.latestRank
+        }
+        // 건물 이름 정보 저장
+        if (response.data.buildingName) {
+          buildingInfo.value = {
+            ...buildingInfo.value,
+            buildingName: response.data.buildingName
+          }
         }
       }
     } catch (error) {
