@@ -387,7 +387,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getDealNotice } from '@/api/deal/deal'
+import { getDealNoticeBefore } from '@/api/deal/deal'
 import { useChatStore } from '@/stores/chat/chat'
 import { useAuthStore } from '@/stores/auth/auth'
 import axios from 'axios'
@@ -418,7 +418,7 @@ const fetchDealNotice = async () => {
 
     // 실제 API 호출 시도
     try {
-      const response = await getDealNotice(buildingId)
+      const response = await getDealNoticeBefore(buildingId)
       dealNotice.value = response.data
       console.log('거래전 안내 정보:', dealNotice.value)
       isUsingDummyData.value = false
@@ -494,6 +494,14 @@ const startChat = async () => {
     }
     chatRoomId = chatRoom.chatRoomId
     const dealId = await createDeal(chatRoomId)
+    //상태 변경
+    // 거래 상태를 BEFORE_OWNER로 변경
+    await changeDealStatus({
+      chatRoomId: chatRoomId,
+      dealId: dealId,
+      status: 'BEFORE_OWNER',
+    })
+
     // 채팅방 생성 후 채팅방으로 이동
     router.push({ name: 'chat-room', params: { roomId: chatRoom.chatRoomId } })
   } catch (err) {
