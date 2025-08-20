@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getDealNotice, downloadStandardContract, changeDealStatus } from '@/api/deal/deal'
 import { DEAL_STATUS } from '@/utils/constants'
+import { useMembership } from '@/composables/useMembership'
 import Button from '@/components/common/Button.vue'
 import BackButton from '@/components/common/BackButton.vue'
 
@@ -23,24 +24,20 @@ const fetchPropertyInfo = async () => {
     loading.value = true
     error.value = null
 
-    const dealId = route.params.dealId
-    if (!dealId) {
+    const buildingId = route.params.buildingId
+    if (!buildingId) {
       throw new Error('거래 ID가 필요합니다')
     }
 
     // 실제 API 호출 시도
     try {
-      const response = await getDealNotice(dealId)
+      const response = await getDealNotice(buildingId)
 
       // API 응답 구조에 맞게 데이터 매핑
       propertyInfo.value = {
-        dealId: dealId,
         buildingId: response.data.buildingId,
         buildingName: response.data.buildingName,
         infoBuilding: response.data.infoBuilding,
-        dealStatus: response.data.dealStatus, // 거래 상태 추가
-        dealStatusEnum: response.data.dealStatus, // 거래 상태 enum 추가
-        chatRoomId: response.data.chatRoomId, // 채팅방 ID 추가
       }
     } catch (apiError) {
       console.error('API 호출 실패:', apiError)
@@ -64,24 +61,47 @@ const fetchPropertyInfo = async () => {
     loading.value = false
   }
 }
+// 멤버십 검증 Hook 사용
+const { validateMembership } = useMembership()
 
 // 서류 열람 함수들
-const viewDocument = (type) => {
+const viewDocument = async (type) => {
   console.log(`${type} 서류 열람`)
-  // DealConsumerDocument 페이지로 이동
-  router
-    .push({
-      name: 'deal-consumer-document',
-      params: {
-        dealId: propertyInfo.value.dealId,
-        dealId: propertyInfo.value.dealId,
-        type: type,
-      },
-    })
-    .then(() => {
+
+  // 멤버십 여부 확인
+  const result = await validateMembership({
+    redirectToLogin: true,
+    redirectToPayment: false, // 수동으로 처리할 예정
+    onSuccess: () => {
+      console.log('멤버십 검증 성공')
+    },
+    onFailure: (message) => {
+      console.log('멤버십 검증 실패:', message)
+    },
+  })
+
+  // 멤버십 검증 결과에 따른 처리
+  if (result.success) {
+    // 결제한 상태면 DealConsumerDocument 페이지로 이동
+    router
+      .push({
+        name: 'deal-consumer-document',
+        params: {
+          dealId: propertyInfo.value.buildingId, // buildingId 사용
+          type: type,
+        },
+      })
+      .then(() => {
+        // 페이지 이동 후 스크롤을 맨 위로 초기화
+        window.scrollTo(0, 0)
+      })
+  } else {
+    // 결제 안 한 상태면 결제페이지로 이동
+    router.push('/payment').then(() => {
       // 페이지 이동 후 스크롤을 맨 위로 초기화
       window.scrollTo(0, 0)
     })
+  }
 }
 
 const viewAnalysisReport = () => {

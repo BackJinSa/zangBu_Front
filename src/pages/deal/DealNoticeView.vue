@@ -85,10 +85,10 @@
                   >
                 </div>
                 <h1 class="text-xl lg:text-3xl font-bold mb-2 lg:mb-3" style="color: var(--text-2)">
-                  {{ dealNotice.building_name }}
+                  {{ dealNotice.buildingName }}
                 </h1>
                 <p class="text-xs lg:text-base mb-2 leading-relaxed" style="color: var(--text-1)">
-                  {{ dealNotice.info_building }}
+                  {{ dealNotice.infoBuilding }}
                 </p>
               </div>
               <div class="hidden lg:block">
@@ -420,6 +420,7 @@ const fetchDealNotice = async () => {
     try {
       const response = await getDealNotice(buildingId)
       dealNotice.value = response.data
+      console.log('거래전 안내 정보:', dealNotice.value)
       isUsingDummyData.value = false
     } catch (apiError) {
       console.warn('API 호출 실패, 더미데이터 사용:', apiError)
