@@ -477,26 +477,32 @@ function subscribeCurrentRoom() {
   })
 }
 
+// 컴포넌트 onMounted에서 상태 확인
 onMounted(async () => {
-  // STOMP 연결 후 구독, 기존 메시지 로드
   console.log('=== onMounted 시작 ===')
-  console.log('초기 메시지 개수:', messages.value.length)
 
-  //아이디 먼저
+  // 사용자 ID 확인
   myUserId.value = await chatStore.fetchMemberIdByEmail(email)
   console.log('사용자 ID:', myUserId.value)
+  console.log('이메일:', email)
 
+  // 방 정보 확인
   await fetchRoomMeta()
+  console.log('방 ID:', roomId.value)
 
+  // STOMP 연결
   await connect(async () => {
+    console.log('STOMP 연결 완료')
     subscribeCurrentRoom()
     await chatStore.markAsRead()
   })
 
-  // ★ 초기 메시지 로드(최신 → reverse → 아래로 쌓기)
+  // 메시지 로드
   const loaded = await chatStore.loadInitialMessages(30)
   await scrollToBottom()
   hasMore.value = loaded > 0
+
+  console.log('=== onMounted 완료 ===')
 })
 
 // 동일 컴포넌트 내에서 route만 변경될 때를 대비
@@ -535,15 +541,29 @@ onUnmounted(() => {
 })
 
 const newMessage = ref('')
+// 컴포넌트의 sendMessage 함수 수정
 const sendMessage = async () => {
   if (isInputDisabled.value) {
-    alert(getPlaceholder.value) // 선택: 안내 메시지
+    alert(getPlaceholder.value)
     return
   }
+
   const text = newMessage.value.trim()
-  if (!text) return
-  await chatStore.sendMessage(text) // 스토어가 publish & 로컬 목록 반영
-  newMessage.value = ''
-  await scrollToBottom() // ← 보낸 즉시 바닥으로
+  if (!text) {
+    console.log('빈 메시지입니다.')
+    return
+  }
+
+  try {
+    console.log('메시지 전송 시작:', text)
+    await chatStore.sendMessage(text)
+    newMessage.value = ''
+    await scrollToBottom()
+    console.log('메시지 전송 성공')
+  } catch (error) {
+    console.error('메시지 전송 실패:', error)
+    // 사용자에게 에러 알림
+    alert('메시지 전송에 실패했습니다. 다시 시도해주세요.')
+  }
 }
 </script>

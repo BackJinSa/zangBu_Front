@@ -278,6 +278,72 @@ function mapDealStatus(raw) {
  *   }
  * }
  * -------------------------- */
+/** ---------------------------
+ * API: 탭 카운트만 조회하는 함수
+ * -------------------------- */
+async function fetchTabCounts() {
+  try {
+    const { data } = await axios.get('/api/chat/counts', {
+      headers: { Authorization: `Bearer ${authStore.accessToken}` },
+    })
+
+    if (data?.counts?.ALL && data?.counts?.BUY && data?.counts?.SELL) {
+      tabs.value = [
+        {
+          label: '전체',
+          type: 'ALL',
+          count: data.counts.ALL.count,
+          unread: data.counts.ALL.unread,
+        },
+        {
+          label: '구매',
+          type: 'BUY',
+          count: data.counts.BUY.count,
+          unread: data.counts.BUY.unread,
+        },
+        {
+          label: '판매',
+          type: 'SELL',
+          count: data.counts.SELL.count,
+          unread: data.counts.SELL.unread,
+        },
+      ]
+    }
+  } catch (err) {
+    console.error('탭 카운트 조회 실패:', err)
+  }
+}
+
+/** ---------------------------
+ * STOMP: 현재 페이지 방들만 구독 (서버 동기화 방식)
+ * -------------------------- */
+function resubscribeForCurrentPage() {
+  if (!rooms.value?.length) {
+    unsubscribeAll()
+    return
+  }
+  // 기존 구독 해제 후 현재 페이지만 재구독
+  unsubscribeAll()
+  rooms.value.forEach((room) => {
+    subscribeRoom(room.chatRoomId, (message, roomId) => {
+      const target = rooms.value.find((r) => r.chatRoomId === roomId)
+      if (!target) return
+
+      target.lastMessage = message.message
+      target.lastMessageTime = message.createdAt
+      // 표시용 프리뷰도 동기화 (빈 문자열이면 플레이스홀더)
+      const msg = (message.message ?? '').trim()
+      target.lastMessagePreview = msg.length ? msg : '채팅을 시작해보세요'
+
+      if (authStore.memberId && message.senderId !== authStore.memberId) {
+        target.unreadCount = (target.unreadCount || 0) + 1
+
+        // 서버에서 최신 탭 카운트 조회해서 동기화
+        fetchTabCounts()
+      }
+    })
+  })
+}
 
 async function fetchRooms() {
   loading.value = true
@@ -339,33 +405,6 @@ async function fetchRooms() {
   } finally {
     loading.value = false
   }
-}
-
-/** ---------------------------
- * STOMP: 현재 페이지 방들만 구독
- * -------------------------- */
-function resubscribeForCurrentPage() {
-  if (!rooms.value?.length) {
-    unsubscribeAll()
-    return
-  }
-  // 기존 구독 해제 후 현재 페이지만 재구독
-  unsubscribeAll()
-  rooms.value.forEach((room) => {
-    subscribeRoom(room.chatRoomId, (message, roomId) => {
-      const target = rooms.value.find((r) => r.chatRoomId === roomId)
-      if (!target) return
-      target.lastMessage = message.message
-      target.lastMessageTime = message.createdAt
-      // 표시용 프리뷰도 동기화 (빈 문자열이면 플레이스홀더)
-      const msg = (message.message ?? '').trim()
-      target.lastMessagePreview = msg.length ? msg : '채팅을 시작해보세요'
-      if (authStore.memberId && message.senderId !== authStore.memberId) {
-        //TODO: senderID가 이메일인듯
-        target.unreadCount = (target.unreadCount || 0) + 1
-      }
-    })
-  })
 }
 
 /** ---------------------------

@@ -41,7 +41,29 @@ export const useChatStore = defineStore('chat', () => {
   const oldestMessageId = ref(null) //가장 오래 로드된(리스트 맨 앞) 메시지 id 기억 → 더보기 요청용
 
   const authStore = useAuthStore()
-  const myUserId = computed(() => authStore.user?.email || '')
+  const myUserEmail = computed(() => authStore.user?.email || '')
+  const myUserId = ref('')
+
+  // 이메일이 변경될 때마다 userId 업데이트
+  watch(
+    myUserEmail,
+    async (newEmail) => {
+      if (newEmail && newEmail.includes('@')) {
+        try {
+          console.log('🔄 이메일 변경 감지, UUID 조회:', newEmail)
+          const userId = await fetchMemberIdByEmail(newEmail)
+          myUserId.value = userId
+          console.log('✅ UUID 설정 완료:', userId)
+        } catch (error) {
+          console.error('❌ UUID 조회 실패:', error)
+          myUserId.value = newEmail // 실패시 이메일 사용
+        }
+      } else {
+        myUserId.value = ''
+      }
+    },
+    { immediate: true }
+  ) // immediate: true로 즉시 실행
 
   // 채팅방 목록 조회 로직
   async function getChatRooms(type = 'ALL') {
@@ -96,9 +118,47 @@ export const useChatStore = defineStore('chat', () => {
   // 메시지 전송 로직
   async function sendMessage(message) {
     try {
-      sendToRoom(roomId.value, { message: message, senderId: myUserId.value })
+      // STOMP 연결 상태 확인
+      if (!connected.value) {
+        console.error('STOMP 연결이 끊어져 있습니다.')
+        throw new Error('STOMP_NOT_CONNECTED')
+      }
+
+      // 메시지 유효성 검사
+      if (!message || !message.trim()) {
+        console.error('빈 메시지는 전송할 수 없습니다.')
+        return
+      }
+
+      // roomId 확인
+      if (!roomId.value) {
+        console.error('roomId가 없습니다.')
+        throw new Error('NO_ROOM_ID')
+      }
+
+      // userId 확인 및 타입 변환
+      const userId = myUserId.value
+      if (!userId) {
+        console.error('사용자 ID가 없습니다.')
+        throw new Error('NO_USER_ID')
+      }
+
+      // ===== 🔥 서버 DTO에 맞는 형태로 전송 =====
+      const messageData = {
+        message: message.trim(),
+        chatRoomId: roomId.value,
+        senderId: userId,
+      }
+
+      console.log('📤 서버로 전송할 데이터:', messageData)
+
+      // STOMP로 메시지 전송
+      sendToRoom(roomId.value, messageData)
+
+      console.log('메시지 전송 완료')
     } catch (err) {
-      console.error('STOMP 메시지 전송 실패:', err)
+      console.error('메시지 전송 실패:', err)
+      throw err
     }
   }
 
@@ -304,6 +364,7 @@ export const useChatStore = defineStore('chat', () => {
     messages,
     unreadCount,
     oldestMessageId,
+    myUserId,
     getChatRooms,
     loadInitialMessages,
     loadOlderMessages,

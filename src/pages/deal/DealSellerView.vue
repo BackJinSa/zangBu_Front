@@ -472,7 +472,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getDealNotice, changeDealStatus } from '@/api/deal/deal'
 import { DEAL_STATUS } from '@/utils/constants'
@@ -646,4 +646,23 @@ const closeAgreementModal = () => {
 onMounted(() => {
   fetchPropertyInfo()
 })
+
+watch(
+  () => propertyInfo.value,
+  async (newVal) => {
+    if (newVal?.dealId && newVal?.chatRoomId) {
+      try {
+        await changeDealStatus({
+          dealId: newVal.dealId,
+          chatRoomId: newVal.chatRoomId,
+          status: DEAL_STATUS.BEFORE_OWNER,
+        })
+        console.log('BEFORE_OWNER로 변경 성공')
+      } catch (e) {
+        console.error('상태 변경 실패:', e)
+      }
+    }
+  },
+  { immediate: false } // 처음엔 실행 안 하고 값이 바뀔 때만 실행
+)
 </script>
