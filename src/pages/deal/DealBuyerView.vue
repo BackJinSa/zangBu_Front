@@ -24,14 +24,14 @@ const fetchPropertyInfo = async () => {
     loading.value = true
     error.value = null
 
-    const buildingId = route.params.buildingId
-    if (!buildingId) {
-      throw new Error('거래 ID가 필요합니다')
+    const dealId = route.params.dealId
+    if (!dealId) {
+      throw new Error('매물 ID가 필요합니다')
     }
 
     // 실제 API 호출 시도
     try {
-      const response = await getDealNotice(buildingId)
+      const response = await getDealNotice(dealId)
 
       // API 응답 구조에 맞게 데이터 매핑
       propertyInfo.value = {

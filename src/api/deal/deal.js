@@ -34,8 +34,13 @@ export const getDealGuide = () => {
 }
 
 // 거래전 안내 정보 조회
-export const getDealNotice = (buildingId) => {
+export const getDealNoticeBefore = (buildingId) => {
   return api.get(`/deal/notice/before/${buildingId}`)
+}
+
+// 거래전 안내 정보 조회
+export const getDealNotice = (dealId) => {
+  return api.get(`/deal/notice/${dealId}`)
 }
 
 // 소비자 문서 다운로드 URL 조회
