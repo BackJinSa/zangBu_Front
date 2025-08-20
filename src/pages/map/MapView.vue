@@ -36,6 +36,7 @@ import {
   getPropertyInfoByBuildingId,
   getAptTradeInfo,
 } from '@/api/publicdata/publicdata.js'
+import { getAptDetail } from '@/api/map/map.js'
 import { useMembership } from '@/composables/useMembership'
 import { useChatStore } from '@/stores/chat/chat'
 import { useAuthStore } from '@/stores/auth/auth'
@@ -80,6 +81,23 @@ const facilityList = computed(() => {
     .split(',')
     .map((item) => item.trim())
     .filter((item) => item)
+})
+
+// 매매 종류 텍스트 변환
+const formattedSaleType = computed(() => {
+  if (!selectedProperty.value?.saleType) return '정보 없음'
+
+  const saleType = selectedProperty.value.saleType
+  switch (saleType) {
+    case 'CHARTER':
+      return '전세'
+    case 'MONTHLY':
+      return '월세'
+    case 'TRADING':
+      return '매매'
+    default:
+      return saleType
+  }
 })
 
 // 카카오 맵 초기화
@@ -349,6 +367,23 @@ const fetchPropertyDetail = async (buildingId) => {
         isBookmarked: response.data.isBookmarked ?? false,
         isNotification: response.data.isNotification ?? false,
       }
+
+      // 🆕 우리가 만든 API로 매매 종류, 면적, 상세 주소 정보 가져오기
+      try {
+        const aptDetailResponse = await getAptDetail(buildingId)
+        console.log('아파트 상세 정보 응답:', aptDetailResponse)
+
+        // DB에서 가져온 정보로 업데이트
+        propertyData.saleType = aptDetailResponse.saleType || propertyData.saleType
+        propertyData.size = aptDetailResponse.size || propertyData.size
+        propertyData.address = aptDetailResponse.dong || propertyData.address
+
+        console.log('업데이트된 매물 정보:', propertyData)
+      } catch (aptDetailError) {
+        console.warn('아파트 상세 정보 조회 실패, 기본 정보 사용:', aptDetailError)
+        // API 실패 시 기존 정보 사용
+      }
+
       selectedProperty.value = propertyData
       showDetail.value = true
 
@@ -933,7 +968,7 @@ const getBarRangeStyle = (lower, upper) => {
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">매매 종류</span>
-                <span class="info-value">{{ selectedProperty.saleType }}</span>
+                <span class="info-value">{{ formattedSaleType }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">부동산 종류</span>
