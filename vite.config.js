@@ -52,4 +52,7 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    outDir: 'C:/project/zangBu_Back/src/main/webapp/resources',
+  },
 })
