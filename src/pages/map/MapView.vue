@@ -83,6 +83,23 @@ const facilityList = computed(() => {
     .filter((item) => item)
 })
 
+// 매매 종류 텍스트 변환
+const formattedSaleType = computed(() => {
+  if (!selectedProperty.value?.saleType) return '정보 없음'
+
+  const saleType = selectedProperty.value.saleType
+  switch (saleType) {
+    case 'CHARTER':
+      return '전세'
+    case 'MONTHLY':
+      return '월세'
+    case 'TRADING':
+      return '매매'
+    default:
+      return saleType
+  }
+})
+
 // 카카오 맵 초기화
 const initMap = () => {
   if (window.kakao && window.kakao.maps) {
@@ -951,7 +968,7 @@ const getBarRangeStyle = (lower, upper) => {
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">매매 종류</span>
-                <span class="info-value">{{ selectedProperty.saleType }}</span>
+                <span class="info-value">{{ formattedSaleType }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">부동산 종류</span>
