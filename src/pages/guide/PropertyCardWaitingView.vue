@@ -297,13 +297,13 @@ const handleCancel = (property) => {
           <h3>이벤트 처리 예시</h3>
           <pre><code>const handleBookmark = (data) => {
   const { propertyId, isBookmarked } = data
-  
+
   // 즐겨찾기 상태 업데이트
   const property = properties.value.find(p => p.id === propertyId)
   if (property) {
     property.isBookmarked = isBookmarked
   }
-  
+
   console.log('Bookmark:', data.propertyId, data.isBookmarked)
 }
 
