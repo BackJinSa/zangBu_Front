@@ -22,6 +22,7 @@ function refreshActiveRooms() {
 
 // STOMP 연결
 export function useStomp() {
+  const authStore = useAuthStore()
   //JWT 토큰을 가져와 연결
   const connect = (onConnected = () => {}) => {
     // 이미 연결 중이면
@@ -36,11 +37,8 @@ export function useStomp() {
       return
     }
 
-    const authStore = useAuthStore()
-    //const token = authStore?.accessToken
-    const token =
-      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huLnNtaXRoQGV4YW1wbGUuY29tIiwicm9sZSI6IlJPTEVfTUVNQkVSIiwiaWF0IjoxNzU1MTM0ODA3LCJleHAiOjE3NTUxOTQ4MDd9.m58axbalMfl_LVaQ4VRvwyMzKJVWOgRvWl0QQQVkpRc'
-    if (!token) {
+    const token = authStore.accessToken
+    if (!authStore.accessToken) {
       console.warn('[STOMP] JWT 토큰이 없습니다.')
     }
 
@@ -50,7 +48,7 @@ export function useStomp() {
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
       connectHeaders: {
-        Authorization: `Bearer ${token || ''}`, // STOMP CONNECT 헤더
+        Authorization: `Bearer ${authStore.accessToken || ''}`, // STOMP CONNECT 헤더
       },
       debug: (msg) => console.log('[STOMP FRAMES]', msg), // ★ 추가
       onConnect: () => {
@@ -100,7 +98,6 @@ export function useStomp() {
       console.warn('[STOMP] 연결 전, 구독 대기:', roomId)
       return
     }
-
 
     // 중복 방지: 기존 구독 있으면 해제 후 재구독
     const prev = subscriptions.get(roomId)
@@ -168,12 +165,40 @@ export function useStomp() {
 
   //STOMP 메시지 전송
   const sendToRoom = (roomId, body) => {
-    if (!roomId || !isConnected || !stompClient) return
-    stompClient.publish({
-      destination: `${TOPIC_PREFIX}/${roomId}`,
-      body: JSON.stringify(body ?? {}),
-      headers: { 'content-type': 'application/json;charset=UTF-8' },
-    })
+    console.log('sendToRoom 호출:', { roomId, body, isConnected, stompClient: !!stompClient })
+
+    if (!roomId) {
+      console.error('roomId가 없습니다.')
+      return false
+    }
+
+    if (!isConnected || !stompClient) {
+      console.error('STOMP 연결이 없습니다.')
+      return false
+    }
+
+    if (!stompClient.connected) {
+      console.error('STOMP 클라이언트가 연결되지 않았습니다.')
+      return false
+    }
+
+    try {
+      const destination = `${TOPIC_PREFIX}/${roomId}`
+      const payload = {
+        destination,
+        body: JSON.stringify(body ?? {}),
+        headers: {
+          'content-type': 'application/json;charset=UTF-8',
+        },
+      }
+
+      console.log('STOMP 메시지 전송:', payload)
+      stompClient.publish(payload)
+      return true
+    } catch (error) {
+      console.error('STOMP publish 실패:', error)
+      return false
+    }
   }
 
   // 헬퍼

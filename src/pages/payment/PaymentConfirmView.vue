@@ -20,20 +20,9 @@ const paymentInfo = reactive({
 // UI 상태
 const loading = ref(false)
 const errorMessage = ref('')
-const successMessage = ref('')
 const tossPayments = ref(null)
 const widgets = ref(null)
 const buyerInfoLoading = ref(false)
-
-// 현재 URL 정보
-const currentUrl = ref('')
-const currentDomain = ref('')
-
-// URL 정보 업데이트
-const updateUrlInfo = () => {
-  currentUrl.value = window.location.href
-  currentDomain.value = window.location.origin
-}
 
 // 주문 ID 생성
 const generateOrderId = () => {
@@ -118,8 +107,6 @@ const initializeTossPayments = async () => {
       variantKey: 'AGREEMENT',
     })
     console.log('약관 위젯 렌더링 완료')
-
-    successMessage.value = '토스페이먼츠 결제 시스템이 준비되었습니다.'
   } catch (error) {
     console.error('토스페이먼츠 초기화 실패:', error)
     errorMessage.value = `결제 시스템 초기화에 실패했습니다: ${error.message}`
@@ -139,9 +126,6 @@ const initializeTossPayments = async () => {
 // 컴포넌트 마운트 시 초기화
 onMounted(async () => {
   console.log('PaymentConfirmView 컴포넌트 마운트됨')
-
-  // URL 정보 업데이트
-  updateUrlInfo()
 
   // URL 파라미터에서 선택된 옵션 정보 가져오기
   const selectedOptionData = route.query.selectedOption
@@ -203,7 +187,6 @@ const handlePayment = async () => {
 
   loading.value = true
   errorMessage.value = ''
-  successMessage.value = ''
 
   try {
     console.log('결제 요청 시작...')
@@ -226,7 +209,7 @@ const handlePayment = async () => {
       failUrl: `${window.location.origin}/payment/fail`,
       customerEmail: paymentInfo.customerEmail,
       customerName: paymentInfo.customerName,
-      customerMobilePhone: paymentInfo.customerMobilePhone,
+      customerMobilePhone: paymentInfo.customerMobilePhone.replace(/-/g, ''),
     }
     console.log('토스페이먼츠 결제 요청 정보:', paymentRequest)
 
@@ -273,10 +256,6 @@ const goBack = () => {
         <p class="text-red-600 text-sm">{{ errorMessage }}</p>
       </div>
 
-      <!-- 성공 메시지 -->
-      <div v-if="successMessage" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
-        <p class="text-green-600 text-sm">{{ successMessage }}</p>
-      </div>
       <!-- 본문: 좌/우 2컬럼 레이아웃 (데스크탑) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Left: 선택된 결제 정보 + 구매자 정보 -->
@@ -456,39 +435,6 @@ const goBack = () => {
               </span>
               <span v-else>결제하기</span>
             </button>
-          </div>
-
-          <!-- 디버깅 정보 (개발용) -->
-          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h3 class="text-sm font-medium text-yellow-900 mb-2">🔧 디버깅 정보</h3>
-            <div class="text-sm text-yellow-800 space-y-2">
-              <div>
-                <strong>선택된 옵션:</strong> {{ paymentInfo.selectedOption ? '있음' : '없음' }}
-              </div>
-              <div>
-                <strong>구매자 정보:</strong>
-                {{ paymentInfo.customerName ? '로드됨' : '로드 안됨' }}
-              </div>
-              <div>
-                <strong>토스페이먼츠 위젯:</strong> {{ widgets ? '초기화됨' : '초기화 안됨' }}
-              </div>
-              <div><strong>현재 URL:</strong> {{ currentUrl }}</div>
-            </div>
-          </div>
-
-          <!-- 안내사항 -->
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 class="text-sm font-medium text-blue-900 mb-2">💡 안내사항</h3>
-            <ul class="text-sm text-blue-800 space-y-1">
-              <li>• 구매자 정보(이름, 이메일, 휴대폰 번호)는 백엔드에서 자동으로 불러와집니다.</li>
-              <li>• 구매자 정보는 읽기 전용이며, 수정할 수 없습니다.</li>
-              <li>• 정보가 표시되지 않으면 "정보 새로고침" 버튼을 클릭해주세요.</li>
-              <li>• 이 페이지는 토스페이먼츠 위젯을 사용합니다.</li>
-              <li>• 실제 결제가 이루어지지 않으며, 샌드박스 환경에서 테스트됩니다.</li>
-              <li>• 결제 완료 후 성공/실패 페이지로 리다이렉트됩니다.</li>
-              <li>• 문제가 발생하면 브라우저 개발자 도구(F12)의 콘솔을 확인해주세요.</li>
-              <li>• 토스페이먼츠 페이지가 안 뜨면 위의 디버깅 정보를 확인해주세요.</li>
-            </ul>
           </div>
         </div>
       </div>

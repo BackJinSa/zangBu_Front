@@ -8,14 +8,12 @@
           <button @click="router.push('/chat/list')" class="text-white mt-1">
             <i class="fas fa-arrow-left"></i>
           </button>
-
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-2">
               <span class="font-semibold text-base">{{ otherNickname }}</span>
             </div>
             <div class="flex items-center gap-2 text-xs text-white/90">
-              <i class="fas fa-home"></i>
-              <span>{{ buildingName }}</span>
+              <i class="fas fa-home"></i> <span>{{ buildingName }}</span>
               <span
                 class="text-xs bg-[var(--brand-2)] text-[var(--brand-5)] px-2 py-0.5 rounded-lg"
               >
@@ -24,7 +22,6 @@
             </div>
           </div>
         </div>
-
         <!-- 우측 영역 (판매자, 구매자에 따라 다르게) -->
         <div class="flex items-center gap-5">
           <!-- 판매자인 경우 거래 활성화 토글 -->
@@ -36,7 +33,6 @@
             >
               거래 완료
             </span>
-
             <div v-else class="flex flex-col items-center text-sm">
               <span class="mb-1">거래 활성화</span>
               <label
@@ -61,7 +57,6 @@
               </label>
             </div>
           </template>
-
           <!-- 구매자인 경우 거래 상태 -->
           <div v-else>
             <router-link
@@ -85,7 +80,6 @@
               {{ status }}
             </span>
           </div>
-
           <!-- 나가기 버튼 -->
           <Button
             variant="button9"
@@ -95,7 +89,6 @@
             >{{ leaving ? '처리 중...' : '나가기' }}
           </Button>
         </div>
-
         <!-- 팝업 -->
         <PopupModal
           :is-visible="showModal"
@@ -109,7 +102,6 @@
           @close="showModal = false"
         />
       </header>
-
       <!-- 채팅 내용 -->
       <main ref="scrollArea" class="flex-1 overflow-y-auto px-4 py-3 space-y-4" @scroll="onScroll">
         <div v-for="(msg, index) in viewMessages" :key="index" class="flex flex-col">
@@ -119,7 +111,6 @@
               {{ msg.message }}
             </span>
           </div>
-
           <!-- 일반 말풍선 -->
           <template v-else>
             <div
@@ -132,7 +123,6 @@
             >
               <p>{{ msg.message }}</p>
             </div>
-
             <p
               :class="[
                 msg.isMine
@@ -146,7 +136,6 @@
           </template>
         </div>
       </main>
-
       <!-- 입력창 -->
       <footer class="px-4 py-3 bg-white border-t flex items-center gap-2">
         <input
@@ -186,8 +175,16 @@ const chatStore = useChatStore()
 const authStore = useAuthStore()
 const { connect, subscribeRoom, unsubscribeRoom, disconnect, connected } = useStomp()
 const roomId = computed(() => String(route.params.roomId || ''))
-//const myUserId = computed(() => authStore.userId || authStore.memberId || '')
-const myUserId = '8h9i0j1k-1111-2222-3333-444455556673'
+
+const userStr = localStorage.getItem('user')
+const user = userStr ? JSON.parse(userStr) : null
+
+// email만 꺼내기
+const email = user?.email || null
+console.log('멤버email: ' + email)
+
+//const myUserId = await chatStore.fetchMemberIdByEmail(email)
+const myUserId = ref('')
 
 //나가기 모달
 const showModal = ref(false)
@@ -229,16 +226,15 @@ async function fetchRoomMeta() {
     const { data } = await axios.get(`/api/chat/room/info/${roomId.value}`)
     // 응답 형태가 {room: {...}} 또는 바로 {...} 둘 다 대응
     const r = data?.room ?? data ?? {}
-
-    //const myId = myUserId.value
-    const myId = myUserId
+    console.log('fetchRoomMeta : 방 정보:', r)
 
     sellerVisible.value = Number(r.sellerVisible ?? 1)
     consumerVisible.value = Number(r.consumerVisible ?? 1)
 
     // 내가 판매자인지 계산
-    const iAmSeller = !!myId && !!r.sellerId && myId === r.sellerId
+    const iAmSeller = myUserId.value && r.sellerId && myUserId.value === r.sellerId
     isSeller.value = iAmSeller
+    console.log('isSeller : ', isSeller.value)
 
     // 헤더
     buildingName.value = r.buildingName ?? ''
@@ -273,13 +269,14 @@ watch(statusRaw, (v) => {
 // 토글 클릭 핸들러
 function handleToggle(e) {
   const checked = e.target.checked
-
+  console.log('거래 활성화 토글 클릭: dealId', dealId.value)
   // 활성화가 꺼진 상태(= BEFORE_TRANSACTION/BEFORE_OWNER)에서만 클릭 가능
   if (['BEFORE_TRANSACTION', 'BEFORE_OWNER'].includes(statusRaw.value) && checked) {
     if (!dealId.value) {
       console.warn('dealId 없음: /deal/seller 경로로 이동 불가')
       return
     }
+
     router.push({
       name: 'deal-seller',
       params: {
@@ -311,16 +308,6 @@ const isInputDisabled = computed(() => {
 })
 
 const messages = computed(() => chatStore.messages)
-
-// 화면용: 정렬 방향(isMine) 붙이기
-const viewMessages = computed(() =>
-  messages.value.map((m) => ({
-    ...m,
-    //isMine: m.senderId === myUserId.value,
-    isMine: !m.isSystem && m.senderId === myUserId,
-  }))
-)
-
 const scrollArea = ref(null)
 const isLoadingOlder = ref(false)
 const hasMore = ref(true) // 더 불러올 수 있는지 (서버에서 빈 배열이면 false)
@@ -330,6 +317,26 @@ const scrollToBottom = async () => {
   const el = scrollArea.value
   if (el) el.scrollTop = el.scrollHeight
 }
+
+// 화면용: 정렬 방향(isMine) 붙이기
+const viewMessages = computed(() => {
+  const arr = Array.isArray(messages.value) ? messages.value : []
+
+  return arr.map((m, i) => {
+    const isMine =
+      !m?.isSystem && String(m?.senderId ?? '') === String(myUserId?.value ?? myUserId ?? '')
+
+    // 여기서 마음껏 찍기
+    console.log('[viewMessages]', i, {
+      msgId: m?.chatMessageId,
+      senderId: m?.senderId,
+      myUserId: myUserId?.value ?? myUserId,
+      isMine,
+    })
+
+    return { ...m, isMine }
+  })
+})
 
 // 자동 스크롤(새 메시지 들어오면 아래로)
 watch(
@@ -359,35 +366,143 @@ const handleConfirm = async () => {
   }
 }
 
+const senderUserId = ref('')
+//////////////////////////
+// function subscribeCurrentRoom() {
+//   if (!connected.value || !roomId.value) return
+//   subscribeRoom(roomId.value, async (message) => {
+//     console.log('원본 메시지 수신:', message)
+
+//     // 시스템 메시지일 때 키워드 감지
+//     if (message?.isSystem) {
+//       console.log('거래 상태 변경 감지 : 새로고침')
+//       await fetchRoomMeta()
+//     }
+
+//     // pushIncoming 하기 전에 senderId를 변환
+//     let processedMessage = { ...message }
+
+//     if (message.senderId && !message.isSystem) {
+//       // senderId가 email인지 확인하고 ID로 변환
+//       if (message.senderId.includes('@')) {
+//         try {
+//           const memberId = await chatStore.fetchMemberIdByEmail(message.senderId)
+//           senderUserId.value = memberId // 변환된 ID 저장
+//           processedMessage.senderId = senderUserId.value // email을 ID로 교체
+//           console.log('senderId 변환:', message.senderId, '->', senderUserId.value)
+//         } catch (error) {
+//           console.error('senderId 변환 실패:', error)
+//         }
+//       }
+//     }
+
+//     // 변환된 메시지로 스토어에 저장
+//     const normalized = chatStore.pushIncoming(processedMessage)
+//     console.log('변환된 메시지 저장:', normalized)
+
+//     // 내가 보낸 게 아니고 시스템 메시지도 아닐 때만 읽음 처리
+//     if (
+//       !normalized?.isSystem &&
+//       normalized?.senderId &&
+//       String(normalized.senderId) !== String(myUserId.value)
+//     ) {
+//       chatStore.markAsRead()
+//     }
+//   })
+// }
+
+// ===== 시스템 메시지 판별 & 스로틀 =====
+function isSystemMsg(m) {
+  if (!m) return false
+  const type = String(m.type ?? '').toUpperCase()
+  if (type === 'SYSTEM') return true
+  const sid = (m.senderId ?? m.sender_id ?? m?.sender?.id ?? '').toString().toLowerCase()
+  if (sid === 'system') return true
+  return m.isSystem === true
+}
+
+let lastMetaAt = 0
+async function fetchRoomMetaThrottled() {
+  const now = Date.now()
+  if (now - lastMetaAt < 800) return
+  lastMetaAt = now
+  await fetchRoomMeta()
+}
+
 function subscribeCurrentRoom() {
   if (!connected.value || !roomId.value) return
-  subscribeRoom(roomId.value, (message /*, subscribedRoomId */) => {
-    // 수신 즉시 스토어에 누적
-    const normalized = chatStore.pushIncoming(message)
-    // 내가 보낸 게 아니고 시스템 메시지도 아닐 때만 읽음 처리
-    //if (message?.senderId && message.senderId !== myUserId.value) {
+
+  // (선택) 혹시라도 중복 구독 막고 싶으면:
+  // unsubscribeRoom(roomId.value)
+
+  subscribeRoom(roomId.value, async (message) => {
+    console.log('원본 메시지 수신:', message)
+
+    // [1차 감지] pushIncoming 전에 보수적으로 시스템 체크
+    if (isSystemMsg(message)) {
+      console.log('거래 상태 변경 감지(전): 메타 새로고침')
+      await fetchRoomMetaThrottled()
+    }
+
+    // 이메일 -> ID 변환 (시스템 메시지는 제외)
+    let processedMessage = { ...message }
+    if (message?.senderId && !isSystemMsg(message) && String(message.senderId).includes('@')) {
+      try {
+        const memberId = await chatStore.fetchMemberIdByEmail(message.senderId)
+        processedMessage.senderId = memberId
+        console.log('senderId 변환:', message.senderId, '->', memberId)
+      } catch (error) {
+        console.error('senderId 변환 실패:', error)
+      }
+    }
+
+    // 스토어 반영
+    const normalized = chatStore.pushIncoming(processedMessage)
+    console.log('정규화된 메시지:', normalized)
+
+    // [2차 감지] 정규화 후 다시 확인
+    if (isSystemMsg(normalized)) {
+      console.log('거래 상태 변경 감지(후): 메타 새로고침')
+      await fetchRoomMetaThrottled()
+    }
+
+    // 읽음 처리(내가 보낸 거/시스템 제외)
     if (
-      !normalized?.isSystem &&
+      !isSystemMsg(normalized) &&
       normalized?.senderId &&
-      String(normalized.senderId) !== String(myUserId)
+      String(normalized.senderId) !== String(myUserId.value)
     ) {
       chatStore.markAsRead()
     }
   })
 }
 
+// 컴포넌트 onMounted에서 상태 확인
 onMounted(async () => {
-  // STOMP 연결 후 구독, 기존 메시지 로드
-  connect(async () => {
+  console.log('=== onMounted 시작 ===')
+
+  // 사용자 ID 확인
+  myUserId.value = await chatStore.fetchMemberIdByEmail(email)
+  console.log('사용자 ID:', myUserId.value)
+  console.log('이메일:', email)
+
+  // 방 정보 확인
+  await fetchRoomMeta()
+  console.log('방 ID:', roomId.value)
+
+  // STOMP 연결
+  await connect(async () => {
+    console.log('STOMP 연결 완료')
     subscribeCurrentRoom()
     await chatStore.markAsRead()
   })
-  await fetchRoomMeta()
 
-  // ★ 초기 메시지 로드(최신 → reverse → 아래로 쌓기)
+  // 메시지 로드
   const loaded = await chatStore.loadInitialMessages(30)
   await scrollToBottom()
   hasMore.value = loaded > 0
+
+  console.log('=== onMounted 완료 ===')
 })
 
 // 동일 컴포넌트 내에서 route만 변경될 때를 대비
@@ -426,15 +541,29 @@ onUnmounted(() => {
 })
 
 const newMessage = ref('')
+// 컴포넌트의 sendMessage 함수 수정
 const sendMessage = async () => {
   if (isInputDisabled.value) {
-    alert(getPlaceholder.value) // 선택: 안내 메시지
+    alert(getPlaceholder.value)
     return
   }
+
   const text = newMessage.value.trim()
-  if (!text) return
-  await chatStore.sendMessage(text) // 스토어가 publish & 로컬 목록 반영
-  newMessage.value = ''
-  await scrollToBottom() // ← 보낸 즉시 바닥으로
+  if (!text) {
+    console.log('빈 메시지입니다.')
+    return
+  }
+
+  try {
+    console.log('메시지 전송 시작:', text)
+    await chatStore.sendMessage(text)
+    newMessage.value = ''
+    await scrollToBottom()
+    console.log('메시지 전송 성공')
+  } catch (error) {
+    console.error('메시지 전송 실패:', error)
+    // 사용자에게 에러 알림
+    alert('메시지 전송에 실패했습니다. 다시 시도해주세요.')
+  }
 }
 </script>

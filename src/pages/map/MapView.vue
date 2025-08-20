@@ -25,7 +25,6 @@ import { useMapStore } from '@/stores/map/map.js'
 import { useRouter, useRoute } from 'vue-router'
 import {
   getPropertyDetailById,
-  getPropertyDetailWithPublicData,
   bookmarkProperty,
   cancelBookmarkProperty,
   setPropertyNotification,
@@ -37,8 +36,10 @@ import {
   getPropertyInfoByBuildingId,
   getAptTradeInfo,
 } from '@/api/publicdata/publicdata.js'
+import { getAptDetail } from '@/api/map/map.js'
 import { useMembership } from '@/composables/useMembership'
 import { useChatStore } from '@/stores/chat/chat'
+import { useAuthStore } from '@/stores/auth/auth'
 import { useCodefStore } from '@/stores/codef/codef.js'
 
 // Props 정의
@@ -54,6 +55,7 @@ const mapStore = useMapStore()
 const router = useRouter()
 const route = useRoute()
 const chatStore = useChatStore()
+const authStore = useAuthStore()
 const codefStore = useCodefStore()
 
 // 상세 보기 상태
@@ -72,6 +74,31 @@ const searchQuery = computed({
 })
 
 const filteredProperties = computed(() => mapStore.filteredProperties)
+
+const facilityList = computed(() => {
+  const facilityString = selectedProperty.value?.resFacility || '엘리베이터, 주차장'
+  return facilityString
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item)
+})
+
+// 매매 종류 텍스트 변환
+const formattedSaleType = computed(() => {
+  if (!selectedProperty.value?.saleType) return '정보 없음'
+
+  const saleType = selectedProperty.value.saleType
+  switch (saleType) {
+    case 'CHARTER':
+      return '전세'
+    case 'MONTHLY':
+      return '월세'
+    case 'TRADING':
+      return '매매'
+    default:
+      return saleType
+  }
+})
 
 // 카카오 맵 초기화
 const initMap = () => {
@@ -111,8 +138,10 @@ const displayMarkersFromAddresses = (properties) => {
           map: map.value,
         })
 
-        // 여기에 기존의 인포윈도우 생성 및 이벤트 핸들링 로직을 추가할 수 있습니다.
-        // ... (infowindow logic from the old displayMarkers)
+        // 마커에 클릭 이벤트를 등록합니다
+        window.kakao.maps.event.addListener(marker, 'click', () => {
+          showPropertyDetail(property)
+        })
 
         markers.value.push(marker)
       } else {
@@ -196,37 +225,6 @@ const loadPropertyWithPublicData = async (buildingId) => {
   }
 }
 
-// 🆕 주소로 공공데이터 조회하는 함수
-const loadPublicDataByAddress = async (address) => {
-  try {
-    console.log('🌐 주소로 공공데이터 조회 중...', address)
-
-    const publicData = await getCompleteAptInfo(address)
-
-    if (publicData.success) {
-      console.log('✅ 공공데이터 조회 성공:', publicData)
-      return publicData
-    } else {
-      console.error('❌ 공공데이터 조회 실패:', publicData.message)
-      return null
-    }
-  } catch (error) {
-    console.error('❌ 공공데이터 조회 중 오류:', error)
-    return null
-  }
-}
-
-// 매물명을 buildingId로 매핑하는 함수
-const getBuildingIdByName = (buildingName) => {
-  const property = mapStore.properties.find((p) => p.buildingName === buildingName)
-  const buildingId = property ? property.buildingId : null
-
-  // 디버깅용 로그
-  console.log('매물명 매핑:', { buildingName, buildingId })
-
-  return buildingId
-}
-
 // 매물 데이터 로드
 const loadProperties = async () => {
   try {
@@ -260,7 +258,7 @@ const initializeKakaoMap = () => {
     // 카카오 맵 스크립트 로드 (환경변수에서 API 키를 가져옵니다)
     const KAKAO_API_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY || 'YOUR_APP_KEY'
     const script = document.createElement('script')
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_API_KEY}&autoload=false`
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_API_KEY}&autoload=false&libraries=services`
     script.onload = () => {
       window.kakao.maps.load(() => {
         initMap()
@@ -365,14 +363,32 @@ const fetchPropertyDetail = async (buildingId) => {
       // API 응답에 isBookmarked와 isNotification이 없을 경우 기본값 설정
       const propertyData = {
         ...response.data,
+        buildingId: buildingId, // buildingId를 명시적으로 추가
         isBookmarked: response.data.isBookmarked ?? false,
         isNotification: response.data.isNotification ?? false,
       }
+
+      // 🆕 우리가 만든 API로 매매 종류, 면적, 상세 주소 정보 가져오기
+      try {
+        const aptDetailResponse = await getAptDetail(buildingId)
+        console.log('아파트 상세 정보 응답:', aptDetailResponse)
+
+        // DB에서 가져온 정보로 업데이트
+        propertyData.saleType = aptDetailResponse.saleType || propertyData.saleType
+        propertyData.size = aptDetailResponse.size || propertyData.size
+        propertyData.address = aptDetailResponse.dong || propertyData.address
+
+        console.log('업데이트된 매물 정보:', propertyData)
+      } catch (aptDetailError) {
+        console.warn('아파트 상세 정보 조회 실패, 기본 정보 사용:', aptDetailError)
+        // API 실패 시 기존 정보 사용
+      }
+
       selectedProperty.value = propertyData
       showDetail.value = true
 
       // 실거래가 정보도 함께 불러오기
-      await fetchRealEstateData(propertyData)
+      // await fetchRealEstateData(propertyData)
     } else {
       console.warn('매물 데이터가 없습니다.')
       // API에서 데이터가 없을 때 사용자에게 알림
@@ -442,50 +458,6 @@ const fetchRealEstateData = async (propertyData) => {
   }
 }
 
-// 매물 상세 정보 + 공공데이터 통합 조회
-const fetchPropertyDetailWithPublicData = async (buildingId) => {
-  try {
-    console.log('CODEF API로 매물 상세 정보 조회 시작:', buildingId)
-    const result = await codefStore.fetchComplexDetailByBuildingId(buildingId)
-
-    if (result.success && result.data) {
-      const codefData = result.data.data // { estateDetail: {...}, marketPrice: {...} }
-      console.log('CODEF API 응답 데이터:', codefData)
-
-      const estate = codefData.estateDetail || {}
-      const market = codefData.marketPrice || {}
-
-      // Codef 응답 데이터를 selectedProperty 형식에 맞게 매핑
-      const propertyData = {
-        buildingId: buildingId,
-        address: estate.commAddrRoadName || '주소 정보 없음',
-        buildingName: estate.resComplexName || '건물명 정보 없음',
-        dataSource: 'codef_api',
-
-        // estateDetail (단지 상세 정보)
-        estateDetail: estate,
-
-        // marketPrice (시세 정보)
-        marketPrice: market,
-      }
-
-      selectedProperty.value = propertyData
-      showDetail.value = true
-    } else {
-      throw new Error(result.error || 'Codef API에서 데이터를 가져오지 못했습니다.')
-    }
-  } catch (error) {
-    console.error('codef API 통합 조회 실패:', error)
-
-    selectedProperty.value = {
-      buildingName: `매물 ID: ${buildingId}`,
-      address: '주소 정보 없음',
-      error: `API 호출 실패: ${error.message}`,
-    }
-    showDetail.value = true
-  }
-}
-
 // 매물 상세 보기 표시
 const showPropertyDetail = (property) => {
   try {
@@ -498,7 +470,7 @@ const showPropertyDetail = (property) => {
     selectedProperty.value = propertyData
     showDetail.value = true
     // URL 업데이트 - buildingId 사용
-    const buildingId = property.buildingId || getBuildingIdByName(property.buildingName)
+    const buildingId = property.buildingId
     if (buildingId) {
       router.push(`/map/apt/${buildingId}`)
     } else {
@@ -526,8 +498,7 @@ const toggleBookmark = async () => {
   if (!selectedProperty.value) return
 
   try {
-    const buildingId =
-      selectedProperty.value.buildingId || getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
 
     if (selectedProperty.value.isBookmarked) {
       // 찜하기 취소
@@ -548,8 +519,7 @@ const toggleNotification = async () => {
   if (!selectedProperty.value) return
 
   try {
-    const buildingId =
-      selectedProperty.value.buildingId || getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
 
     if (selectedProperty.value.isNotification) {
       // 알림 해제
@@ -579,22 +549,24 @@ const goToChat = async () => {
   }
 
   // 로그인된 경우
-  //const consumerId = localStorage.getItem('consumerId') //TODO: 수정
-  const consumerId = '8h9i0j1k-1111-2222-3333-444455556673'
+  const user = ref(JSON.parse(localStorage.getItem('user')))
+  console.log('goToChat에서 email: ' + user.value.email)
+
+  const consumerId = await chatStore.fetchMemberIdByEmail(user.value.email)
   const { exists, chatRoomId } = await chatStore.existChatRoom(props.buildingId, consumerId)
 
   //채팅방 존재하면 해당 채팅방으로 이동, 존재하지 않으면 거래 안내페이지로 이동
   if (exists && chatRoomId) {
     router.push({ name: 'chat-room', params: { roomId: chatRoomId } })
   } else {
-    router.push({ name: 'deal-notice', params: { buildingId } })
+    router.push({ name: 'deal-notice', params: { buildingId: props.buildingId } })
   }
 }
 
 // 리뷰 목록 페이지로 이동
 const goToReviewList = () => {
   if (selectedProperty.value) {
-    const buildingId = getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
     if (buildingId) {
       router.push(`/review/${buildingId}`)
     } else {
@@ -609,7 +581,7 @@ const goToReviewList = () => {
 // 리뷰 작성 페이지로 이동
 const goToReviewWrite = () => {
   if (selectedProperty.value) {
-    const buildingId = getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
     if (buildingId) {
       router.push(`/review/write/${buildingId}`)
     } else {
@@ -624,7 +596,7 @@ const goToReviewWrite = () => {
 // 등기부등본 다운로드 페이지로 이동
 const goToRegistryDownload = async () => {
   if (selectedProperty.value) {
-    const buildingId = getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
     if (buildingId) {
       // 멤버십 검증
       const result = await validateMembership({
@@ -647,7 +619,7 @@ const goToRegistryDownload = async () => {
 // 건축물대장 다운로드 페이지로 이동
 const goToBuildingRegisterDownload = async () => {
   if (selectedProperty.value) {
-    const buildingId = getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
     if (buildingId) {
       // 멤버십 검증
       const result = await validateMembership({
@@ -673,17 +645,27 @@ const { validateMembership } = useMembership()
 // 분석 리포트 다운로드 페이지로 이동
 const goToAnalysisReportDownload = async () => {
   if (selectedProperty.value) {
-    // 멤버십 검증
-    const result = await validateMembership({
-      onSuccess: () => {
-        // 분석 리포트는 reportId를 사용하므로 임시로 1을 사용
-        const reportId = 1
-        router.push(`/deal/consumer/report/${reportId}/download`)
-      },
-      onFailure: (message) => {
-        console.warn('멤버십 검증 실패:', message)
-      },
-    })
+    const buildingId = selectedProperty.value.buildingId
+    if (buildingId) {
+      // 멤버십 검증
+      await validateMembership({
+        onSuccess: () => {
+          router.push(`/document/analysis-report/${buildingId}`)
+        },
+        onFailure: (message) => {
+          console.warn('멤버십 검증 실패:', message)
+          if (
+            window.confirm(
+              '분석 리포트를 보려면 결제가 필요합니다. 결제 페이지로 이동하시겠습니까?'
+            )
+          ) {
+            router.push('/payment')
+          }
+        },
+      })
+    } else {
+      console.warn('buildingId를 찾을 수 없습니다.')
+    }
   }
 }
 
@@ -698,18 +680,81 @@ watch(
 )
 
 onMounted(() => {
+  console.log('MapView.vue mounted. buildingId prop:', props.buildingId)
   initializeKakaoMap()
 
   // buildingId가 있으면 매물 상세 정보 가져오기
   if (props.buildingId) {
     try {
-      // 새로운 공공데이터 통합 조회 API 사용
-      fetchPropertyDetailWithPublicData(parseInt(props.buildingId))
+      fetchPropertyDetail(parseInt(props.buildingId))
     } catch (error) {
       console.error('매물 상세 정보 가져오기 실패:', error)
     }
   }
 })
+
+// 매물 시세 그래프 관련
+const formatPriceForGraph = (price) => {
+  if (!price) return '정보 없음'
+  const priceNum = parseInt(price, 10)
+  if (isNaN(priceNum)) return '정보 없음'
+
+  if (priceNum >= 10000) {
+    const billions = Math.floor(priceNum / 10000)
+    const millions = priceNum % 10000
+    if (millions === 0) {
+      return `${billions}억`
+    }
+    return `${billions}억 ${millions}만`
+  }
+  return `${priceNum}만`
+}
+
+const formatPriceRange = (lower, upper) => {
+  if (!lower || !upper) return '정보 없음'
+  const formattedLower = formatPriceForGraph(lower)
+  const formattedUpper = formatPriceForGraph(upper)
+  if (formattedLower === '정보 없음' || formattedUpper === '정보 없음') return '정보 없음'
+  return `${formattedLower} ~ ${formattedUpper}`
+}
+
+const formattedFixedDate = computed(() => {
+  if (!selectedProperty.value || !selectedProperty.value.resFixedDate) return ''
+  const dateStr = selectedProperty.value.resFixedDate
+  if (dateStr.length === 8) {
+    return `${dateStr.substring(0, 4)}.${dateStr.substring(4, 6)}.${dateStr.substring(6, 8)}`
+  }
+  return dateStr
+})
+
+const maxPrice = computed(() => {
+  if (!selectedProperty.value || !selectedProperty.value.resAreaPriceList) return 0
+  let max = 0
+  selectedProperty.value.resAreaPriceList.forEach((area) => {
+    const topPrice = parseInt(area.resTopAveragePrice, 10)
+    const topPrice1 = parseInt(area.resTopAveragePrice1, 10)
+    if (!isNaN(topPrice) && topPrice > max) max = topPrice
+    if (!isNaN(topPrice1) && topPrice1 > max) max = topPrice1
+  })
+  return max > 0 ? max : 1 // 0으로 나누는 것 방지
+})
+
+const getBarRangeStyle = (lower, upper) => {
+  const lowerNum = parseInt(lower, 10)
+  const upperNum = parseInt(upper, 10)
+
+  if (maxPrice.value === 0 || isNaN(lowerNum) || isNaN(upperNum)) {
+    return { left: '0%', width: '0%' }
+  }
+
+  const left = (lowerNum / maxPrice.value) * 100
+  const width = ((upperNum - lowerNum) / maxPrice.value) * 100
+
+  return {
+    left: `${left}%`,
+    width: `${width}%`,
+  }
+}
 </script>
 
 <template>
@@ -884,7 +929,7 @@ onMounted(() => {
             <span class="back-icon">←</span>
           </button>
           <h2 class="detail-title">
-            {{ selectedProperty.resComplexName || selectedProperty.buildingName }}
+            {{ selectedProperty.buildingName }}
           </h2>
           <div class="header-actions">
             <button
@@ -922,48 +967,28 @@ onMounted(() => {
             </div>
             <div class="info-grid">
               <div class="info-item">
-                <span class="info-label">등록자 유형</span>
-                <span class="info-value">집주인</span>
-              </div>
-              <div class="info-item">
                 <span class="info-label">매매 종류</span>
-                <span class="info-value">{{
-                  selectedProperty.resType || selectedProperty.saleType
-                }}</span>
+                <span class="info-value">{{ formattedSaleType }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">부동산 종류</span>
                 <span class="info-value">{{
-                  selectedProperty.resRealty || selectedProperty.propertyType
+                  selectedProperty.resType || selectedProperty.propertyType
                 }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">면적</span>
-                <span class="info-value">{{
-                  selectedProperty.resAreaPriceList?.[0]?.resArea || '84.5㎡'
-                }}</span>
+                <span class="info-value">{{ selectedProperty.size }}㎡</span>
               </div>
               <div class="info-item">
                 <span class="info-label">도로명 주소</span>
                 <span class="info-value">{{
-                  selectedProperty.commAddrRoadName || selectedProperty.address
+                  selectedProperty.commAddrRoadName || selectedProperty.roadName
                 }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">층수</span>
-                <span class="info-value">지하 3층 ~ 지상 25층</span>
-              </div>
-              <div class="info-item">
                 <span class="info-label">상세 주소</span>
-                <span class="info-value">101동 1001호</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">난방</span>
-                <span class="info-value">지역난방</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">준공일자</span>
-                <span class="info-value">2019년 12월</span>
+                <span class="info-value">{{ selectedProperty.address }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">세대수</span>
@@ -983,11 +1008,15 @@ onMounted(() => {
                   selectedProperty.resHeatingSystem || '지역난방'
                 }}</span>
               </div>
-              <div class="info-item">
+              <div class="info-item facility-info">
                 <span class="info-label">시설</span>
-                <span class="info-value">{{
-                  selectedProperty.resFacility || '엘리베이터, 주차장'
-                }}</span>
+                <div class="info-value">
+                  <div class="facility-tags">
+                    <span v-for="item in facilityList" :key="item" class="facility-tag">
+                      {{ item }}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1083,53 +1112,69 @@ onMounted(() => {
           </div>
 
           <!-- 시세 그래프 섹션 -->
-          <div class="detail-section">
+          <div
+            class="detail-section"
+            v-if="
+              selectedProperty &&
+              selectedProperty.resAreaPriceList &&
+              selectedProperty.resAreaPriceList.length > 0
+            "
+          >
             <h3 class="section-title">
               <span class="section-icon">📈</span>
-              시세 그래프
+              평형별 시세
+              <span class="fixed-date-label" v-if="selectedProperty.resFixedDate"
+                >(기준일: {{ formattedFixedDate }})</span
+              >
             </h3>
-            <div class="graph-controls">
-              <select class="graph-select">
-                <option>매매</option>
-              </select>
-              <select class="graph-select">
-                <option>전월세</option>
-              </select>
-              <select class="graph-select">
-                <option>32평</option>
-              </select>
-              <select class="graph-select">
-                <option>최근 3년</option>
-              </select>
-            </div>
-            <div class="graph-placeholder">
-              <div class="graph-area">
-                <div class="graph-line"></div>
-                <div class="graph-labels">
-                  <span>01</span>
-                  <span>03</span>
-                  <span>06</span>
-                  <span>09</span>
-                  <span>12</span>
-                  <span>15</span>
-                  <span>18</span>
-                </div>
-              </div>
-              <div class="price-info">
-                <div class="current-price">
-                  <span class="price-label"
-                    >현재 {{ selectedProperty.resType || '매매' }} 시세</span
+            <div class="area-price-list">
+              <div
+                v-for="areaData in selectedProperty.resAreaPriceList"
+                :key="areaData.resArea"
+                class="area-price-item"
+              >
+                <div class="area-info">
+                  <span class="area-size-sqm">{{ areaData.resArea }}㎡</span>
+                  <span class="area-size-pyeong"
+                    >(약 {{ Math.round(parseFloat(areaData.resArea) / 3.3058) }}평)</span
                   >
-                  <span class="price-value">
-                    {{
-                      selectedProperty.resAreaPriceList?.[0]?.resLowerAveragePrice ||
-                      generatePropertyInfo(selectedProperty)
-                    }}
-                  </span>
                 </div>
-                <div class="price-change">
-                  <span class="change-label">전월 대비</span>
-                  <span class="change-value positive">+0.4억</span>
+
+                <div class="price-details-graph">
+                  <div class="price-row-graph">
+                    <span class="price-type sale">매매</span>
+                    <div class="price-bar-wrapper">
+                      <div
+                        class="price-bar"
+                        :style="
+                          getBarRangeStyle(
+                            areaData.resLowerAveragePrice,
+                            areaData.resTopAveragePrice
+                          )
+                        "
+                      ></div>
+                    </div>
+                    <span class="price-range-text">{{
+                      formatPriceRange(areaData.resLowerAveragePrice, areaData.resTopAveragePrice)
+                    }}</span>
+                  </div>
+                  <div class="price-row-graph">
+                    <span class="price-type lease">전세</span>
+                    <div class="price-bar-wrapper">
+                      <div
+                        class="price-bar"
+                        :style="
+                          getBarRangeStyle(
+                            areaData.resLowerAveragePrice1,
+                            areaData.resTopAveragePrice1
+                          )
+                        "
+                      ></div>
+                    </div>
+                    <span class="price-range-text">{{
+                      formatPriceRange(areaData.resLowerAveragePrice1, areaData.resTopAveragePrice1)
+                    }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1143,12 +1188,6 @@ onMounted(() => {
                 <h4 class="desc-title">한 줄 소개</h4>
                 <p class="desc-text">
                   {{ selectedProperty.infoOneline || '한 줄 소개가 없습니다.' }}
-                </p>
-              </div>
-              <div class="desc-item">
-                <h4 class="desc-title">매물 제목</h4>
-                <p class="desc-text">
-                  {{ selectedProperty.title || '제목이 없습니다.' }}
                 </p>
               </div>
               <div class="desc-item">
@@ -2510,5 +2549,131 @@ onMounted(() => {
 .price-neutral {
   color: #7f8c8d;
   font-weight: bold;
+}
+
+.facility-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.facility-tag {
+  background-color: #e0e0e0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #333;
+}
+
+/* 시설 정보 스타일 */
+.facility-info .info-value {
+  flex: 1;
+  text-align: right;
+}
+
+.facility-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.facility-tag {
+  background-color: #e9ecef;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.fixed-date-label {
+  font-size: 12px;
+  font-weight: normal;
+  color: #666;
+  margin-left: 8px;
+}
+
+.area-price-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.area-price-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.area-info {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.area-size-sqm {
+  font-size: 15px;
+  font-weight: bold;
+  color: #333;
+}
+
+.area-size-pyeong {
+  font-size: 13px;
+  color: #666;
+}
+
+.price-details-graph {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.price-row-graph {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.price-type {
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-align: center;
+  color: white;
+}
+
+.price-type.sale {
+  background-color: #e57373;
+}
+
+.price-type.lease {
+  background-color: #64b5f6;
+}
+
+.price-bar-wrapper {
+  width: 100%;
+  height: 16px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.price-bar {
+  position: absolute;
+  height: 100%;
+  background-color: #4caf50;
+  border-radius: 4px;
+  opacity: 0.7;
+}
+
+.price-range-text {
+  font-weight: 500;
+  color: #333;
+  text-align: right;
+  white-space: nowrap;
 }
 </style>

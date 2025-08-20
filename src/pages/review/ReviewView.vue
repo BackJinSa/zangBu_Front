@@ -54,6 +54,13 @@ const goBack = () => {
 
 // 글쓰기 페이지로 이동
 const goToWrite = () => {
+  // 현재 건물 정보를 store에 저장하여 ReviewWriteView에서 사용할 수 있도록 함
+  if (reviewStore.buildingInfo) {
+    reviewStore.setBuildingInfo(reviewStore.buildingInfo)
+    console.log('건물 정보를 store에 저장했습니다:', reviewStore.buildingInfo)
+  } else {
+    console.log('저장할 건물 정보가 없습니다.')
+  }
   router.push(`/review/write/${buildingId.value}`)
 }
 
@@ -61,10 +68,7 @@ const goToWrite = () => {
 onMounted(async () => {
   if (buildingId.value) {
     try {
-      // 건물 정보 먼저 조회
-      await reviewStore.getBuildingInfoById(buildingId.value)
-
-      // 리뷰 목록 조회
+      // 리뷰 목록 조회 (건물 정보 포함)
       await reviewStore.getReviewsByBuildingId(buildingId.value, 1, 5)
 
       // 첫 번째 리뷰가 있으면 자동으로 선택
@@ -132,14 +136,6 @@ onMounted(async () => {
         <h2 class="text-base sm:text-lg font-bold text-gray-800 mb-4">
           매물 리뷰 목록 - {{ buildingName }}
         </h2>
-
-        <!-- 테스트 안내 메시지 -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-          <p class="text-xs sm:text-sm text-blue-800">
-            <strong>테스트 안내:</strong> Building ID 1-12로 테스트 가능<br />
-            예시: /review/1, /review/2, /review/3...
-          </p>
-        </div>
 
         <!-- Loading State -->
         <div v-if="reviewStore.loading" class="flex justify-center py-8">
@@ -257,22 +253,6 @@ onMounted(async () => {
             >
               {{ reviewStore.currentReview.floor || '중층' }}
             </span>
-            <div class="flex items-center space-x-1">
-              <svg
-                class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                  clip-rule="evenodd"
-                ></path>
-              </svg>
-              <span class="text-xs sm:text-sm text-gray-600 truncate max-w-[200px] sm:max-w-none">{{
-                reviewStore.buildingInfo?.address || '주소 정보 없음'
-              }}</span>
-            </div>
           </div>
 
           <!-- Reviewer -->

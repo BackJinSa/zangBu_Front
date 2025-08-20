@@ -4,6 +4,7 @@ import {
   getComplexNo,
   verifySecureCodeWithToken,
   getComplexNoWithToken,
+  getComplexDetailByBuildingId,
 } from '@/api/codef/codef.js'
 
 export const useCodefStore = defineStore('codef', {
@@ -18,6 +19,14 @@ export const useCodefStore = defineStore('codef', {
 
     // 건물 일련번호 조회 관련 상태
     complexInfo: {
+      loading: false,
+      success: false,
+      error: null,
+      data: null,
+    },
+
+    // 단지 상세 정보 조회 관련 상태
+    complexDetail: {
       loading: false,
       success: false,
       error: null,
@@ -41,6 +50,12 @@ export const useCodefStore = defineStore('codef', {
     isComplexSuccess: (state) => state.complexInfo.success,
     complexError: (state) => state.complexInfo.error,
     complexData: (state) => state.complexInfo.data,
+
+    // 단지 상세 정보 조회 상태
+    isComplexDetailLoading: (state) => state.complexDetail.loading,
+    isComplexDetailSuccess: (state) => state.complexDetail.success,
+    complexDetailError: (state) => state.complexDetail.error,
+    complexDetailData: (state) => state.complexDetail.data,
 
     // 복합 상태
     hasSessionKey: (state) => !!state.sessionKey,
@@ -218,6 +233,35 @@ export const useCodefStore = defineStore('codef', {
         }
       } finally {
         this.complexInfo.loading = false
+      }
+    },
+
+    // buildingId로 단지 상세 정보 조회
+    async fetchComplexDetailByBuildingId(buildingId) {
+      this.complexDetail.loading = true
+      this.complexDetail.success = false
+      this.complexDetail.error = null
+      this.complexDetail.data = null
+
+      try {
+        const response = await getComplexDetailByBuildingId(buildingId)
+
+        if (response.status === 200) {
+          this.complexDetail.success = true
+          this.complexDetail.data = response.data
+          return { success: true, data: response.data }
+        } else {
+          this.complexDetail.error = '단지 상세 정보 조회에 실패했습니다.'
+          return { success: false, error: '단지 상세 정보 조회에 실패했습니다.' }
+        }
+      } catch (error) {
+        this.complexDetail.error = error.message || '단지 상세 정보 조회 중 오류가 발생했습니다.'
+        return {
+          success: false,
+          error: error.message || '단지 상세 정보 조회 중 오류가 발생했습니다.',
+        }
+      } finally {
+        this.complexDetail.loading = false
       }
     },
 
