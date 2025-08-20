@@ -28,6 +28,7 @@ const processedProperties = computed(() => {
       const result = {
         buildingId: item.building.buildingId,
         price: item.building.price,
+        deposit: item.building.deposit,
         buildingName: item.building.buildingName,
         imageUrl: item.building.imageUrl,
         isBookmarked: item.building.isBookmarked,
@@ -42,6 +43,7 @@ const processedProperties = computed(() => {
     return {
       buildingId: item.buildingId,
       price: item.price,
+      deposit: item.deposit,
       buildingName: item.buildingName,
       imageUrl: item.imageUrl,
       isBookmarked: item.isBookmarked,

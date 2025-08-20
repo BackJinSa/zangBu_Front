@@ -22,7 +22,7 @@
       <h3 class="property-title">{{ property.buildingName || '래미안 강남' }}</h3>
 
       <div class="price-info">
-        <span class="price-text">{{ formatPrice(property.price) || '₩700,000,000' }}</span>
+        <span class="price-text">{{ getDisplayPrice(property) || '₩700,000,000' }}</span>
       </div>
 
       <div class="rating-info" v-if="property.rank">
@@ -44,6 +44,7 @@ const props = defineProps({
     default: () => ({
       buildingId: '',
       price: '',
+      deposit: '',
       buildingName: '',
       imageUrl: '',
       isBookmarked: false,
@@ -143,16 +144,38 @@ const handleCardClick = () => {
   emit('click', props.property)
 }
 
-// Format price
+// Format price (DB값이 만원 단위로 저장됨)
 const formatPrice = (price) => {
   if (!price) return ''
-  const numPrice = parseInt(price)
-  if (numPrice >= 100000000) {
-    return `₩${(numPrice / 100000000).toFixed(0)}억`
-  } else if (numPrice >= 10000) {
-    return `₩${(numPrice / 10000).toFixed(0)}만`
+  const numPrice = parseInt(price) // DB값은 이미 만원 단위
+
+  if (numPrice >= 10000) {
+    // 10000만원 이상은 억 단위로 표시
+    const eok = Math.floor(numPrice / 10000) // 억 단위
+    const man = numPrice % 10000 // 나머지 만원 단위
+
+    if (man > 0) {
+      return `₩${eok}억 ${man.toLocaleString()}만`
+    } else {
+      return `₩${eok}억`
+    }
   } else {
-    return `₩${numPrice.toLocaleString()}`
+    // 10000만원 미만은 만원 단위로 표시
+    return `₩${numPrice.toLocaleString()}만`
+  }
+}
+
+// 표시할 가격 결정 (price가 0이면 deposit 사용)
+const getDisplayPrice = (property) => {
+  const price = parseInt(property.price || 0)
+  const deposit = parseInt(property.deposit || 0)
+
+  if (price === 0 && deposit > 0) {
+    // 매매가가 0이면 보증금으로 표시
+    return formatPrice(deposit)
+  } else {
+    // 일반적인 경우 매매가 표시
+    return formatPrice(price)
   }
 }
 </script>
