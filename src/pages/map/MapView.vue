@@ -1158,12 +1158,6 @@ const getBarRangeStyle = (lower, upper) => {
                 </p>
               </div>
               <div class="desc-item">
-                <h4 class="desc-title">매물 제목</h4>
-                <p class="desc-text">
-                  {{ selectedProperty.title || '제목이 없습니다.' }}
-                </p>
-              </div>
-              <div class="desc-item">
                 <h4 class="desc-title">매물 설명</h4>
                 <p class="desc-text">
                   {{ selectedProperty.infoBuilding || '상세 설명이 없습니다.' }}
