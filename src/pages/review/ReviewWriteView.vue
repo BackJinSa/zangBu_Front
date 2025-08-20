@@ -34,9 +34,9 @@ const reviewForm = ref({
 
 // 층수 옵션
 const floorOptions = [
-  { value: '저층', label: '저층 (1-3층)' },
-  { value: '중층', label: '중층 (4-7층)' },
-  { value: '고층', label: '고층 (8층 이상)' },
+  { value: '저층', label: '저층' },
+  { value: '중층', label: '중층' },
+  { value: '고층', label: '고층' },
 ]
 
 // 별점 렌더링
