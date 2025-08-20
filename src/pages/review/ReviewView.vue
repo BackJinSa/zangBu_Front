@@ -133,14 +133,6 @@ onMounted(async () => {
           매물 리뷰 목록 - {{ buildingName }}
         </h2>
 
-        <!-- 테스트 안내 메시지 -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-          <p class="text-xs sm:text-sm text-blue-800">
-            <strong>테스트 안내:</strong> Building ID 1-12로 테스트 가능<br />
-            예시: /review/1, /review/2, /review/3...
-          </p>
-        </div>
-
         <!-- Loading State -->
         <div v-if="reviewStore.loading" class="flex justify-center py-8">
           <div
