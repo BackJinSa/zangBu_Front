@@ -175,7 +175,7 @@ export default {
     const pdfUrl = ref(null)
     const downloadLoading = ref(false)
 
-    const buildingId = computed(() => route.params.dealId) // 라우터에서는 dealId로 받지만 실제로는 buildingId
+    const buildingId = computed(() => route.params.buildingId) // 라우터에서 buildingId로 받음
     const documentType = computed(() => route.params.type)
 
     const documentTypeLabel = computed(() => {
@@ -435,7 +435,7 @@ export default {
 
           const link = document.createElement('a')
           link.href = url
-          link.download = `${documentTypeLabel.value}_${dealId.value}.pdf`
+          link.download = `${documentTypeLabel.value}_${buildingId.value}.pdf`
           link.style.display = 'none'
           document.body.appendChild(link)
           link.click()
@@ -460,7 +460,7 @@ export default {
 
           const link = document.createElement('a')
           link.href = url
-          link.download = `${documentTypeLabel.value}_${dealId.value}.pdf`
+          link.download = `${documentTypeLabel.value}_${buildingId.value}.pdf`
           link.style.display = 'none'
           document.body.appendChild(link)
           link.click()
