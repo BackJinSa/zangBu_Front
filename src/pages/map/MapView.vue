@@ -505,7 +505,7 @@ const showPropertyDetail = (property) => {
     selectedProperty.value = propertyData
     showDetail.value = true
     // URL 업데이트 - buildingId 사용
-    const buildingId = property.buildingId || getBuildingIdByName(property.buildingName)
+    const buildingId = property.buildingId
     if (buildingId) {
       router.push(`/map/apt/${buildingId}`)
     } else {
@@ -533,8 +533,7 @@ const toggleBookmark = async () => {
   if (!selectedProperty.value) return
 
   try {
-    const buildingId =
-      selectedProperty.value.buildingId || getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
 
     if (selectedProperty.value.isBookmarked) {
       // 찜하기 취소
@@ -555,8 +554,7 @@ const toggleNotification = async () => {
   if (!selectedProperty.value) return
 
   try {
-    const buildingId =
-      selectedProperty.value.buildingId || getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
 
     if (selectedProperty.value.isNotification) {
       // 알림 해제
@@ -601,7 +599,7 @@ const goToChat = async () => {
 // 리뷰 목록 페이지로 이동
 const goToReviewList = () => {
   if (selectedProperty.value) {
-    const buildingId = getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
     if (buildingId) {
       router.push(`/review/${buildingId}`)
     } else {
@@ -616,7 +614,7 @@ const goToReviewList = () => {
 // 리뷰 작성 페이지로 이동
 const goToReviewWrite = () => {
   if (selectedProperty.value) {
-    const buildingId = getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
     if (buildingId) {
       router.push(`/review/write/${buildingId}`)
     } else {
@@ -631,7 +629,7 @@ const goToReviewWrite = () => {
 // 등기부등본 다운로드 페이지로 이동
 const goToRegistryDownload = async () => {
   if (selectedProperty.value) {
-    const buildingId = getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
     if (buildingId) {
       // 멤버십 검증
       const result = await validateMembership({
@@ -654,7 +652,7 @@ const goToRegistryDownload = async () => {
 // 건축물대장 다운로드 페이지로 이동
 const goToBuildingRegisterDownload = async () => {
   if (selectedProperty.value) {
-    const buildingId = getBuildingIdByName(selectedProperty.value.buildingName)
+    const buildingId = selectedProperty.value.buildingId
     if (buildingId) {
       // 멤버십 검증
       const result = await validateMembership({
@@ -680,17 +678,27 @@ const { validateMembership } = useMembership()
 // 분석 리포트 다운로드 페이지로 이동
 const goToAnalysisReportDownload = async () => {
   if (selectedProperty.value) {
-    // 멤버십 검증
-    const result = await validateMembership({
-      onSuccess: () => {
-        // 분석 리포트는 reportId를 사용하므로 임시로 1을 사용
-        const reportId = 1
-        router.push(`/deal/consumer/report/${reportId}/download`)
-      },
-      onFailure: (message) => {
-        console.warn('멤버십 검증 실패:', message)
-      },
-    })
+    const buildingId = selectedProperty.value.buildingId
+    if (buildingId) {
+      // 멤버십 검증
+      await validateMembership({
+        onSuccess: () => {
+          router.push(`/document/analysis-report/${buildingId}`)
+        },
+        onFailure: (message) => {
+          console.warn('멤버십 검증 실패:', message)
+          if (
+            window.confirm(
+              '분석 리포트를 보려면 결제가 필요합니다. 결제 페이지로 이동하시겠습니까?'
+            )
+          ) {
+            router.push('/payment')
+          }
+        },
+      })
+    } else {
+      console.warn('buildingId를 찾을 수 없습니다.')
+    }
   }
 }
 
@@ -711,8 +719,7 @@ onMounted(() => {
   // buildingId가 있으면 매물 상세 정보 가져오기
   if (props.buildingId) {
     try {
-      // 새로운 공공데이터 통합 조회 API 사용
-      fetchPropertyDetailWithPublicData(parseInt(props.buildingId))
+      fetchPropertyDetail(parseInt(props.buildingId))
     } catch (error) {
       console.error('매물 상세 정보 가져오기 실패:', error)
     }
@@ -892,7 +899,7 @@ onMounted(() => {
             <span class="back-icon">←</span>
           </button>
           <h2 class="detail-title">
-            {{ selectedProperty.resComplexName || selectedProperty.buildingName }}
+            {{ selectedProperty.buildingName }}
           </h2>
           <div class="header-actions">
             <button
@@ -931,13 +938,11 @@ onMounted(() => {
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">등록자 유형</span>
-                <span class="info-value">집주인</span>
+                <span class="info-value">{{ selectedProperty.sellerType }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">매매 종류</span>
-                <span class="info-value">{{
-                  selectedProperty.resType || selectedProperty.saleType
-                }}</span>
+                <span class="info-value">{{ selectedProperty.saleType }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">부동산 종류</span>
@@ -947,23 +952,21 @@ onMounted(() => {
               </div>
               <div class="info-item">
                 <span class="info-label">면적</span>
-                <span class="info-value">{{
-                  selectedProperty.resAreaPriceList?.[0]?.resArea || '84.5㎡'
-                }}</span>
+                <span class="info-value">{{ selectedProperty.size }}㎡</span>
               </div>
               <div class="info-item">
                 <span class="info-label">도로명 주소</span>
                 <span class="info-value">{{
-                  selectedProperty.commAddrRoadName || selectedProperty.address
+                  selectedProperty.commAddrRoadName || selectedProperty.roadName
                 }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">층수</span>
-                <span class="info-value">지하 3층 ~ 지상 25층</span>
+                <span class="info-value">{{ selectedProperty.ho }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">상세 주소</span>
-                <span class="info-value">101동 1001호</span>
+                <span class="info-value">{{ selectedProperty.address }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">세대수</span>
@@ -1121,14 +1124,9 @@ onMounted(() => {
               </div>
               <div class="price-info">
                 <div class="current-price">
-                  <span class="price-label"
-                    >현재 {{ selectedProperty.resType || '매매' }} 시세</span
-                  >
+                  <span class="price-label">현재 {{ selectedProperty.saleType }} 시세</span>
                   <span class="price-value">
-                    {{
-                      selectedProperty.resAreaPriceList?.[0]?.resLowerAveragePrice ||
-                      generatePropertyInfo(selectedProperty)
-                    }}
+                    {{ generatePropertyInfo(selectedProperty) }}
                   </span>
                 </div>
                 <div class="price-change">
