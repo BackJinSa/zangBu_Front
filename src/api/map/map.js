@@ -103,3 +103,20 @@ export const getSingleMapLocation = async (address, buildingName) => {
     throw error
   }
 }
+
+/**
+ * 아파트 상세 정보 조회 (매매 종류, 면적, 상세 주소)
+ * @param {number} buildingId - 건물 ID
+ * @returns {Promise} 아파트 상세 정보 (saleType, size, dong)
+ */
+export const getAptDetail = async (buildingId) => {
+  try {
+    console.log('🏠 아파트 상세 정보 조회 중...', buildingId)
+    const response = await api.get(`/map/apt/${buildingId}`)
+    console.log('✅ 아파트 상세 정보 조회 성공:', response.data)
+    return response.data
+  } catch (error) {
+    console.error('아파트 상세 정보 조회 실패:', error)
+    throw error
+  }
+}

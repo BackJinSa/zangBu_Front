@@ -12,6 +12,7 @@ const buildingId = route.params.buildingId
 
 // 건물명을 동적으로 가져오기
 const buildingName = computed(() => {
+  // store에 이미 건물 정보가 있으면 사용, 없으면 '로딩 중...' 표시
   return reviewStore.buildingInfo?.buildingName || '로딩 중...'
 })
 
@@ -27,15 +28,14 @@ const addressValidation = ref({
 const reviewForm = ref({
   rank: 5, // 기본값 5점
   floor: '중층', // 기본값 중층
-  title: '', // 리뷰 제목
   content: '', // 리뷰 내용
 })
 
 // 층수 옵션
 const floorOptions = [
-  { value: '저층', label: '저층 (1-3층)' },
-  { value: '중층', label: '중층 (4-7층)' },
-  { value: '고층', label: '고층 (8층 이상)' },
+  { value: '저층', label: '저층' },
+  { value: '중층', label: '중층' },
+  { value: '고층', label: '고층' },
 ]
 
 // 별점 렌더링
@@ -60,15 +60,17 @@ const performAddressValidation = async () => {
   addressValidation.value.message = ''
 
   try {
-    const result = await validateAddressForReview(parseInt(buildingId))
+    const lived = await validateAddressForReview(parseInt(buildingId))
 
-    if (result.isValid) {
+    if (lived) {
       addressValidation.value.isValid = true
-      addressValidation.value.message = result.message
+      addressValidation.value.message =
+        '주소 검증이 완료되었습니다! 이제 리뷰를 작성할 수 있습니다.'
       alert('주소 검증이 완료되었습니다! 이제 리뷰를 작성할 수 있습니다.')
     } else {
       addressValidation.value.isValid = false
-      addressValidation.value.error = result.message || '주소 검증에 실패했습니다.'
+      addressValidation.value.error =
+        '주소 검증에 실패했습니다. 주민등록초본에 기록된 주소와 해당 건물의 주소가 일치하지 않습니다.'
       alert(
         '주소 검증에 실패했습니다. 주민등록초본에 기록된 주소와 해당 건물의 주소가 일치하지 않습니다.'
       )
@@ -89,17 +91,6 @@ const goBack = () => {
 
 // 리뷰 작성 제출
 const submitReview = async () => {
-  // 주소 검증이 완료되지 않은 경우
-  if (!addressValidation.value.isValid) {
-    alert('먼저 주소 검증을 완료해주세요.')
-    return
-  }
-
-  if (!reviewForm.value.title.trim()) {
-    alert('리뷰 제목을 입력해주세요.')
-    return
-  }
-
   if (!reviewForm.value.content.trim()) {
     alert('리뷰 내용을 입력해주세요.')
     return
@@ -111,7 +102,6 @@ const submitReview = async () => {
       addressId: reviewStore.buildingInfo?.address || '',
       floor: reviewForm.value.floor,
       rank: reviewForm.value.rank,
-      title: reviewForm.value.title.trim(),
       content: reviewForm.value.content.trim(),
     }
 
@@ -131,8 +121,16 @@ const submitReview = async () => {
 onMounted(async () => {
   if (buildingId) {
     try {
-      // 건물 정보 조회
-      await reviewStore.getBuildingInfoById(buildingId)
+      // store에 이미 건물 정보가 있는지 확인
+      if (
+        !reviewStore.buildingInfo?.buildingName ||
+        reviewStore.buildingInfo.buildingName === '로딩 중...'
+      ) {
+        // 건물 정보가 없거나 기본값인 경우에만 API 호출
+        await reviewStore.getBuildingInfoById(buildingId)
+      } else {
+        console.log('이미 store에 건물 정보가 있습니다:', reviewStore.buildingInfo)
+      }
     } catch (error) {
       console.error('건물 정보 조회 실패:', error)
     }
@@ -172,9 +170,9 @@ onMounted(async () => {
 
         <!-- 주소 검증 섹션 -->
         <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">주소 검증</h3>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">주소 검증 (테스트)</h3>
           <p class="text-sm text-gray-600 mb-4">
-            리뷰를 작성하려면 주민등록초본에 기록된 주소와 해당 건물의 주소가 일치해야 합니다.
+            주소 검증은 선택사항입니다. 주소 검증 없이도 리뷰를 작성할 수 있습니다.
           </p>
 
           <!-- 검증 상태 표시 -->
@@ -254,17 +252,6 @@ onMounted(async () => {
             </select>
           </div>
 
-          <!-- 리뷰 제목 -->
-          <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">리뷰 제목</label>
-            <input
-              v-model="reviewForm.title"
-              type="text"
-              placeholder="리뷰 제목을 입력해주세요"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-
           <!-- 리뷰 내용 -->
           <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">리뷰 내용</label>
@@ -289,14 +276,10 @@ onMounted(async () => {
             </button>
             <button
               @click="submitReview"
-              :disabled="
-                !addressValidation.isValid ||
-                !reviewForm.title.trim() ||
-                reviewForm.content.length < 10
-              "
+              :disabled="reviewForm.content.length < 10"
               class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
-              {{ addressValidation.isValid ? '리뷰 작성' : '주소 검증 필요' }}
+              리뷰 작성
             </button>
           </div>
         </div>
