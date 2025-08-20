@@ -25,6 +25,7 @@ import { useMapStore } from '@/stores/map/map.js'
 import { useRouter, useRoute } from 'vue-router'
 import {
   getPropertyDetailById,
+  getPropertySimpleDetail,
   bookmarkProperty,
   cancelBookmarkProperty,
   setPropertyNotification,
@@ -56,6 +57,7 @@ const chatStore = useChatStore()
 // 상세 보기 상태
 const showDetail = ref(false)
 const selectedProperty = ref(null)
+const simplePropertyDetail = ref(null)
 
 // 지도 관련
 const mapContainer = ref(null)
@@ -76,6 +78,22 @@ const facilityList = computed(() => {
     .split(',')
     .map((item) => item.trim())
     .filter((item) => item)
+})
+
+const formattedSaleType = computed(() => {
+  if (!simplePropertyDetail.value || !simplePropertyDetail.value.saleType) {
+    return ''
+  }
+  switch (simplePropertyDetail.value.saleType) {
+    case 'TRADING':
+      return '매매'
+    case 'MONTHLY':
+      return '월세'
+    case 'CHARTER':
+      return '전세'
+    default:
+      return simplePropertyDetail.value.saleType
+  }
 })
 
 // 카카오 맵 초기화
@@ -385,6 +403,17 @@ const fetchPropertyDetail = async (buildingId) => {
   }
 }
 
+const fetchSimplePropertyDetail = async (buildingId) => {
+  try {
+    const response = await getPropertySimpleDetail(buildingId)
+    if (response.data) {
+      simplePropertyDetail.value = response.data
+    }
+  } catch (error) {
+    console.error('간단한 매물 정보 가져오기 실패:', error)
+  }
+}
+
 // 실거래가 정보 가져오기
 const fetchRealEstateData = async (propertyData) => {
   try {
@@ -646,6 +675,7 @@ onMounted(() => {
   if (props.buildingId) {
     try {
       fetchPropertyDetail(parseInt(props.buildingId))
+      fetchSimplePropertyDetail(parseInt(props.buildingId))
     } catch (error) {
       console.error('매물 상세 정보 가져오기 실패:', error)
     }
@@ -924,10 +954,10 @@ const getBarRangeStyle = (lower, upper) => {
               <p class="error-text">{{ selectedProperty.error }}</p>
               <p class="error-hint">백엔드 API 연결을 확인해주세요.</p>
             </div>
-            <div class="info-grid">
+            <div class="info-grid" v-if="simplePropertyDetail">
               <div class="info-item">
                 <span class="info-label">매매 종류</span>
-                <span class="info-value">{{ selectedProperty.saleType }}</span>
+                <span class="info-value">{{ formattedSaleType }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">부동산 종류</span>
@@ -937,7 +967,7 @@ const getBarRangeStyle = (lower, upper) => {
               </div>
               <div class="info-item">
                 <span class="info-label">면적</span>
-                <span class="info-value">{{ selectedProperty.size }}㎡</span>
+                <span class="info-value">{{ simplePropertyDetail.size }}㎡</span>
               </div>
               <div class="info-item">
                 <span class="info-label">도로명 주소</span>
@@ -947,7 +977,9 @@ const getBarRangeStyle = (lower, upper) => {
               </div>
               <div class="info-item">
                 <span class="info-label">상세 주소</span>
-                <span class="info-value">{{ selectedProperty.address }}</span>
+                <span class="info-value"
+                  >{{ simplePropertyDetail.dong }} {{ simplePropertyDetail.ho }}</span
+                >
               </div>
               <div class="info-item">
                 <span class="info-label">세대수</span>
