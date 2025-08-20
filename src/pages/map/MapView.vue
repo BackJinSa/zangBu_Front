@@ -559,7 +559,7 @@ const goToChat = async () => {
   if (exists && chatRoomId) {
     router.push({ name: 'chat-room', params: { roomId: chatRoomId } })
   } else {
-    router.push({ name: 'deal-notice', params: { buildingId: props.buildingId } })
+    router.push({ name: 'deal-notice', params: { dealId: props.dealId } })
   }
 }
 
