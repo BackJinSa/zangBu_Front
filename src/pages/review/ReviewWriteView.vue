@@ -61,15 +61,17 @@ const performAddressValidation = async () => {
   addressValidation.value.message = ''
 
   try {
-    const result = await validateAddressForReview(parseInt(buildingId))
+    const lived = await validateAddressForReview(parseInt(buildingId))
 
-    if (result.isValid) {
+    if (lived) {
       addressValidation.value.isValid = true
-      addressValidation.value.message = result.message
+      addressValidation.value.message =
+        '주소 검증이 완료되었습니다! 이제 리뷰를 작성할 수 있습니다.'
       alert('주소 검증이 완료되었습니다! 이제 리뷰를 작성할 수 있습니다.')
     } else {
       addressValidation.value.isValid = false
-      addressValidation.value.error = result.message || '주소 검증에 실패했습니다.'
+      addressValidation.value.error =
+        '주소 검증에 실패했습니다. 주민등록초본에 기록된 주소와 해당 건물의 주소가 일치하지 않습니다.'
       alert(
         '주소 검증에 실패했습니다. 주민등록초본에 기록된 주소와 해당 건물의 주소가 일치하지 않습니다.'
       )

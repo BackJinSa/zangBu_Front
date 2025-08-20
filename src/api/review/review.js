@@ -410,11 +410,11 @@ export const getReviewDetail = async (reviewId) => {
  */
 export const validateAddressForReview = async (buildingId) => {
   try {
-    const response = await api.get(`/review/validate-address/${buildingId}`)
-    return response.data
+    const response = await api.get(`/address-changes/find/${buildingId}`);
+    return response.data;
   } catch (error) {
-    console.error('주소 검증 실패:', error)
-    throw error
+    console.error('주소 검증 실패:', error);
+    throw error;
   }
 }
 
