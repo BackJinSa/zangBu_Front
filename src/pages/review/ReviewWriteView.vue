@@ -18,7 +18,7 @@ const buildingName = computed(() => {
 
 // 주소 검증 상태
 const addressValidation = ref({
-  isValid: true, // 주소 검증 임시 비활성화
+  isValid: false,
   isChecking: false,
   message: '',
   error: '',
@@ -92,10 +92,10 @@ const goBack = () => {
 // 리뷰 작성 제출
 const submitReview = async () => {
   // 주소 검증이 완료되지 않은 경우
-  // if (!addressValidation.value.isValid) {
-  //   alert('먼저 주소 검증을 완료해주세요.')
-  //   return
-  // }
+  if (!addressValidation.value.isValid) {
+    alert('먼저 주소 검증을 완료해주세요.')
+    return
+  }
 
   if (!reviewForm.value.content.trim()) {
     alert('리뷰 내용을 입력해주세요.')
@@ -105,6 +105,7 @@ const submitReview = async () => {
   try {
     const reviewData = {
       buildingId: parseInt(buildingId),
+      addressId: reviewStore.buildingInfo?.address || '',
       floor: reviewForm.value.floor,
       rank: reviewForm.value.rank,
       content: reviewForm.value.content.trim(),
@@ -174,13 +175,13 @@ onMounted(async () => {
         </div>
 
         <!-- 주소 검증 섹션 -->
-        <!--
         <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
           <h3 class="text-lg font-semibold text-gray-800 mb-4">주소 검증</h3>
           <p class="text-sm text-gray-600 mb-4">
             리뷰를 작성하려면 주민등록초본에 기록된 주소와 해당 건물의 주소가 일치해야 합니다.
           </p>
 
+          <!-- 검증 상태 표시 -->
           <div v-if="addressValidation.message || addressValidation.error" class="mb-4">
             <div
               v-if="addressValidation.message"
@@ -196,6 +197,7 @@ onMounted(async () => {
             </div>
           </div>
 
+          <!-- 검증 버튼 -->
           <div class="flex items-center space-x-3">
             <button
               @click="performAddressValidation"
@@ -219,7 +221,6 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-        -->
 
         <!-- 리뷰 작성 폼 -->
         <div class="bg-white rounded-lg border border-gray-200 p-6">
@@ -281,10 +282,10 @@ onMounted(async () => {
             </button>
             <button
               @click="submitReview"
-              :disabled="reviewForm.content.length < 10"
+              :disabled="!addressValidation.isValid || reviewForm.content.length < 10"
               class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
-              리뷰 작성
+              {{ addressValidation.isValid ? '리뷰 작성' : '주소 검증 필요' }}
             </button>
           </div>
         </div>
