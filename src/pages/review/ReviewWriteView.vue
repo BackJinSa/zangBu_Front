@@ -91,12 +91,6 @@ const goBack = () => {
 
 // 리뷰 작성 제출
 const submitReview = async () => {
-  // 주소 검증이 완료되지 않은 경우
-  if (!addressValidation.value.isValid) {
-    alert('먼저 주소 검증을 완료해주세요.')
-    return
-  }
-
   if (!reviewForm.value.content.trim()) {
     alert('리뷰 내용을 입력해주세요.')
     return
@@ -176,9 +170,9 @@ onMounted(async () => {
 
         <!-- 주소 검증 섹션 -->
         <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">주소 검증</h3>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">주소 검증 (테스트)</h3>
           <p class="text-sm text-gray-600 mb-4">
-            리뷰를 작성하려면 주민등록초본에 기록된 주소와 해당 건물의 주소가 일치해야 합니다.
+            주소 검증은 선택사항입니다. 주소 검증 없이도 리뷰를 작성할 수 있습니다.
           </p>
 
           <!-- 검증 상태 표시 -->
@@ -282,10 +276,10 @@ onMounted(async () => {
             </button>
             <button
               @click="submitReview"
-              :disabled="!addressValidation.isValid || reviewForm.content.length < 10"
+              :disabled="reviewForm.content.length < 10"
               class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
-              {{ addressValidation.isValid ? '리뷰 작성' : '주소 검증 필요' }}
+              리뷰 작성
             </button>
           </div>
         </div>
