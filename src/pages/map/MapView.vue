@@ -36,6 +36,7 @@ import {
   getPropertyInfoByBuildingId,
   getAptTradeInfo,
 } from '@/api/publicdata/publicdata.js'
+import { getAptDetail } from '@/api/map/map.js'
 import { useMembership } from '@/composables/useMembership'
 import { useChatStore } from '@/stores/chat/chat'
 import { useAuthStore } from '@/stores/auth/auth'
@@ -349,6 +350,23 @@ const fetchPropertyDetail = async (buildingId) => {
         isBookmarked: response.data.isBookmarked ?? false,
         isNotification: response.data.isNotification ?? false,
       }
+
+      // 🆕 우리가 만든 API로 매매 종류, 면적, 상세 주소 정보 가져오기
+      try {
+        const aptDetailResponse = await getAptDetail(buildingId)
+        console.log('아파트 상세 정보 응답:', aptDetailResponse)
+
+        // DB에서 가져온 정보로 업데이트
+        propertyData.saleType = aptDetailResponse.saleType || propertyData.saleType
+        propertyData.size = aptDetailResponse.size || propertyData.size
+        propertyData.address = aptDetailResponse.dong || propertyData.address
+
+        console.log('업데이트된 매물 정보:', propertyData)
+      } catch (aptDetailError) {
+        console.warn('아파트 상세 정보 조회 실패, 기본 정보 사용:', aptDetailError)
+        // API 실패 시 기존 정보 사용
+      }
+
       selectedProperty.value = propertyData
       showDetail.value = true
 
