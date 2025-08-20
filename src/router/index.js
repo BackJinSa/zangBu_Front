@@ -25,7 +25,6 @@ import PropertyEditView from '@/pages/property/PropertyEditView.vue'
 // 채팅 관련 페이지
 import ChatListView from '@/pages/chat/ChatListView.vue'
 import ChatRoomView from '@/pages/chat/ChatRoomView.vue'
-import ChatTest from '@/pages/chat/ChatTest.vue'
 
 // 거래 관련 페이지
 import DealGuideView from '@/pages/deal/DealGuideView.vue'
@@ -180,12 +179,6 @@ const router = createRouter({
     },
 
     // 채팅 관련 라우트
-    {
-      //채팅 테스트
-      path: '/chat/test',
-      name: 'chat-test',
-      component: ChatTest,
-    },
     {
       path: '/chat/list',
       name: 'chat-list',
