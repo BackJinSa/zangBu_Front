@@ -24,24 +24,20 @@ const fetchPropertyInfo = async () => {
     loading.value = true
     error.value = null
 
-    const dealId = route.params.dealId
-    if (!dealId) {
+    const buildingId = route.params.buildingId
+    if (!buildingId) {
       throw new Error('거래 ID가 필요합니다')
     }
 
     // 실제 API 호출 시도
     try {
-      const response = await getDealNotice(dealId)
+      const response = await getDealNotice(buildingId)
 
       // API 응답 구조에 맞게 데이터 매핑
       propertyInfo.value = {
-        dealId: dealId,
         buildingId: response.data.buildingId,
         buildingName: response.data.buildingName,
         infoBuilding: response.data.infoBuilding,
-        dealStatus: response.data.dealStatus, // 거래 상태 추가
-        dealStatusEnum: response.data.dealStatus, // 거래 상태 enum 추가
-        chatRoomId: response.data.chatRoomId, // 채팅방 ID 추가
       }
     } catch (apiError) {
       console.error('API 호출 실패:', apiError)
