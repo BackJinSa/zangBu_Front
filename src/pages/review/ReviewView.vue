@@ -61,10 +61,7 @@ const goToWrite = () => {
 onMounted(async () => {
   if (buildingId.value) {
     try {
-      // 건물 정보 먼저 조회
-      await reviewStore.getBuildingInfoById(buildingId.value)
-
-      // 리뷰 목록 조회
+      // 리뷰 목록 조회 (건물 정보 포함)
       await reviewStore.getReviewsByBuildingId(buildingId.value, 1, 5)
 
       // 첫 번째 리뷰가 있으면 자동으로 선택
