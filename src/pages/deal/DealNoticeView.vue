@@ -390,6 +390,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getDealNoticeBefore } from '@/api/deal/deal'
 import { useChatStore } from '@/stores/chat/chat'
 import { useAuthStore } from '@/stores/auth/auth'
+import { changeDealStatus } from '@/api/deal/deal'
 import axios from 'axios'
 
 const route = useRoute()
