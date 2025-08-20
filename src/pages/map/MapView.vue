@@ -349,7 +349,7 @@ const fetchPropertyDetail = async (buildingId) => {
       showDetail.value = true
 
       // 실거래가 정보도 함께 불러오기
-      await fetchRealEstateData(propertyData)
+      // await fetchRealEstateData(propertyData)
     } else {
       console.warn('매물 데이터가 없습니다.')
       // API에서 데이터가 없을 때 사용자에게 알림
@@ -651,6 +651,69 @@ onMounted(() => {
     }
   }
 })
+
+// 매물 시세 그래프 관련
+const formatPriceForGraph = (price) => {
+  if (!price) return '정보 없음'
+  const priceNum = parseInt(price, 10)
+  if (isNaN(priceNum)) return '정보 없음'
+
+  if (priceNum >= 10000) {
+    const billions = Math.floor(priceNum / 10000)
+    const millions = priceNum % 10000
+    if (millions === 0) {
+      return `${billions}억`
+    }
+    return `${billions}억 ${millions}만`
+  }
+  return `${priceNum}만`
+}
+
+const formatPriceRange = (lower, upper) => {
+  if (!lower || !upper) return '정보 없음'
+  const formattedLower = formatPriceForGraph(lower)
+  const formattedUpper = formatPriceForGraph(upper)
+  if (formattedLower === '정보 없음' || formattedUpper === '정보 없음') return '정보 없음'
+  return `${formattedLower} ~ ${formattedUpper}`
+}
+
+const formattedFixedDate = computed(() => {
+  if (!selectedProperty.value || !selectedProperty.value.resFixedDate) return ''
+  const dateStr = selectedProperty.value.resFixedDate
+  if (dateStr.length === 8) {
+    return `${dateStr.substring(0, 4)}.${dateStr.substring(4, 6)}.${dateStr.substring(6, 8)}`
+  }
+  return dateStr
+})
+
+const maxPrice = computed(() => {
+  if (!selectedProperty.value || !selectedProperty.value.resAreaPriceList) return 0
+  let max = 0
+  selectedProperty.value.resAreaPriceList.forEach((area) => {
+    const topPrice = parseInt(area.resTopAveragePrice, 10)
+    const topPrice1 = parseInt(area.resTopAveragePrice1, 10)
+    if (!isNaN(topPrice) && topPrice > max) max = topPrice
+    if (!isNaN(topPrice1) && topPrice1 > max) max = topPrice1
+  })
+  return max > 0 ? max : 1 // 0으로 나누는 것 방지
+})
+
+const getBarRangeStyle = (lower, upper) => {
+  const lowerNum = parseInt(lower, 10)
+  const upperNum = parseInt(upper, 10)
+
+  if (maxPrice.value === 0 || isNaN(lowerNum) || isNaN(upperNum)) {
+    return { left: '0%', width: '0%' }
+  }
+
+  const left = (lowerNum / maxPrice.value) * 100
+  const width = ((upperNum - lowerNum) / maxPrice.value) * 100
+
+  return {
+    left: `${left}%`,
+    width: `${width}%`,
+  }
+}
 </script>
 
 <template>
@@ -1016,48 +1079,69 @@ onMounted(() => {
           </div>
 
           <!-- 시세 그래프 섹션 -->
-          <div class="detail-section">
+          <div
+            class="detail-section"
+            v-if="
+              selectedProperty &&
+              selectedProperty.resAreaPriceList &&
+              selectedProperty.resAreaPriceList.length > 0
+            "
+          >
             <h3 class="section-title">
               <span class="section-icon">📈</span>
-              시세 그래프
+              평형별 시세
+              <span class="fixed-date-label" v-if="selectedProperty.resFixedDate"
+                >(기준일: {{ formattedFixedDate }})</span
+              >
             </h3>
-            <div class="graph-controls">
-              <select class="graph-select">
-                <option>매매</option>
-              </select>
-              <select class="graph-select">
-                <option>전월세</option>
-              </select>
-              <select class="graph-select">
-                <option>32평</option>
-              </select>
-              <select class="graph-select">
-                <option>최근 3년</option>
-              </select>
-            </div>
-            <div class="graph-placeholder">
-              <div class="graph-area">
-                <div class="graph-line"></div>
-                <div class="graph-labels">
-                  <span>01</span>
-                  <span>03</span>
-                  <span>06</span>
-                  <span>09</span>
-                  <span>12</span>
-                  <span>15</span>
-                  <span>18</span>
+            <div class="area-price-list">
+              <div
+                v-for="areaData in selectedProperty.resAreaPriceList"
+                :key="areaData.resArea"
+                class="area-price-item"
+              >
+                <div class="area-info">
+                  <span class="area-size-sqm">{{ areaData.resArea }}㎡</span>
+                  <span class="area-size-pyeong"
+                    >(약 {{ Math.round(parseFloat(areaData.resArea) / 3.3058) }}평)</span
+                  >
                 </div>
-              </div>
-              <div class="price-info">
-                <div class="current-price">
-                  <span class="price-label">현재 {{ selectedProperty.saleType }} 시세</span>
-                  <span class="price-value">
-                    {{ generatePropertyInfo(selectedProperty) }}
-                  </span>
-                </div>
-                <div class="price-change">
-                  <span class="change-label">전월 대비</span>
-                  <span class="change-value positive">+0.4억</span>
+
+                <div class="price-details-graph">
+                  <div class="price-row-graph">
+                    <span class="price-type sale">매매</span>
+                    <div class="price-bar-wrapper">
+                      <div
+                        class="price-bar"
+                        :style="
+                          getBarRangeStyle(
+                            areaData.resLowerAveragePrice,
+                            areaData.resTopAveragePrice
+                          )
+                        "
+                      ></div>
+                    </div>
+                    <span class="price-range-text">{{
+                      formatPriceRange(areaData.resLowerAveragePrice, areaData.resTopAveragePrice)
+                    }}</span>
+                  </div>
+                  <div class="price-row-graph">
+                    <span class="price-type lease">전세</span>
+                    <div class="price-bar-wrapper">
+                      <div
+                        class="price-bar"
+                        :style="
+                          getBarRangeStyle(
+                            areaData.resLowerAveragePrice1,
+                            areaData.resTopAveragePrice1
+                          )
+                        "
+                      ></div>
+                    </div>
+                    <span class="price-range-text">{{
+                      formatPriceRange(areaData.resLowerAveragePrice1, areaData.resTopAveragePrice1)
+                    }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2474,5 +2558,95 @@ onMounted(() => {
   font-size: 13px;
   color: #495057;
   font-weight: 500;
+}
+
+.fixed-date-label {
+  font-size: 12px;
+  font-weight: normal;
+  color: #666;
+  margin-left: 8px;
+}
+
+.area-price-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.area-price-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.area-info {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.area-size-sqm {
+  font-size: 15px;
+  font-weight: bold;
+  color: #333;
+}
+
+.area-size-pyeong {
+  font-size: 13px;
+  color: #666;
+}
+
+.price-details-graph {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.price-row-graph {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.price-type {
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-align: center;
+  color: white;
+}
+
+.price-type.sale {
+  background-color: #e57373;
+}
+
+.price-type.lease {
+  background-color: #64b5f6;
+}
+
+.price-bar-wrapper {
+  width: 100%;
+  height: 16px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.price-bar {
+  position: absolute;
+  height: 100%;
+  background-color: #4caf50;
+  border-radius: 4px;
+  opacity: 0.7;
+}
+
+.price-range-text {
+  font-weight: 500;
+  color: #333;
+  text-align: right;
+  white-space: nowrap;
 }
 </style>
