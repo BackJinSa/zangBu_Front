@@ -82,8 +82,15 @@ async function handleRegistryLookup() {
 
     if (response.ok) {
       const data = await response.json()
-      alert('초본 조회가 성공적으로 처리되었습니다.')
       console.log('초본 조회 응답:', data)
+
+      // 응답 데이터에서 텍스트로 "true"가 있는지 확인
+      const responseText = JSON.stringify(data).toLowerCase()
+      if (responseText.includes('"true"') || responseText.includes('true')) {
+        alert('성공했습니다')
+      } else {
+        alert('초본 조회 요청이 처리되었지만 결과를 확인해주세요.')
+      }
     } else {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
