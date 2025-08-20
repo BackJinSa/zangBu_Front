@@ -946,10 +946,6 @@ const getBarRangeStyle = (lower, upper) => {
                 }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">층수</span>
-                <span class="info-value">{{ selectedProperty.ho }}</span>
-              </div>
-              <div class="info-item">
                 <span class="info-label">상세 주소</span>
                 <span class="info-value">{{ selectedProperty.address }}</span>
               </div>
